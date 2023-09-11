@@ -1,0 +1,22 @@
+{
+  "name": "sm-plexmedia-backend",
+  "version": "1.0.0",
+  "description": "Casino Seamless Platform -- API Server",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Redapple2014/SM-PlexMedia-Backend.git"
+  },
+  "author": "Ankush Shome",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Redapple2014/SM-PlexMedia-Backend/issues"
+  },
+  "homepage": "https://github.com/Redapple2014/SM-PlexMedia-Backend#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
