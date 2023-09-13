@@ -1,0 +1,59 @@
+{
+    "dev": {
+        "mongo": {
+            "uri": "mongodb://mongo_user:^zTr57e5Wo6H@localhost:27017/sm_plex_media?authSource=admin"
+        },
+        "username": "mongo_user",
+        "password": "^zTr57e5Wo6H",
+        "database": "sm_plex_media",
+        "host": "localhost",
+        "port": "27017",
+        "dialect": "mongo",
+        "dialectOptions": {
+            "charset": "utf8mb4_unicode_ci"
+        },
+        "redis": {
+            "url": ""
+        },
+        "mysql": {
+            "username": "",
+            "password": "",
+            "database": "",
+            "host": "",
+            "port": "",
+            "dialect": "",
+            "datetime": ""
+        }
+    },
+    "stg": {
+        "mongo": {
+            "link": ""
+        },
+        "redis": {
+            "url": ""
+        },
+        "mysql": {
+            "username": "",
+            "password": "",
+            "database": "",
+            "host": "",
+            "port": "",
+            "dialect": "",
+            "datetime": ""
+        }
+    },
+    "prd": {
+        "username": "",
+        "password": "",
+        "database": "",
+        "host": "",
+        "port": "",
+        "dialect": "",
+        "dialectOptions": {
+            "charset": ""
+        },
+        "datetime": "",
+        "redis_url": "",
+        "mq_url": ""
+    }
+}
