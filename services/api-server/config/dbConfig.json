@@ -1,0 +1,50 @@
+{
+    "dev": {
+        "mongo": {
+            "uri": "mongodb://root:root@localhost:27017/?authMechanism=DEFAULT"
+        },
+        "redis": {
+            "url": ""
+        },
+        "mysql": {
+            "username": "",
+            "password": "",
+            "database": "",
+            "host": "",
+            "port": "",
+            "dialect": "",
+            "datetime": ""
+        }
+    },
+    "stg": {
+        "mongo": {
+            "link": ""
+        },
+        "redis": {
+            "url": ""
+        },
+        "mysql": {
+            "username": "",
+            "password": "",
+            "database": "",
+            "host": "",
+            "port": "",
+            "dialect": "",
+            "datetime": ""
+        }
+    },
+    "prd": {
+        "username": "",
+        "password": "",
+        "database": "",
+        "host": "",
+        "port": "",
+        "dialect": "",
+        "dialectOptions": {
+            "charset": ""
+        },
+        "datetime": "",
+        "redis_url": "",
+        "mq_url": ""
+    }
+}
