@@ -43,7 +43,7 @@ const startDB = (app, db_type) => {
 
       break;
     case "mongo":
-      // console.log(`Environment : ${process.env.NODE_ENV} Database : ${process.env.DATABASE_TYPE}`);
+      //console.log(`Environment : ${process.env.NODE_ENV} Database : ${process.env.DATABASE_TYPE}`);
       try {
         /**
          * database connection settings
