@@ -17,10 +17,9 @@ let gameSchema = new Schema({
         ref: 'categories',
         required : true,
     },
-    game_name: {
-        type: String,
-        required : true,
-    },
+    game_name: [
+        Object
+    ],
     game_image: {
         type: String,
         required : true,

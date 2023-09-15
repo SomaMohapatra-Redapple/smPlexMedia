@@ -1,13 +1,10 @@
 {
     "dev": {
-        "mongo": {
-            "uri": "mongodb://mongo_user:^zTr57e5Wo6H@localhost:27017/sm_plex_media?authSource=admin"
-        },
-        "username": "mongo_user",
-        "password": "^zTr57e5Wo6H",
+        "username": "root",
+        "password": "kzwjjQd7T#9Pc35*",
         "database": "sm_plex_media",
-        "host": "localhost",
-        "port": "27017",
+        "host": "18.162.166.6",
+        "port": "3000",
         "dialect": "mongo",
         "dialectOptions": {
             "charset": "utf8mb4_unicode_ci"

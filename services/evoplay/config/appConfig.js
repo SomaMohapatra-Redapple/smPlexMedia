@@ -14,7 +14,7 @@ appConfig.sessionExpTime = (120 * 120);
 
 appConfig.MSG_1000 ='Oops! Something went wrong...';
 appConfig.db = {
-    uri: `mongodb://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}?authSource=admin`
+    uri: `mongodb://${dbConfig.username}:${encodeURIComponent(dbConfig.password)}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}?authSource=admin`
 };
 
 module.exports = appConfig;

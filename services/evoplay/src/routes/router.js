@@ -10,7 +10,7 @@ const auth = require('../middlewares/auth');
 
 module.exports.setRouter = (app) => {
 
-  let baseUrl = `${appConfig.apiVersion}/pp/slot`;
+  let baseUrl = `${appConfig.apiVersion}/evoplay/slot`;
 
   //app.post(`${baseUrl}/:function`,validator.ppReqValidator, ppSlotController.handler);
 };
