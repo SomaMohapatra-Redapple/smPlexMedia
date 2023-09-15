@@ -1,34 +1,5 @@
 {
     "dev": {
-        "mongo": {
-            "uri": "mongodb://root:root@localhost:27017/sm_plex_media?authMechanism=DEFAULT"
-        },
-        "username": "root",
-        "password": "root",
-        "database": "sm_plex_media",
-        "host": "localhost",
-        "port": "27017",
-        "dialect": "mongo",
-        "dialectOptions": {
-            "charset": "utf8mb4_unicode_ci"
-        },
-        "redis": {
-            "url": ""
-        },
-        "mysql": {
-            "username": "",
-            "password": "",
-            "database": "",
-            "host": "",
-            "port": "",
-            "dialect": "",
-            "datetime": ""
-        }
-    },
-    "stg": {
-        "mongo": {
-            "link": ""
-        },
         "username": "root",
         "password": "kzwjjQd7T#9Pc35*",
         "database": "sm_plex_media",
@@ -37,18 +8,17 @@
         "dialect": "mongo",
         "dialectOptions": {
             "charset": "utf8mb4_unicode_ci"
-        },
-        "redis": {
-            "url": ""
-        },
-        "mysql": {
-            "username": "",
-            "password": "",
-            "database": "",
-            "host": "",
-            "port": "",
-            "dialect": "",
-            "datetime": ""
+        }
+    },
+    "stg": {
+        "username": "",
+        "password": "",
+        "database": "",
+        "host": "",
+        "port": "",
+        "dialect": "",
+        "dialectOptions": {
+            "charset": ""
         }
     },
     "prd": {
@@ -60,9 +30,6 @@
         "dialect": "",
         "dialectOptions": {
             "charset": ""
-        },
-        "datetime": "",
-        "redis_url": "",
-        "mq_url": ""
+        }
     }
 }
