@@ -29,6 +29,15 @@
         "mongo": {
             "link": ""
         },
+        "username": "root",
+        "password": "kzwjjQd7T#9Pc35*",
+        "database": "sm_plex_media",
+        "host": "18.162.166.6",
+        "port": "3000",
+        "dialect": "mongo",
+        "dialectOptions": {
+            "charset": "utf8mb4_unicode_ci"
+        },
         "redis": {
             "url": ""
         },

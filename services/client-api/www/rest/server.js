@@ -1,5 +1,4 @@
 const http = require('http');
-// const ws = require('../socket/ws');
 
 const startServer = (app) => {
     const server = http.createServer(app);
