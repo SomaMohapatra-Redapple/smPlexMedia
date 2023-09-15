@@ -1,0 +1,44 @@
+{
+  "dev": {
+    "username": "root",
+    "password": "kzwjjQd7T#9Pc35*",
+    "database": "hq",
+    "host": "18.162.166.6",
+    "port": "3000",
+    "dialect": "mongo",
+    "dialectOptions": {
+      "charset": "utf8mb4_unicode_ci"
+    },
+    "datetime": "yyyy-MM-dd HH:mm:ss",
+    "redis_url": "redis://localhost:6379",
+    "mq_url": "amqp://localhost:5672"
+  },
+  "stg": {
+    "username": "",
+    "password": "",
+    "database": "",
+    "host": "",
+    "port": "",
+    "dialect": "",
+    "dialectOptions": {
+      "charset": ""
+    },
+    "datetime": "",
+    "redis_url": "",
+    "mq_url": ""
+  },
+  "prd": {
+    "username": "",
+    "password": "",
+    "database": "",
+    "host": "",
+    "port": "",
+    "dialect": "",
+    "dialectOptions": {
+      "charset": ""
+    },
+    "datetime": "",
+    "redis_url": "",
+    "mq_url": ""
+  }
+}
