@@ -13,7 +13,7 @@ module.exports.setRouter = (app) => {
 //   app.post (`${baseUrl}/add_balance`,auth.isAuthorized,betController.add_balance);
 //   app.post (`${baseUrl}/withdraw_balance`,auth.isAuthorized,betController.withdraw_balance);
    app.post(`${baseUrl}/add_client`,clientController.add_client);
-   app.get(`${baseUrl}/all_client`,clientController.all_client);
+   app.post(`${baseUrl}/all_client`,clientController.all_client);
 //   app.post(`${baseUrl}/get_transaction_history`,betController.get_transaction_history);
 //   app.post(`${baseUrl}/save_multiple_bet`, auth.isAuthorized,betController.save_multiple_bet);
 //   app.get(`${baseUrl}/over_all_transaction_report`, auth.isAuthorized,betController.over_all_transaction_report);

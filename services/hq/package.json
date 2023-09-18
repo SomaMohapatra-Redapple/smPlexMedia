@@ -19,6 +19,7 @@
     "mongod": "^2.0.0",
     "mongodb": "^6.0.0",
     "mongoose": "^7.5.1",
+    "mongoose-paginate": "^5.0.3",
     "redis": "^4.6.8",
     "sequelize": "^6.33.0",
     "socket.io": "^4.7.2"

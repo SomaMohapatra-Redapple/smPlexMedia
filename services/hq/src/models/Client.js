@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-
-
-
+const paginate =  require('mongoose-paginate');
 
 const client = new Schema(
   
@@ -51,6 +49,7 @@ const client = new Schema(
   }
 );
 
+client.plugin(paginate);
 const Client = mongoose.model('Client', client);
 module.exports = Client;
 //module.exports = Client;
