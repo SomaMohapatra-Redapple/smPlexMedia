@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const paginate =  require('mongoose-paginate');
 
 const account = new Schema(
    
@@ -21,7 +22,11 @@ const account = new Schema(
       },
       user_name: {
         type: String
-      }
+      },
+      account_type: {
+        type: String,
+        enum: ["BT", "SEAMLESS"]
+      },
     },
     {
       freezeTableName: true,
@@ -31,6 +36,7 @@ const account = new Schema(
       modified_at : 'modified_at'
     }
   );
-  
+
+  account.plugin(paginate);
   const Account = mongoose.model('Account', account);
   module.exports = Account;

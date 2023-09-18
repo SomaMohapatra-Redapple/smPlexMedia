@@ -60,7 +60,6 @@ const startDB = (app,db_type)=>{
                 /**
                  * database connection settings
                  */
-                console.log("appConfig.db.uri",appConfig.db.uri);
                 mongoose.connect(appConfig.db.uri,{ useNewUrlParser: true});
                 //mongoose.set('debug', true);
                 
