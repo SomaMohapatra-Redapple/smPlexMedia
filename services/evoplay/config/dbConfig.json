@@ -11,15 +11,6 @@
         },
         "redis": {
             "url": ""
-        },
-        "mysql": {
-            "username": "",
-            "password": "",
-            "database": "",
-            "host": "",
-            "port": "",
-            "dialect": "",
-            "datetime": ""
         }
     },
     "stg": {
