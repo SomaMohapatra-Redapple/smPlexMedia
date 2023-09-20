@@ -1,6 +1,7 @@
 
 let responseLib = require('../libs/responseLib');
 let axios = require('axios');
+let clientValidator = require('../middlewares/validators/clientValidator');
 
 const handler  = async(req, res) => {
     try{
