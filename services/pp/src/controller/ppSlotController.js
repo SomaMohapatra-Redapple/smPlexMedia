@@ -66,21 +66,49 @@ let balance = async (req, res) => {
 
         let response = await axios(config);
 
-        let responseData = response.data.data;
-        let function_name = "balance";
-        // let responseCheck = ppClientSmValidator.ppSmValidator(function_name, responseData);
+        // checking the response has any error or not
+        if (response.data.err == false) {
+            let responseData = response.data.data;
+            let function_name = "balance";
 
-        // console.log(responseCheck)
+            let responseCheck = ppClientSmValidator.ppSmValidator(function_name, responseData);
 
-        let payLoad = {
-            "currency": response.data.data.currency,
-            "cash": response.data.data.cash,
-            "bonus": response.data.data.bonus,
-            "error": 0,
-            "description": "Success"
+            // checking the data format has any error or not
+            if (responseCheck[error] == false) {
+                let payLoad = {
+                    "currency": response.data.data.currency,
+                    "cash": response.data.data.amount,
+                    "bonus": response.data.data.bonus,
+                    "error": 0,
+                    "description": "Success"
+                }
+                return res.status(200).send(payLoad);
+
+            } else {
+                let payLoad = {
+                    "currency": "",
+                    "cash": 0,
+                    "bonus": 0,
+                    "error": 1,
+                    "description": "error"
+                }
+
+                return res.status(200).send(payLoad);
+            }
+
+        } else {
+            let payLoad = {
+                "currency": "",
+                "cash": 0,
+                "bonus": 0,
+                "error": 1,
+                "description": "error"
+            }
+
+            return res.status(200).send(payLoad);
         }
 
-        return res.status(200).send(payLoad);
+
     } catch (error) {
         console.log(error.message);
         let payLoad = {

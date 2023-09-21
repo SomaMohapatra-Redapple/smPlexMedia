@@ -4,9 +4,8 @@ const appConfig = require('../../../config/appConfig');
 
 const clientSmBalanceSchema = Joi.object({
     currency: Joi.string().required(),
-    cash: Joi.number().required(),
-    bonus: Joi.number().required()
-    ,
+    amount: Joi.number().required().allow(0),
+    bonus: Joi.number().required().allow(0)
 });
 
 
@@ -19,7 +18,7 @@ let ppSmValidator = async (function_name, responseData) => {
                 value = await reqAuthValidateSchema.validate();
                 break;
             case "balance":
-                value = await reqAuthValidateSchema.validate();
+                value = await clientSmBalanceSchema.validate();
                 break;
             default:
                 value.error = true;
