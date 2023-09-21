@@ -4,7 +4,7 @@ const appConfig = require('../../../config/appConfig');
 
 const clientSmBalanceSchema = Joi.object({
     currency: Joi.string().required(),
-    amount: Joi.number().required().allow(0),
+    cash: Joi.number().required().allow(0),
     bonus: Joi.number().required().allow(0)
 });
 

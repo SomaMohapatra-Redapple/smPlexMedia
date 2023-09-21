@@ -57,11 +57,14 @@ let balance = async (req, res) => {
         let acountDetails = await AccountsTechnicalsModel.find({ client_id: `650ad4f9a08fe4a5e828815c`, account_id: `650ad363a08fe4a5e8288155` }).lean();
 
         let config = {
-            method: 'get',
-            url: `${acountDetails[0].service_endpoint}/user-balance`,
+            method: 'post',
+            url: `${acountDetails[0].service_endpoint}/user-balance?function=balance`,
             headers: {
                 'Content-Type': 'application/json',
             },
+            data : {
+                "user_id": "1234567890"
+            }
         };
 
         let response = await axios(config);
@@ -71,13 +74,13 @@ let balance = async (req, res) => {
             let responseData = response.data.data;
             let function_name = "balance";
 
-            let responseCheck = ppClientSmValidator.ppSmValidator(function_name, responseData);
+            let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
             // checking the data format has any error or not
-            if (responseCheck[error] == false) {
+            if (responseCheck.error == false) {
                 let payLoad = {
                     "currency": response.data.data.currency,
-                    "cash": response.data.data.amount,
+                    "cash": response.data.data.cash,
                     "bonus": response.data.data.bonus,
                     "error": 0,
                     "description": "Success"
