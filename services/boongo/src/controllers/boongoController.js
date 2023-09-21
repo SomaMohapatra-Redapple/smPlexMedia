@@ -2,7 +2,8 @@
 let responseLib = require('../libs/responseLib');
 let axios = require('axios');
 let clientValidator = require('../middlewares/validators/clientValidator');
-
+const mongoose = require('mongoose');
+const AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
 const handler  = async(req, res) => {
     try{
         let response;
@@ -37,9 +38,12 @@ const handler  = async(req, res) => {
 
 const getbalance = async(data) => {
     try {
+
+        let acountDetails = await AccountsTechnicalsModel.find({ client_id: `650ad4f9a08fe4a5e828815c`, account_id: `650ad363a08fe4a5e8288155` }).lean();
+
         let config = {
             method: 'get',
-            url: 'http://localhost:5008/api/v1/client-api/user-balance',
+            url: `${acountDetails[0].service_endpoint}/user-balance`,
             headers: {
                 'Content-Type': 'application/json',
             },
