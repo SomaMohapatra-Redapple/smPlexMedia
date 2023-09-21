@@ -3,39 +3,26 @@
  * Module Dependencies
  */
 const { v4: uuidv4 } = require('uuid');
-const mongoose = require('mongoose'),
-    Schema = mongoose.Schema;
-
 const smObj = require('../../../../SMDB/dbObject');
+const mongoose = require('mongoose'),
+  Schema = mongoose.Schema;
 
-// let accountSchema = new Schema({
-//     client_id: {
-//         type: Schema.Types.ObjectId,
-//         ref: 'clients'
-//     },
-//     username: {
-//         type: String,
-//         default : null,
-//     },
-//     password: {
-//         type: String,
-//         default : null,
-//     },
-//     status: {
-//         type: String,
-//         default : "online",
-//         required : true,
-//     },
-//     created_at: {
-//         type: Date,
-//         default: ""
-//     },
-//     updated_at: {
-//         type: Date,
-//         default: ""
-//     }
-// })
-smObj.Account.client_id.type = Schema.Types.ObjectId;
+
+function modifyObjectForObjectId(obj) {
+  for (const key in obj) {
+    if (!obj[key].hasOwnProperty('type') && typeof obj[key] === 'object' && obj[key] !== null) {
+      modifyObjectForObjectId(obj[key]);
+    } else {
+      if (obj[key].hasOwnProperty('isObjectId') && obj[key].isObjectId === true) {
+        obj[key].type = Schema.Types.ObjectId;
+        delete obj[key].isObjectId;
+      }
+    }
+  }
+}
+
+modifyObjectForObjectId(smObj);
+
 let accountSchema = new Schema(smObj.Account);
 
 mongoose.model('Accounts', accountSchema);
