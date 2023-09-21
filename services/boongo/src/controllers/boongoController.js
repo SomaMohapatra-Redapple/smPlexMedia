@@ -42,27 +42,42 @@ const getbalance = async(data) => {
         let acountDetails = await AccountsTechnicalsModel.find({ client_id: `650ad4f9a08fe4a5e828815c`, account_id: `650ad363a08fe4a5e8288155` }).lean();
 
         let config = {
-            method: 'get',
+            method: 'post',
             url: `${acountDetails[0].service_endpoint}/user-balance`,
             headers: {
                 'Content-Type': 'application/json',
             },
-            // data: data
+            data: {
+                user_id : 'yudn2mak3lsmj0kgkdmd91'
+            }
         };
 
         let response = await axios(config);
         // console.log(response)
 
-        // let payLoad = { "currency": response.data.data.currency, "cash": response.data.data.cash, "bonus": 0, "error": 0, "description": "Success" }
+        let validation = await clientValidator.validateResponse(response.data.data, 'balance');
 
-        return {
-            "uid": data.uid,
-            "balance": {
-                "value": parseFloat(response.data.data.cash.toFixed(2)),
-                "version": 0
-            },
-            "wallet_time": 0,
-            "server_time": 0
+        if(validation.error === false){
+            return {
+                "uid": data.uid,
+                "balance": {
+                    "value": parseFloat(response.data.data.cash.toFixed(2)),
+                    "version": 0
+                },
+                "wallet_time": 0,
+                "server_time": 0
+            }
+        }
+        else{
+            return {
+                "uid": data.uid,            
+                "error": {
+                    "code": "FATAL_ERROR",       
+                    "message": `${validation.message}`     
+                },
+                "wallet_time": 0,     
+                "server_time": 0      
+            }
         }
     } catch (error) {
         return {
