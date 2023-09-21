@@ -4,7 +4,7 @@ let PlayerModel = mongoose.model('Player');
 
 let userBalance = (req, res) => {
     try {
-        // let findUserBalance = PlayerModel.find({ : `${req.body.country_code}`, mobile: `${req.body.mobile}` }).lean();
+        // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
 
         let payLoad = {
             currency: "kwr",
