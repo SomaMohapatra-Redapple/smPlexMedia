@@ -3,8 +3,8 @@ const Joi = require('joi').extend(require('@joi/date'));
 
 
 const clientGetBalanceValidateSchema = Joi.object({
-    cash: Joi.string().required(),
-});
+    cash: Joi.number().required().allow(0),
+}).unknown();
 
 let clientResponseValidator = async (data, function_name) => {
 
@@ -35,7 +35,7 @@ let clientResponseValidator = async (data, function_name) => {
             console.log('Err Value : ', value)
             return {
                 error : true,
-                message : value,
+                message : value.error,
             }
 
         } else {
@@ -59,6 +59,6 @@ let clientResponseValidator = async (data, function_name) => {
 
 
 module.exports = {
-    validateResponse: clientGetBalanceValidateSchema
+    validateResponse: clientResponseValidator
 }
 
