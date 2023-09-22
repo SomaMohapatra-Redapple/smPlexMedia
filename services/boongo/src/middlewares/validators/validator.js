@@ -17,6 +17,17 @@ const boongoGetBalanceValidateSchema = Joi.object({
     })
 });
 
+const boongoLoginValidateSchema = Joi.object({
+    name: Joi.string().required(),
+    uid: Joi.string().required(),
+    timestamp: Joi.date().iso(),
+    session: Joi.string().required(),
+    args: Joi.object({
+        token: Joi.string().required(),
+        game: Joi.string().required(),
+    })
+});
+
 
 let boongoReqValidator = async (req, res, next) => {
 
@@ -28,7 +39,7 @@ let boongoReqValidator = async (req, res, next) => {
 
                 switch (req.body.name) {
                     case "login":
-                        value = await boongoReqValidateSchema.validate(req.body);
+                        value = await boongoLoginValidateSchema.validate(req.body);
                         break;
                     case "transaction":
                         value = await boongoReqBetValidateSchema.validate(req.body);

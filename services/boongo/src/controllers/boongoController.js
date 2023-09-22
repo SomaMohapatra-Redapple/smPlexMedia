@@ -37,6 +37,10 @@ const handler  = async(req, res) => {
     }
 }
 
+const login = async(data) => {
+    
+}
+
 const getbalance = async(data) => {
     const serverStartTime = new Date();
     try {
