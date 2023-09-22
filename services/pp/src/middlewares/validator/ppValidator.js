@@ -225,11 +225,16 @@ let ppReqValidator = async (req, res, next) => {
 
 
         if (value.hasOwnProperty('error')) {
-            console.log('Err Value : ', value)
+            console.log('Err Value : ', value);
+
+            // const errArr = {
+            //     "status": "error",
+            //     "data": { "scope": "user", "no_refund": 1, "message": "Invalid request parameter" }
+            // }
 
             const errArr = {
-                "status": "error",
-                "data": { "scope": "user", "no_refund": 1, "message": "Invalid request parameter" }
+                error: 7,
+                description: "Bad parameters in the request, please check post parameters."
             }
             res.status(200).send(errArr);
 
@@ -238,12 +243,18 @@ let ppReqValidator = async (req, res, next) => {
         }
 
     } catch (err) {
-
         console.log('pp validation catch error :', err.message);
+
+        // const errArr = {
+        //     status: "error",
+        //     data: { "scope": "user", "no_refund": 1, "message": "Invalid request parameter" }
+        // }
+
         const errArr = {
-            status: "error",
-            data: { "scope": "user", "no_refund": 1, "message": "Invalid request parameter" }
+            error: 120,
+            description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
         }
+
         res.status(200).send(errArr);
     }
 }
