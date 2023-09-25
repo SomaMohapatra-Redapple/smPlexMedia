@@ -5,17 +5,38 @@ const Joi = require('joi').extend(require('@joi/date'));
 
 const customLoginValidateSchema = Joi.object({
     event_id: Joi.string()
-    .required(),
-    username: Joi.string()
+    ,
+    user_name: Joi.string()
         .required(),
     password: Joi.string()
         .max(20)
         .required()
         // source_type: Joi.number().required()
 });
+const addClientValidationSchema = Joi.object({
+    
+        //client_id: Joi.string().required(),
 
-const customAdminLoginValidateSchema = Joi.object({
-    username: Joi.string()
+      password: Joi.string()
+        .required()
+        .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
+      e_mail: Joi.string().email().required(),
+      status: Joi.string().required(),
+      environment: Joi.string().required(),
+      client_name: Joi.string().required(),
+      user_name: Joi.string().required(),
+      updated_by: Joi.string().required(),
+      contact: Joi.string()
+        .min(10)
+        .max(13)
+        .pattern(/^[0-9]+$/)
+        .required()
+   
+
+})
+
+const AdminLoginValidateSchema = Joi.object({
+    user_name: Joi.string()
         .required(),
     password: Joi.string()
         .max(20)
@@ -162,9 +183,29 @@ let loginValidate = async(req, res, next) => {
         res.send(apiResponse)
     }
 }
+
+let addClient = async(req,res,next)=>{
+    try{
+        const value = await addClientValidationSchema.validate(req.body);
+        if(value.hasOwnProperty('error')){
+        throw new Error(value.error);
+    }
+    else{
+        next();
+    }
+
+    }
+    catch(err){
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+
+    }
+}
+
 let adminloginValidate = async(req, res, next) => {
     try {
-        const value = await customAdminLoginValidateSchema.validate(req.body);
+        const value = await AdminLoginValidateSchema.validate(req.body);
         if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
         } else {
@@ -361,6 +402,7 @@ let deleteEventValidate = async(req, res, next) => {
 
 module.exports = {
     loginValidate: loginValidate,
+    addClient : addClient,
     adminloginValidate:adminloginValidate,
     adminRegisterValidate: adminRegisterValidate,
     customRegisterValidate: customRegisterValidate,
