@@ -2,20 +2,49 @@ const responseLib = require('../libs/responseLib');
 const token = require('../libs/tokenLib');
 const check = require('../libs/checkLib');
 const appConfig = require('../../config/appConfig');
+const controller = require('../controllers/commonController'); 
 
 let isAuthorized = async (req, res, next) => {
   try{
-    if (req.header('token') && !check.isEmpty(req.header('token'))) {
-      let decoded = await token.verifyClaimWithoutSecret(req.header('token'));
-      req.user = decoded.data;
+    const tokenStr = req.body.args.token;
+    const uid = req.body.uid;
+    const mode = "REAL";
+    let tokenValidate = tokenStr.includes('-ucd-');
+
+    if (tokenValidate == false) {
+      let apiResponse = {
+        uid: uid,
+        error: {
+          code: 'INVALID_TOKEN'
+        }
+      }
+      res.status(403)
+      res.send(apiResponse)
+    }
+    let playerToken = tokenStr.split("-ucd-");
+    let usercode = playerToken[1];
+    const userdtls = await controller.checkUsercodeExists(usercode);
+
+    if (userdtls) {
       next();
-    } else {
-      let apiResponse = responseLib.generate(true,'AuthorizationToken Is Missing In Request',null);
+    }
+    else{
+      let apiResponse = {
+        uid: uid,
+        error: {
+          code: 'INVALID_TOKEN'
+        }
+      }
       res.status(403)
       res.send(apiResponse)
     }
   }catch(err){
-    let apiResponse = responseLib.generate(true,err.message,null);
+    let apiResponse = {
+      uid: req.body.uid,
+      error: {
+        code: 'INVALID_TOKEN'
+      }
+    }
     res.status(403)
     res.send(apiResponse)
   }

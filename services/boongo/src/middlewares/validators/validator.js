@@ -60,12 +60,6 @@ let boongoReqValidator = async (req, res, next) => {
                 break;
 
             case "getGameUrl":
-
-                // value = await getGameUrlHeaderValidateSchema.validate(req.headers);
-
-                // if (value.hasOwnProperty('error')) {
-                //     break;
-                // }
                 console.log('====>>', req);
                 value = await getGameUrlValidateSchema.validate(req.body);
                 break;
@@ -77,11 +71,14 @@ let boongoReqValidator = async (req, res, next) => {
 
         if (value.hasOwnProperty('error')) {
             console.log('Err Value : ', value)
-            const errArr = {
-                "status": "error",
-                "data": { "scope": "user", "no_refund": 1, "message": "Invalid request parameter" }
-            }
-            res.status(200).send(errArr);
+            let apiResponse = {
+                uid: uid,
+                error: {
+                  code: 'FATAL_ERROR'
+                }
+              }
+            res.status(200)
+            res.send(apiResponse)
 
         } else {
             next();
@@ -90,11 +87,14 @@ let boongoReqValidator = async (req, res, next) => {
     } catch (err) {
 
         console.log('Boongo validation catch error :', err.message);
-        const errArr = {
-            status: "error",
-            data: { "scope": "user", "no_refund": 1, "message": "Invalid request parameter" }
-        }
-        res.status(200).send(errArr);
+        let apiResponse = {
+            uid: uid,
+            error: {
+              code: 'FATAL_ERROR'
+            }
+          }
+        res.status(200)
+        res.send(apiResponse)
     }
 }
 
