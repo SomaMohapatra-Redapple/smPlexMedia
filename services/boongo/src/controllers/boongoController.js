@@ -2,7 +2,10 @@
 let responseLib = require('../libs/responseLib');
 let axios = require('axios');
 let clientValidator = require('../middlewares/validators/clientValidator');
-
+const mongoose = require('mongoose');
+const server = require('../../www/rest/server');
+const AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
+const commonController = require('../controllers/commonController'); 
 const handler  = async(req, res) => {
     try{
         let response;
@@ -35,43 +38,110 @@ const handler  = async(req, res) => {
     }
 }
 
-const getbalance = async(data) => {
+const login = async(data) => {
     try {
+        let uid = data.uid;
+    const mode = "REAL";
+    let playerToken = data.args.token.split("-ucd-");
+    let usercode = playerToken[1];
+    const userdtls = await commonController.checkUsercodeExists(usercode);
+    let acountDetails = await AccountsTechnicalsModel.find({account_id: userdtls.account_id }).lean();
+    
+    let config = {
+        method: 'post',
+        url: `${acountDetails[0].service_endpoint}/user-balance?function=balance`,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        data: {
+            user_id : userdtls.account_user_id                       // YMDJD12
+        }
+    };
+
+    let response = await axios(config);
+
+    let user_balance = response.data.data.cash;
+    let version = Math.floor(Date.now() / 1000);
+    let currency = response.data.data.currency;
+
+    return {
+        uid: uid,
+        player: {
+          id: usercode,
+          currency: currency,
+          mode: mode,
+          is_test: false,
+        },
+        balance: {
+          value: parseFloat(user_balance).toFixed(2),
+          version: version
+        },
+        tag: ''
+      }
+    } catch (error) {
+        console.log(error.message);
+        return {
+            uid: uid,
+            error: {
+              code: 'INVALID_TOKEN'
+            }
+          }
+    }
+}
+
+const getbalance = async(data) => {
+    // const serverStartTime = new Date();
+    try {
+        let acountDetails = await AccountsTechnicalsModel.find({ client_id: `650ad4f9a08fe4a5e828815c`, account_id: `650ad363a08fe4a5e8288155` }).lean();
+        // const walletStartTime = new Date();
+
         let config = {
-            method: 'get',
-            url: 'http://localhost:5008/api/v1/client-api/user-balance',
+            method: 'post',
+            url: `${acountDetails[0].service_endpoint}/user-balance?function=balance`,
             headers: {
                 'Content-Type': 'application/json',
             },
-            // data: data
+            data: {
+                user_id : 'yudn2mak3lsmj0kgkdmd91'
+            }
         };
 
         let response = await axios(config);
         // console.log(response)
+        // const walletEndTime = new Date();
+        // const walletTimeDifference = walletEndTime - walletStartTime;
 
-        // let payLoad = { "currency": response.data.data.currency, "cash": response.data.data.cash, "bonus": 0, "error": 0, "description": "Success" }
+        let version = Math.floor(Date.now() / 1000);
 
-        return {
-            "uid": data.uid,
-            "balance": {
-                "value": parseFloat(response.data.data.cash.toFixed(2)),
-                "version": 0
-            },
-            "wallet_time": 0,
-            "server_time": 0
+        let validation = await clientValidator.validateResponse(response.data.data, 'balance');
+
+        if(validation.error === false){
+            return {
+                "uid": data.uid,
+                "balance": {
+                    "value": parseFloat(response.data.data.cash.toFixed(2)),
+                    "version": version
+                }
+            }
+        }
+        else{
+            return {
+                "uid": data.uid,            
+                "error": {
+                    "code": "FATAL_ERROR"  
+                }
+            }
         }
     } catch (error) {
         return {
             "uid": data.uid,            
             "error": {
-                "code": "FATAL_ERROR",       
-                "message": error.message     
-            },
-            "wallet_time": 0,     
-            "server_time": 0      
+                "code": "FATAL_ERROR"  
+            }
         }
     }
 }
+
 
 module.exports = {
     handler: handler ,
