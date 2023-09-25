@@ -3,6 +3,8 @@ let ppClientSmValidator = require('../middlewares/validator/ppClientSmValidator'
 let axios = require("axios").default;
 let mongoose = require('mongoose');
 let AccountsTechnicalsModel = mongoose.model('AccountsTechnicals')
+let PlayerModel = mongoose.model('Player');
+let checkLib = require('../libs/checkLib');
 
 
 //// This the function handler
@@ -16,7 +18,7 @@ let handler = async (req, res) => {
                 response = await getGameUrl();
                 break;
             case "authenticate":
-                response = await authenticate();
+                response = await authenticate(req, res);
                 break;
             case "balance":
                 response = await balance(req, res);
@@ -44,80 +46,48 @@ let getGameUrl = async () => {
     }
 }
 
-// let authenticate = async () => {
-//     try {
-//         const tokenStr = req.body.token;
-//         const hash = req.body.hash;
-//         let playerToken = tokenStr.split("-ucd-");
-//         let usercode = !check.isEmpty(playerToken[1]) ? playerToken[1] : '';
+let authenticate = async () => {
+    try {
+        const tokenStr = req.body.token;
+        const hash = req.body.hash;
+        const providerId = req.body.providerId;
 
-//         const tokenValid = await isTokenvalid(req.body);
+        const tokenValid = await isTokenvalid(tokenStr);
 
-//         if (check.checkObjectLen(tokenValid) > 0) {
-//             return tokenValid;
-//         }
+        if (tokenValid.error == 0) {
+            let splitToken = tokenStr.split("-ucd-");
+            let usercode = splitToken[1];
+            let playerDetails = await PlayerModel.findOne({ _id: usercode }).lean();
 
-//         /*** get user detail ***/
-//         const userdtls = await commonController.checkUsercodeExists(usercode, tokenStr);
+        } else {
+            res.status(200).send(tokenValid)
+        }
 
-//         const client_user_id = userdtls.client_user_id;
-//         const client_id = userdtls.client_id;
+        let payLoad = {
+            status: 200,
+            userId: usercode,
+            currency: userdtls.currency,
+            cash: balance,
+            bonus: 0,
+            token: tokenStr,
+            country: 'US',
+            jurisdiction: setdata.jurisdiction,
+            error: 0,
+            description: "Success"
+        }
 
-//         const checkHAshValid = await isHashvalid(bodyData, client_id);
+        return res.status(200).send(payLoad);
 
-//         if (check.checkObjectLen(checkHAshValid) > 0) {
-//             return checkHAshValid;
-//         }
+    } catch (error) {
+        console.log(error.message);
+        const errArr = {
+            error: 120,
+            description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
+        }
 
-//         /* ********** Get updated wallet balance ********* */
-//         let result = await walletController.checkOtherBT(usercode, userdtls.client_id, this.provider_id)
-
-//         let balance = parseFloat(userdtls.available_balance).toFixed(2);
-
-//         if (result.error == 0) {
-
-//             balance = parseFloat(result.available_balance).toFixed(2);
-//         }
-
-//         if (balance) {
-//             await commonController.updateLastPlayedProvider(usercode, userdtls.client_id, this.provider_id, "SM")
-//         }
-//         /* ********************************************** */
-
-//         const userfieldval = await commonController.getUserDetailsByUserId(client_user_id, client_id);
-//         let setdata = {};
-
-//         if (userfieldval) {
-//             userfieldval.forEach(element => {
-//                 setdata[element.field_key] = element.field_value;
-//             });
-//         }
-
-//         let payLoad = {
-//             status: 200,
-//             userId: usercode,
-//             currency: userdtls.currency,
-//             cash: balance,
-//             bonus: 0,
-//             token: tokenStr,
-//             country: 'US',
-//             jurisdiction: setdata.jurisdiction,
-//             error: 0,
-//             description: "Success"
-//         }
-
-//         return res.status(200).send(payLoad);
-           
-//     } catch (error) {
-//         console.log(error.message);
-//         const errArr = {
-//             error: 120,
-//             description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
-//         }
-
-//         return res.status(200).send(payLoad);
-//     }
-// }
+        return res.status(200).send(payLoad);
+    }
+}
 
 let balance = async (req, res) => {
     try {
@@ -202,39 +172,97 @@ let bet = async (req, res) => {
 }
 
 
-/*************************************************************************************************/ /* This is the required functions for  */
+/*************************************************************************************************/ /* This is the required functions for API's */
 
+let userBalance = async () => {
+    let acountDetails = await AccountsTechnicalsModel.find({ client_id: `650ad4f9a08fe4a5e828815c`, account_id: `650ad363a08fe4a5e8288155` }).lean();
 
-let isTokenvalid = async (data) => {
+    let config = {
+        method: 'post',
+        url: `${acountDetails[0].service_endpoint}/user-balance?function=balance`,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        data: {
+            "user_id": "1234567890"
+        }
+    };
+
+    let response = await axios(config);
+}
+
+let checkUserExists = async (data) => {
+
+}
+
+let isTokenvalid = async (tokenStr) => {
     let requestsend = {};
-    let tokenStr = (data.hasOwnProperty('token'))?data.token:'';
-    let userId = (data.userId) ? data.userId : '';
-    let tokenValidate = (data.hasOwnProperty('token'))?tokenStr.includes('-ucd-'):true;
-    let playerToken = tokenStr.split("-ucd-");
-    usercode = !check.isEmpty(playerToken[1]) ? playerToken[1] : userId;
-    const userdtls = (usercode != '') ? await commonController.checkUsercodeExists(usercode, tokenStr) : {};
-    let Status = '';
-    let code = '';
-  
-    if (tokenStr && tokenValidate == false) {
-      Status = 'Player authentication failed due to invalid, not found or expired token';
-      code = 4;
-      requestsend = await invalidError(code, Status)
-    } else if (Object.keys(userdtls).length < 1) {
-      Status = 'Player authentication failed due to invalid, not found or expired token';
-      code = 4;
-      requestsend = await invalidError(code, Status);
+    let tokenValidate = tokenStr.includes('-ucd-') ? true : false;
+
+    if (tokenValidate == true) {
+        let splitToken = tokenStr.split("-ucd-");
+        let userId = splitToken[1];
+        let checkUserId = checkLib.isEmpty(userId);
+
+        if (checkUserId == true) {
+            requestsend = {
+                error: 4,
+                description: 'Player authentication failed due to invalid, not found or expired token'
+            }
+        } else {
+            requestsend = {
+                error: 0,
+                description: 'This is valid Token'
+            }
+        }
     } else {
-      if (userId != '' && userdtls.usercode != userId) {
-        Status = "Player not found or is logged out. Should be returned in the response on any request sent by Pragmatic Play if the player can't be found or is logged out at Casino Operator's side";
-        code = 2;
-        requestsend = await invalidError(code, Status);
-      }
-  
+        requestsend = {
+            error: 4,
+            description: 'Player authentication failed due to invalid, not found or expired token'
+        }
     }
-  
+
     return requestsend;
-  }
+}
+
+let isHashvalid = async (parameter, client_id) => {
+
+    let reqhash = '';
+    let requestsend = {};
+    let setdata = {};
+    if (parameter.hasOwnProperty('hash')) {
+        reqhash = parameter.hash;
+        delete parameter.hash;
+    }
+
+
+    let provider_params = await commonController.get_provider_params(client_id, this.provider_id, {}, 'SM', 'SLOT');
+    provider_params.forEach(element => {
+        setdata[element.field_key] = element.field_value;
+    });
+
+    parameter = check.removeEmpty(parameter); // removing blank values
+
+    parameter = check.sortObj(parameter); // sorting object
+    let finalstring = httpBuildQuery(parameter) + setdata.key; //converting json to string
+    let md5hash = check.createMd5hash(finalstring);
+    console.log('createdmd5====>>', md5hash);
+    console.log('requestedmd5===>', reqhash);
+
+    if (md5hash != reqhash) {
+        let errmsg = "Invalid hash code. Should be returned in the response on any request sent by Pragmatic Play if the hash code validation is failed.";
+        requestsend = await invalidError(5, errmsg);
+    }
+
+    return requestsend;
+}
+
+let invalidError = async (errocode, description) => {
+    return {
+        error: errocode,
+        description: description
+    }
+}
 
 module.exports = {
     handler: handler
