@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const paginate =  require('mongoose-paginate');
 
-const account_technical = new Schema(
+const admin = new Schema(
   
   {
     client_id: {
@@ -19,11 +18,7 @@ const account_technical = new Schema(
       type: String,
       enum: ["online", "offline"]
     },
-    environment: {
-        type: String,
-        enum: ["staging", "production"]
-      },
-    client_name: {
+    admin_name: {
       type: String,
       unique : true
     },
@@ -49,7 +44,5 @@ const account_technical = new Schema(
   }
 );
 
-account_technical.plugin(paginate);
-const Account_technical = mongoose.model('Account_technical', account_technical);
-module.exports = Account_technical;
-//module.exports = Client;
+const Admin = mongoose.model('Admin', admin);
+module.exports = Admin;
