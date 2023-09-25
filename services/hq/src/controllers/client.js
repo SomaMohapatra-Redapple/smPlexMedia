@@ -5,7 +5,7 @@ const responseMessage = require("../libs/responseMessage");
 const client = require("../services/client");
 const { AddClient, FindAllClient, FindSpecificClient } = client;
 
-//add client
+//add client by super admin
 let add_client = async (req, res, next) => {
   try {
     console.log("req.body.value", req.body);
@@ -29,6 +29,31 @@ let add_client = async (req, res, next) => {
     return next(e);
   }
 };
+
+//add client by client
+const add_client_by_client = async(req,res,next) =>{
+  try{
+    req.body.created_by = req.user.id;
+    const query = req.body;
+    const added_client = await AddClient(query)
+      .then((result) => {
+        res.status(200).send({
+          message: "client created",
+          result: result,
+        });
+      })
+      .catch((err) => {
+        res.status(400).send({
+          err: err.message,
+        });
+      });
+    console.log("added_client.error", added_client);
+
+  }
+  catch(e){
+    console.log("error",e);
+  }
+}
 
 //find all client
 let all_client = async (req, res, next) => {
@@ -113,4 +138,5 @@ module.exports = {
   add_client: add_client,
   all_client: all_client,
   log_in: log_in,
+  add_client_by_client :add_client_by_client
 };
