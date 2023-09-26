@@ -5,7 +5,7 @@
 const { v4: uuidv4 } = require('uuid');
 const mongoose = require('mongoose'),
     Schema = mongoose.Schema;
-
+const paginate =  require('mongoose-paginate');
 const smObj = require('../../../../SMDB/dbObject');
 
 function modifyObjectForObjectId(obj) {
@@ -37,6 +37,7 @@ mongoose.model('Accounts', accountSchema);
 mongoose.model('AccountsTechnicals', accountTechnicalsSchema);
 mongoose.model('Category', categorySchema);
 mongoose.model('Client', clientSchema);
+clientSchema.plugin(paginate);
 mongoose.model('Game', gameSchema);
 mongoose.model('Player', playerSchema);
 mongoose.model('Provider', providerSchema);

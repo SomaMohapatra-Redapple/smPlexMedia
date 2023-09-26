@@ -1,7 +1,10 @@
 //const ClientTable = require("../models/Client");
 const mongoose = require('mongoose');
+//const ClientTable = require('../../');
 const ClientTable = mongoose.model('Client');
-
+//const ClientTable = require('../models/models')
+const paginate =  require('mongoose-paginate');
+console.log("C",ClientTable);
 
 const AddClient = async (query) => {
   console.log("query", query);
