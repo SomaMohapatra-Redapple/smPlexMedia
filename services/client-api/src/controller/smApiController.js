@@ -21,6 +21,28 @@ let userBalance = (req, res) => {
     }
 }
 
+let authenticate = (req, res) => {
+    try {
+        // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
+
+        let payLoad = {
+            currency: "kwr",
+            cash: +1000,
+            bonus : +100,
+            country : "GB",
+            jurisdiction : "UK"
+        }
+
+        let apiResponse = responseLib.generate(false, "User Authenticated", payLoad);
+        res.status(200).send(apiResponse);
+
+    } catch (error) {
+        let apiResponse = responseLib.generate(true, error.message, {});
+        res.status(500).send(apiResponse);
+    }
+}
+
 module.exports = {
-    userBalance: userBalance
+    userBalance: userBalance,
+    authenticate: authenticate
 }
