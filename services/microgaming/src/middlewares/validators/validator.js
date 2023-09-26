@@ -2,27 +2,7 @@
 const Joi = require('joi').extend(require('@joi/date'));
 
 
-const microgamingGetBalanceValidateSchema = Joi.object({
-    name: Joi.string().required(),
-    uid: Joi.string().required(),
-    timestamp: Joi.date().iso(),
-    session: Joi.string().required(),
-    args: Joi.object({
-        token: Joi.string().required(),
-        game: Joi.string().required(),
-        player: Joi.object({
-            id: Joi.string().required(),
-            currency: Joi.string().required()
-        })
-    })
-});
-const authValidateSchema =  Joi.object({
-    req_id: Joi.string().required(),
-    timestamp: Joi.string().required(),
-    token: Joi.string().required()
-}).unknown();
-
-const balanceValidateSchema =  Joi.object({
+const mgGetBalanceValidateSchema = Joi.object({
     req_id: Joi.string().required(),
     timestamp: Joi.string().required(),
     token: Joi.string().required(),
@@ -30,8 +10,25 @@ const balanceValidateSchema =  Joi.object({
     account_id: Joi.string().required(),
     currency: Joi.string().required()
 }).unknown();
+const mgAuthValidateSchema = Joi.object({
+    req_id: Joi.string().required(),
+    timestamp: Joi.string().required(),
+    token: Joi.string().required()
+}).unknown();
 
-const transactionValidateSchema =  Joi.object({
+const mgLoginValidateSchema = Joi.object({
+    name: Joi.string().required(),
+    uid: Joi.string().required(),
+    timestamp: Joi.date().iso(),
+    session: Joi.string().required(),
+    args: Joi.object({
+        token: Joi.string().required(),
+        game: Joi.string().required(),
+    })
+});
+
+
+const mgTransactionValidateSchema =  Joi.object({
     req_id: Joi.string().required(),
     timestamp: Joi.string().required(),
     token: Joi.string().required(),
@@ -51,28 +48,11 @@ let microgamingReqValidator = async (req, res, next) => {
         let value = {};
         switch (req.params.function) {
 
-            case "callback":
-
-                switch (req.body.name) {
-                    case "login":
-                        value = await microgamingReqValidateSchema.validate(req.body);
-                        break;
-                    case "transaction":
-                        value = await microgamingReqBetValidateSchema.validate(req.body);
-                        break;
-                    case "rollback":
-                        value = await microgamingReqWinValidateSchema.validate(req.body);
-                        break;
-                    case "getbalance":
-                        value = await microgamingGetBalanceValidateSchema.validate(req.body);
-                        break;
-                    case "logout":
-                        value = await microgamingReqValidateSchema.validate(req.body);
-                        break;
-                    default:
-                        value.error = true;
-                        break;
-                }
+            case "balance":
+                value = await mgGetBalanceValidateSchema.validate(req.body);
+                break;
+            case "auth":
+                value = await mgAuthValidateSchema.validate(req.body);
                 break;
 
             case "getGameUrl":
@@ -115,6 +95,6 @@ let microgamingReqValidator = async (req, res, next) => {
 }
 
 module.exports = {
-    microgamingReqValidator: ReqValidator
+    microgamingReqValidator: microgamingReqValidator
 }
 

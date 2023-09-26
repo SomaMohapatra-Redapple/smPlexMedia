@@ -47,13 +47,13 @@ fs.readdirSync(schemaPath).forEach(function (file) {
 });
 
 // Bootstrap route
-// const routesPath = './src/routes';
-// fs.readdirSync(routesPath).forEach(function (file) {
-//   if (~file.indexOf('.js')) {
-//     let route = require(routesPath + '/' + file);
-//     route.setRouter(app);
-//   }
-// });
+const routesPath = './src/routes';
+fs.readdirSync(routesPath).forEach(function (file) {
+  if (~file.indexOf('.js')) {
+    let route = require(routesPath + '/' + file);
+    route.setRouter(app);
+  }
+});
 
 
 // Module route bootstrap

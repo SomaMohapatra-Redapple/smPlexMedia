@@ -17,6 +17,17 @@ const boongoGetBalanceValidateSchema = Joi.object({
     })
 });
 
+const boongoLoginValidateSchema = Joi.object({
+    name: Joi.string().required(),
+    uid: Joi.string().required(),
+    timestamp: Joi.date().iso(),
+    session: Joi.string().required(),
+    args: Joi.object({
+        token: Joi.string().required(),
+        game: Joi.string().required(),
+    })
+});
+
 
 let boongoReqValidator = async (req, res, next) => {
 
@@ -28,7 +39,7 @@ let boongoReqValidator = async (req, res, next) => {
 
                 switch (req.body.name) {
                     case "login":
-                        value = await boongoReqValidateSchema.validate(req.body);
+                        value = await boongoLoginValidateSchema.validate(req.body);
                         break;
                     case "transaction":
                         value = await boongoReqBetValidateSchema.validate(req.body);
@@ -49,12 +60,6 @@ let boongoReqValidator = async (req, res, next) => {
                 break;
 
             case "getGameUrl":
-
-                // value = await getGameUrlHeaderValidateSchema.validate(req.headers);
-
-                // if (value.hasOwnProperty('error')) {
-                //     break;
-                // }
                 console.log('====>>', req);
                 value = await getGameUrlValidateSchema.validate(req.body);
                 break;
@@ -66,11 +71,14 @@ let boongoReqValidator = async (req, res, next) => {
 
         if (value.hasOwnProperty('error')) {
             console.log('Err Value : ', value)
-            const errArr = {
-                "status": "error",
-                "data": { "scope": "user", "no_refund": 1, "message": "Invalid request parameter" }
-            }
-            res.status(200).send(errArr);
+            let apiResponse = {
+                uid: uid,
+                error: {
+                  code: 'FATAL_ERROR'
+                }
+              }
+            res.status(200)
+            res.send(apiResponse)
 
         } else {
             next();
@@ -79,11 +87,14 @@ let boongoReqValidator = async (req, res, next) => {
     } catch (err) {
 
         console.log('Boongo validation catch error :', err.message);
-        const errArr = {
-            status: "error",
-            data: { "scope": "user", "no_refund": 1, "message": "Invalid request parameter" }
-        }
-        res.status(200).send(errArr);
+        let apiResponse = {
+            uid: uid,
+            error: {
+              code: 'FATAL_ERROR'
+            }
+          }
+        res.status(200)
+        res.send(apiResponse)
     }
 }
 

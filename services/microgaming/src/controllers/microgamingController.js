@@ -1,24 +1,34 @@
 
 let responseLib = require('../libs/responseLib');
-let tokenLib = require('../libs/tokenLib');
+const timeLib = require('../libs/timeLib')
 let axios = require('axios');
+const mongoose = require('mongoose');
+const AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
 let clientValidator = require('../middlewares/validators/clientValidator');
+const commonController = require('./commonController');
+
 
 const handler  = async(req, res) => {
     try{
         let response;
-        switch (req.body.name) {
-            case "login":
-                response = await login(req.body);
+        console.log(req.params.function);
+        switch (req.params.function) {
+            case "auth":
+                response = await auth(req.body);
                 break;
-            case "getbalance":
+            case "balance":
                 response = await getbalance(req.body);
                 break;
             case "transaction":
-                response = await transaction(req.body);
-                break;
-            case "auth":
-                response = await auth(req.body);
+                if (req.body.category == 'WAGER') {
+                    response = await bet(req.body);
+                } else if (req.body.category == 'PAYOUT') {
+                    response = await win(req.body);
+                } else if (req.body.category == 'REFUND') {
+                    response = await refund(req.body);
+                } else {
+                    response = {}
+                }
                 break;
             case "getGameUrl":
                 response = await getGameUrl(req.body);
@@ -27,7 +37,7 @@ const handler  = async(req, res) => {
                 response = {}
                 break;
         }
-        res.status(200).json(response);
+        res.status(200).send(response);
 
     }
     catch(error){
@@ -36,77 +46,65 @@ const handler  = async(req, res) => {
     }
 }
 
-const getbalance = async(data) => {
+// auth
+let auth = async(req) => {
+    //console.log(req);
     try {
-        let config = {
-            method: 'get',
-            url: 'http://localhost:5008/api/v1/client-api/user-balance',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            // data: data
-        };
-
-        let response = await axios(config);
-        // console.log(response)
-
-        // let payLoad = { "currency": response.data.data.currency, "cash": response.data.data.cash, "bonus": 0, "error": 0, "description": "Success" }
-
-        return {
-            "uid": data.uid,
-            "balance": {
-                "value": parseFloat(response.data.data.cash.toFixed(2)),
-                "version": 0
-            },
-            "wallet_time": 0,
-            "server_time": 0
-        }
-    } catch (error) {
-        return {
-            "uid": data.uid,            
-            "error": {
-                "code": "FATAL_ERROR",       
-                "message": error.message     
-            },
-            "wallet_time": 0,     
-            "server_time": 0      
-        }
-    }
-}
-
-// authentication
-const auth= async(data)=>{
-    try{
         let start = process.hrtime();
         let playerTokenStr = req.token;
         let playerTokeneExplode = playerTokenStr.split("-ucd-");
         let user_code = playerTokeneExplode[1];
-        console.log("TIMESTAMP: ",timeLib.kstDate());
-        const userdtls = await commonController.checkUsercodeExists(user_code);// I have to check it
-        let balance = await getbalance(data.user_id)// i have to check it
-        let available_balence = 0;
-        if(balance.error == 0){
-            available_balence = parseFloat(balance.available_balence).toFixed(2);
-        }else{
-            available_balence = parseFloat(userdtls.available_balence).toFixed(2);
+        console.log("TIMESTAMP--->", timeLib.kstDatetime());
+        const userdtls = await commonController.checkUsercodeExists(user_code);
+        let accountDetails = await AccountsTechnicalsModel.find({account_id:userdtls.account_id}).lean()
+
+        /* ********** Get updated wallet balance ********* */
+       // let result = await walletController.checkOtherBT(user_code, userdtls.client_id, this.provider_id)
+       let config = {
+        method: "POST",
+        url: `${accountDetails[0].service_endpoint}/user-balance?function=balance`,
+        headers:{
+            'Content-Type': 'application/json',
+        },
+        data:{
+            user_id: userdtls.account_user_id
         }
-        // if(available_balence){
-        //     await commonController.updateLastPlayedProvider(user_code,userdtls.client_id,this.provider_id,"SM")
+    };
+    let response = await axios(config);
+
+    let available_balance = response.data.data.cash;
+
+        // let available_balance = 0;
+
+        // if(result.error == 0)
+        //     available_balance = parseFloat(result).toFixed(2);
+        // // if (result.error == 0) {
+
+        //     available_balance = parseFloat(result.available_balance).toFixed(2);
+        // } else {
+
+        //     available_balance = parseFloat(userdtls.available_balance).toFixed(2);
 
         // }
+        // if (available_balance) {
+        //     await commonController.updateLastPlayedProvider(user_code, userdtls.client_id, this.provider_id, "SM")
+        // }
+        /* ********************************************** */
+
+
         if (Object.keys(userdtls).length !== 0) {
             let end = process.hrtime(start);
             let result = {
                 req_id: req.req_id,
-                timestamp: timeLib.kstDatetime(),
                 processing_time: end[0],
-                token: await tokenLib.generateToken(userdtls) ,
+                token: req.token,
                 username: user_code,
                 account_ext_ref: user_code,
                 balance: Math.round(available_balance),
                 country: 'KR',
-                currency: userdtls.currency,
-                lang: 'en'
+                currency: userdtls.currency_code,
+                lang: 'en',
+                timestamp: timeLib.kstDatetime()
             }
 
             return {
@@ -129,9 +127,7 @@ const auth= async(data)=>{
                 result: result
             }
         }
-
-
-    }catch(err){
+    } catch (err) {
         console.log(`ERROR ${err}`);
         let result = {
             req_id: req.req_id,
@@ -148,22 +144,96 @@ const auth= async(data)=>{
     }
 }
 
-// login
-const login = async(req, res) => {
+// get balance method
+const getbalance = async(req) => {
     try {
+        let start = process.hrtime();
+        let playerTokenStr = req.token;
+        let playerTokeneExplode = playerTokenStr.split("-ucd-");
+        let user_code = playerTokeneExplode[1];
 
-
-    }catch(err){
-
+        //console.log("TIMESTAMP--->", timeLib.kstDatetime());
+        const userdtls = await commonController.checkUsercodeExists(user_code);
+        if(Object.keys(userdtls).length != 0) {
+            let accountDetails = await AccountsTechnicalsModel.find({account_id:userdtls.account_id}).lean();
+            let config = {
+                method: "POST",
+                url: `${accountDetails[0].service_endpoint}/user-balance?function=balance`,
+                headers:{
+                    'Content-Type': 'application/json',
+                },
+                data:{
+                    user_id: userdtls.account_user_id
+                }
+            };
+            let response = await axios(config);
+            console.log(response.data.data)
+            let validation = await clientValidator.validateResponse(response.data.data,'balance');
+            // let payLoad = { "currency": response.data.data.currency, "cash": response.data.data.cash, "bonus": 0, "error": 0, "description": "Success" }
+            if(validation.error === false){
+                let end = process.hrtime(start);
+                let result = {
+                    req_id: req.req_id,
+                    timestamp: timeLib.kstDatetime(),
+                    processing_time: end[0],
+                    token: req.token,
+                    balance: Math.round(response.data.data.cash)
+                }
+                return {
+                    error: 0,
+                    status_code: 200,
+                    result: result
+                }
+            }else{
+                return {
+                    "uid": req.uid,            
+                    "error": {
+                        "code": "FATAL_ERROR"  
+                    }
+                }
+            }
+        }else{
+            let end = process.hrtime(start);
+            let result = {
+                req_id: req.req_id,
+                processing_time: end[0],
+                token: req.token,
+                timestamp: timeLib.kstDatetime(),
+                err_desc: 'Invalid token or expired token'
+            }
+            return {
+                error: 1,
+                status_code: 400,
+                result: result
+            } 
+        }
+    } catch (error) {
+        return {
+            "uid": req.uid,            
+            "error": {
+                "code": "FATAL_ERROR",       
+                "message": error.message     
+            }      
+        }
     }
 }
-// transaction
-const transaction = async(req, res) => {
+// transaction method
+
+//bet method
+const bet = async(req) => {
     try{
 
     }catch(err){
 
     }
+};
+//win method
+const win = async(req) => {
+
+};
+//refund method
+const refund = async(req) => {
+
 };
 
 module.exports = {
