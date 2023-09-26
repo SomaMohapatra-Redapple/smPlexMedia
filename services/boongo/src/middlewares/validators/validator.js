@@ -1,3 +1,4 @@
+const { string } = require('joi');
 
 const Joi = require('joi').extend(require('@joi/date'));
 
@@ -7,26 +8,25 @@ const boongoGetBalanceValidateSchema = Joi.object({
     uid: Joi.string().required(),
     timestamp: Joi.date().iso(),
     session: Joi.string().required(),
+    token: Joi.string().required(),
+    game_id: Joi.string().required(),
     args: Joi.object({
-        token: Joi.string().required(),
-        game: Joi.string().required(),
         player: Joi.object({
             id: Joi.string().required(),
             currency: Joi.string().required()
-        })
+        }).unknown(),
+        tag : Joi.string().allow('')
     })
-});
+}).unknown();
 
 const boongoLoginValidateSchema = Joi.object({
     name: Joi.string().required(),
     uid: Joi.string().required(),
     timestamp: Joi.date().iso(),
     session: Joi.string().required(),
-    args: Joi.object({
-        token: Joi.string().required(),
-        game: Joi.string().required(),
-    })
-});
+    token: Joi.string().required(),
+    game_id: Joi.string().required(),
+}).unknown();
 
 
 let boongoReqValidator = async (req, res, next) => {
@@ -72,7 +72,7 @@ let boongoReqValidator = async (req, res, next) => {
         if (value.hasOwnProperty('error')) {
             console.log('Err Value : ', value)
             let apiResponse = {
-                uid: uid,
+                uid: req.body.uid,
                 error: {
                   code: 'FATAL_ERROR'
                 }
@@ -88,7 +88,7 @@ let boongoReqValidator = async (req, res, next) => {
 
         console.log('Boongo validation catch error :', err.message);
         let apiResponse = {
-            uid: uid,
+            uid: req.body.uid,
             error: {
               code: 'FATAL_ERROR'
             }
