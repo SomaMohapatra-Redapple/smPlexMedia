@@ -1,4 +1,14 @@
+/**
+ * 
+ * @author Injamamul Hoque
+ * @purpose Microgaming provider integration and game launch related works
+ * @createdDate Sep 26 2023
+ * @lastUpdated Sep 26 2023
+ * @lastUpdatedBy Injamamul Hoque
+ */
 
+
+//Modules Import
 let responseLib = require('../libs/responseLib');
 const timeLib = require('../libs/timeLib')
 let axios = require('axios');
@@ -7,6 +17,15 @@ const AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
 let clientValidator = require('../middlewares/validators/clientValidator');
 const commonController = require('./commonController');
 
+
+/**
+ * 
+ * @author Injamamul Hoque
+ * @function handler
+ * @param {*} req res
+ * @returns res
+ * 
+ */
 
 const handler  = async(req, res) => {
     try{
@@ -45,6 +64,15 @@ const handler  = async(req, res) => {
         return error;
     }
 }
+/**
+ * 
+ * @author Injamamul Hoque
+ * @function auth
+ * @param {*} data(red.body)
+ * @returns object
+ * 
+ */
+
 
 // auth
 let auth = async(req) => {
@@ -144,7 +172,14 @@ let auth = async(req) => {
     }
 }
 
-// get balance method
+/**
+ * 
+ * @author Injamamul Hoque
+ * @function get balance
+ * @param {*} data(red.body)
+ * @returns object
+ * 
+ */
 const getbalance = async(req) => {
     try {
         let start = process.hrtime();
@@ -219,22 +254,22 @@ const getbalance = async(req) => {
 }
 // transaction method
 
-//bet method
-const bet = async(req) => {
-    try{
+// //bet method
+// const bet = async(req) => {
+//     try{
 
-    }catch(err){
+//     }catch(err){
 
-    }
-};
-//win method
-const win = async(req) => {
+//     }
+// };
+// //win method
+// const win = async(req) => {
 
-};
-//refund method
-const refund = async(req) => {
+// };
+// //refund method
+// const refund = async(req) => {
 
-};
+// };
 
 module.exports = {
     handler: handler ,
