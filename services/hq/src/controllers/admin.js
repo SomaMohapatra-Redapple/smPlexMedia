@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const add_admin = async (req, res, next) => {
   try {
-    req.body.created_by = req.user.id;
+    //req.body.created_by = req.user.id;
     const query = req.body;
     const admin = await AddToAdminTable(query)
       .then((result) => {

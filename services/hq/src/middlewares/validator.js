@@ -6,7 +6,7 @@ const Joi = require('joi').extend(require('@joi/date'));
 const customLoginValidateSchema = Joi.object({
     event_id: Joi.string()
     ,
-    user_name: Joi.string()
+    username: Joi.string()
         .required(),
     password: Joi.string()
         .max(20)
@@ -16,27 +16,29 @@ const customLoginValidateSchema = Joi.object({
 const addClientValidationSchema = Joi.object({
     
         //client_id: Joi.string().required(),
-
+      parent_client_id: Joi.string().required(),
       password: Joi.string()
         .required()
         .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
-      e_mail: Joi.string().email().required(),
+      email: Joi.string().email().required(),
       status: Joi.string().required(),
       environment: Joi.string().required(),
       client_name: Joi.string().required(),
-      user_name: Joi.string().required(),
+      username: Joi.string().required(),
       updated_by: Joi.string().required(),
       contact: Joi.string()
         .min(10)
         .max(13)
         .pattern(/^[0-9]+$/)
-        .required()
+        .required(),
+      environment: Joi.string().required(),
+      status: Joi.string().required(),
    
 
 })
 
 const AdminLoginValidateSchema = Joi.object({
-    user_name: Joi.string()
+    username: Joi.string()
         .required(),
     password: Joi.string()
         .max(20)
@@ -45,14 +47,17 @@ const AdminLoginValidateSchema = Joi.object({
 });
 
 const adminRegisterValidateSchema = Joi.object({
+    admin_name : Joi.string()
+    .required(),
     username: Joi.string()
         .required(),
     password: Joi.string()
         .max(20)
         .required(),
-    user_type: Joi.number().integer().required().valid(1, 2),
+    status: Joi.string()
+        .required(),
     email: Joi.string().required().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
-    mobile: Joi.string().length(10).pattern(/^[0-9]+$/).required(),
+    contact: Joi.string().length(10).pattern(/^[0-9]+$/).required(),
     // source_type: Joi.number().required()
 });
 

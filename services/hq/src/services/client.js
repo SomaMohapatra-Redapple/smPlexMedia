@@ -1,4 +1,7 @@
-const ClientTable = require("../models/Client");
+//const ClientTable = require("../models/Client");
+const mongoose = require('mongoose');
+const ClientTable = mongoose.model('Client');
+
 
 const AddClient = async (query) => {
   console.log("query", query);

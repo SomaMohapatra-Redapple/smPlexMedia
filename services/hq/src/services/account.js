@@ -1,4 +1,6 @@
-const AccountTable = require("../models/Account");
+//const AccountTable = require("../models/Account");
+const mongoose = require('mongoose');
+const AccountTable = mongoose.model('Accounts');
 
 const AddAccount = async (query) => {
   return await AccountTable.create(query);
