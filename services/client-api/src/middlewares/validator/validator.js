@@ -7,6 +7,10 @@ const userBalanceSchema = Joi.object({
     user_id: Joi.string().required()
 });
 
+const reqAuthValidateSchema = Joi.object({
+    user_id: Joi.string().required()
+});
+
 
 let apiValidator = async (req, res, next) => {
     try {
@@ -19,7 +23,7 @@ let apiValidator = async (req, res, next) => {
                 value = await userBalanceSchema.validate(req.body);
                 break;
             default:
-                let apiResponse = responseLib.generate(true, ` ERROR : ${err.message}`, {});
+                let apiResponse = responseLib.generate(true, `INVALID_REQUEST`, {});
                 res.status(400).send(apiResponse);
                 break;
         }
