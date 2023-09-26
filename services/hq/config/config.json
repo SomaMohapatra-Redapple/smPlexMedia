@@ -1,0 +1,10 @@
+{
+  "development": {
+    "username": "hq_superadmin_api",
+    "password": "superadmin_api",
+    "database": "hq",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+  }
+  

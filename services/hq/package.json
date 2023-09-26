@@ -1,0 +1,27 @@
+{
+  "name": "hq",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "soma mohapatra",
+  "license": "ISC",
+  "dependencies": {
+    "@joi/date": "^2.1.0",
+    "aws-sdk": "^2.1457.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "firebase-admin": "^11.10.1",
+    "joi": "^17.10.1",
+    "mongo": "^0.1.0",
+    "mongod": "^2.0.0",
+    "mongodb": "^6.0.0",
+    "mongoose": "^7.5.1",
+    "mongoose-paginate": "^5.0.3",
+    "redis": "^4.6.8",
+    "sequelize": "^6.33.0",
+    "socket.io": "^4.7.2"
+  }
+}
