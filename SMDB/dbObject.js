@@ -1,5 +1,5 @@
-let smObj = {
-    Account: {
+  let smObj = {
+    Account : {
         client_id: {
             type: String,
             ref: 'clients',
@@ -49,6 +49,11 @@ let smObj = {
         service_endpoint: {
             type: String,
             required: true,
+        },
+        is_maintenance_mode_on: {
+            type: String,
+            required : true,
+            default : 'N',
         },
         created_at: {
             type: Date,
@@ -400,6 +405,7 @@ let smObj = {
             default: ""
         }
     }
-}
-
-module.exports = smObj;
+  }
+  
+  module.exports = smObj;
+  
