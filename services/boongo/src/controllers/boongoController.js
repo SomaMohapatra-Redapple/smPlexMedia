@@ -215,6 +215,33 @@ const getbalance = async(data) => {
     }
 }
 
+/**
+ * 
+ * @author Rajdeep Adhikary
+ * @function transaction
+ * @param {*} data 
+ * @returns object
+ * 
+ */
+
+const transaction = async(req, res) => {
+    return "yess bro";
+}
+
+
+
+/**
+ * 
+ * @author Rajdeep Adhikary
+ * @function rollback
+ * @param {*} data 
+ * @returns object
+ * 
+ */
+
+const rollback = async(req, res) => {
+    return "yess bro";
+}
 
 module.exports = {
     handler: handler ,

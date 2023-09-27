@@ -11,13 +11,18 @@ const Joi = require('joi').extend(require('@joi/date'));
 
 const clientGetBalanceValidateSchema = Joi.object({
     cash: Joi.number().required().allow(0),
-}).unknown();
+    currency: Joi.string(),
+    bonus: Joi.number()
+});
 
 
 const clientAuthenticationValidateSchema = Joi.object({
     cash: Joi.number().required().allow(0),
-    currency: Joi.string().required()
-}).unknown();
+    currency: Joi.string().required(),
+    bonus: Joi.number(),
+    country: Joi.string(),
+    jurisdiction: Joi.string()
+});
 
 /**
  * 
@@ -69,11 +74,10 @@ let clientResponseValidator = async (data, function_name) => {
     } catch (err) {
 
         console.log('Boongo validation catch error :', err.message);
-        const errArr = {
-            status: "error",
-            data: { "scope": "user", "no_refund": 1, "message": "Invalid request parameter" }
+        return {
+            error : false,
+            message : "",
         }
-        res.status(200).send(errArr);
     }
 }
 
