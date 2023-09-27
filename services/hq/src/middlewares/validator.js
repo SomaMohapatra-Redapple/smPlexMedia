@@ -38,7 +38,7 @@ const addClientValidationSchema = Joi.object({
 })
 
 const AdminLoginValidateSchema = Joi.object({
-    username: Joi.string()
+    admin_name: Joi.string()
         .required(),
     password: Joi.string()
         .max(20)
