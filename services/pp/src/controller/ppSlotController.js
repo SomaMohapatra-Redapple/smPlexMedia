@@ -2,10 +2,11 @@ let responseLib = require('../libs/responseLib');
 let ppClientSmValidator = require('../middlewares/validator/ppClientSmValidator');
 let axios = require("axios").default;
 let mongoose = require('mongoose');
-let AccountsTechnicalsModel = mongoose.model('AccountsTechnicals')
+let AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
 let PlayerModel = mongoose.model('Player');
 let checkLib = require('../libs/checkLib');
 let commonController = require('../controller/commonController');
+let walletController = require('../controller/walletController');
 
 
 //// This the function handler
@@ -69,7 +70,7 @@ let authenticate = async (req, res) => {
         let account_user_id = userdtls.client_user_id;
         let account_id = userdtls.client_id;
 
-        let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: `650ad4f9a08fe4a5e828815c` }).lean();
+        let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: account_id }).lean();
         if (checkLib.isEmpty(acountDetails)) {
             const payLoad = {
                 error: 2,
@@ -95,12 +96,12 @@ let authenticate = async (req, res) => {
             let payLoad = {
                 status: 200,
                 userId: usercode,
-                currency: userdtls.currency,
+                currency: userdtls.currency_code,
                 cash: responseData.cash,
                 bonus: 0,
                 token: tokenStr,
-                // country: response.country,
-                // jurisdiction: response.jurisdiction,
+                country: responseData.country,
+                jurisdiction: responseData.jurisdiction,
                 error: 0,
                 description: "Success"
             }
@@ -194,6 +195,48 @@ let balance = async (req, res) => {
 
 let bet = async (req, res) => {
     try {
+        const bodyData = req.body;
+        const usercode = bodyData.userId;
+        const token = bodyData.token;
+        const betamount = bodyData.amount;
+        const gamecode = bodyData.gameId;
+        const reference = bodyData.reference;
+        const roundId = bodyData.roundId;
+
+        const required_field = { hash: '', userId: '', providerId: '', gameId: '', roundId: '', amount: '', roundDetails: '', reference: '', timestamp: '' };
+        const checkrequiredfield = Object.keys(required_field).every(key => Object.keys(bodyData).includes(key));
+
+        if (!checkrequiredfield || betamount < 1) {
+            Status = 'Bad parameters in the request, please check post parameters.';
+            code = 7;
+            return await invalidError(code, Status);
+        }
+
+        const tokenValid = await isTokenvalid(tokenStr);
+        if (check.checkObjectLen(tokenValid) > 0) {
+            return tokenValid;
+        }
+
+        /*** get user detail ***/
+        let userdtls = await commonController.checkUsercodeExists(usercode);
+
+        let account_user_id = userdtls.account_user_id;
+        let account_id = userdtls.account_id;
+
+        // do the hash calculation here
+
+        //
+
+        /* ************* Checking Bet Rejection *************** */
+        let isBetEnable = await walletController.betControlStatus(usercode, account_id);
+        if ((isBetEnable.rejectionStatus == true) || (isBetEnable.maintenance_mode_status == 'Y')) {
+            Status = 'Maintenance in progress. Try again later!';
+            code = 7;
+            return await invalidError(code, Status);
+        }
+        /* **************************************************** */
+
+
 
     } catch (error) {
         console.log(error.message);
