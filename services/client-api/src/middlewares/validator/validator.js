@@ -11,6 +11,28 @@ const reqAuthValidateSchema = Joi.object({
     user_id: Joi.string().required()
 });
 
+const betSchema = Joi.object({
+    user_id: Joi.string().required(),
+    game_id: Joi.string().required(),
+    round_id: Joi.string().required(),
+    transaction_id: Joi.string().required(),
+    category_id: Joi.string().required(),
+    amount: Joi.number().required(),
+    bonus: Joi.number().required(),
+    category_id: Joi.string().required(),
+});
+
+const winSchema = Joi.object({
+    user_id: Joi.string().required(),
+    game_id: Joi.string().required(),
+    round_id: Joi.string().required(),
+    transaction_id: Joi.string().required(),
+    category_id: Joi.string().required(),
+    amount: Joi.number().required(),
+    bonus: Joi.number().required(),
+    category_id: Joi.string().required(),
+});
+
 
 let apiValidator = async (req, res, next) => {
     try {
@@ -21,6 +43,12 @@ let apiValidator = async (req, res, next) => {
                 break;
             case "balance":
                 value = await userBalanceSchema.validate(req.body);
+                break;
+            case "bet":
+                value = await betSchema.validate(req.body);
+                break;
+            case "win":
+                value = await winSchema.validate(req.body);
                 break;
             default:
                 let apiResponse = responseLib.generate(true, `INVALID_REQUEST`, {});
