@@ -1,0 +1,31 @@
+{
+    "name": "sm-plexmedia-provider-microgaming",
+    "version": "1.0.0",
+    "description": "Casino Seamless Platform -- Microgaming Game Provider",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Redapple2014/SM-PlexMedia-Backend.git"
+    },
+    "author": "Ankush Shome",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Redapple2014/SM-PlexMedia-Backend/issues"
+    },
+    "homepage": "https://github.com/Redapple2014/SM-PlexMedia-Backend#readme",
+    "dependencies": {
+        "@joi/date": "^2.1.0",
+        "axios": "^1.5.0",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "joi": "^17.10.2",
+        "jsonwebtoken": "^9.0.2",
+        "moment-timezone": "^0.5.43",
+        "mongoose": "^7.5.1",
+        "shortid": "^2.2.16",
+        "uuid": "^9.0.1"
+    }
+}
