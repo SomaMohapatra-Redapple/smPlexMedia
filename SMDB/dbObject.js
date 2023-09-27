@@ -1,4 +1,4 @@
-  let smObj = {
+let smObj = {
     Account : {
         client_id: {
           type: String,
@@ -49,6 +49,11 @@
         service_endpoint: {
             type: String,
             required : true,
+        },
+        is_maintenance_mode_on: {
+            type: String,
+            required : true,
+            default : 'N',
         },
         created_at: {
             type: Date,
@@ -399,7 +404,53 @@
             type: Date,
             default: ""
         }
-    }
+    },
+    Client_provider_mapping : {
+        client_id : {
+            type: String,
+            required : true,
+            isObjectId: true
+        },
+        account_id : {
+            type: String,
+            required : true,
+            isObjectId: true
+        },
+        provider_id : {
+            type: String,
+            required : true,
+            isObjectId: true
+        },
+        status : {
+            type : Number,
+            required : true,
+            default : 0,
+            enum : [0, 1, 2 ]
+        }
+    },
+    Client_game_mapping : {
+        client_id : {
+            type: String,
+            required : true,
+            isObjectId: true
+        },
+        account_id : {
+            type: String,
+            required : true,
+            isObjectId: true
+        },
+        game_id : {
+            type: String,
+            required : true,
+            isObjectId: true
+        },
+        status : {
+            type : Number,
+            required : true,
+            default : 0,
+            enum : [0, 1, 2 ]
+        }
+    },
   }
   
   module.exports = smObj;
