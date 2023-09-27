@@ -1,9 +1,20 @@
 const Joi = require("joi");
 const apiError = require("../libs/apiError");
 const responseMessage = require("../libs/responseMessage");
-const account = require("../services/account");
-const { AddAccount, ShowAccount } = account;
+// const account = require("../services/account");
+// const { AddAccount, ShowAccount } = account;
+const mongoose = require('mongoose');
+const AccountTable = mongoose.model('Accounts');
 
+
+
+const AddAccount = async (query) => {
+  return await AccountTable.create(query);
+};
+const ShowAccount = async (query) => {
+  //const {page,limit} = validatedBody;
+  return await AccountTable.find(query);
+};
 //add account
 const add_account = async (req, res, next) => {
   try {
