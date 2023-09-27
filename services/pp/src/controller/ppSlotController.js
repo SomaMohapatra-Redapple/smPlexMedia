@@ -5,6 +5,7 @@ let mongoose = require('mongoose');
 let AccountsTechnicalsModel = mongoose.model('AccountsTechnicals')
 let PlayerModel = mongoose.model('Player');
 let checkLib = require('../libs/checkLib');
+let commonController = require('../controller/commonController');
 
 
 //// This the function handler
@@ -33,8 +34,12 @@ let handler = async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        let apiResponse = responseLib.generate(true, error.message, {});
-        res.status(500).send(apiResponse);
+        const payLoad = {
+            error: 120,
+            description: "Internal server error. Casino Operator will return this error code if theirsystem   has   internal   problem   and   cannot   process   the   request   andOperator logic does not require a retry of the request. Request will NOTfollow Reconciliation process"
+        }
+
+        res.status(200).send(payLoad);
     }
 }
 
@@ -46,7 +51,7 @@ let getGameUrl = async () => {
     }
 }
 
-let authenticate = async () => {
+let authenticate = async (req, res) => {
     try {
         const tokenStr = req.body.token;
         const hash = req.body.hash;
@@ -54,33 +59,57 @@ let authenticate = async () => {
 
         const tokenValid = await isTokenvalid(tokenStr);
 
-        if (tokenValid.error == 0) {
-            let splitToken = tokenStr.split("-ucd-");
-            let usercode = splitToken[1];
-            let playerDetails = await PlayerModel.findOne({ _id: usercode }).lean();
+        if (tokenValid.error > 0) {
+            return res.status(200).send(tokenValid)
+        }
 
+        let splitToken = tokenStr.split("-ucd-");
+        let usercode = splitToken[1];
+        const userdtls = await commonController.checkUsercodeExists(usercode);
+        let account_user_id = userdtls.client_user_id;
+        let account_id = userdtls.client_id;
+
+        let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: `650ad4f9a08fe4a5e828815c` }).lean();
+        if (checkLib.isEmpty(acountDetails)) {
+            const payLoad = {
+                error: 2,
+                description: "Player not found or is logged out. Should be returned in the response onany request sent by Pragmatic Play if the player can’t be found or islogged out at Casino Operator’s side"
+            }
+
+            return res.status(200).send(payLoad);
         } else {
-            res.status(200).send(tokenValid)
+            let config = {
+                method: 'post',
+                url: `${acountDetails.service_endpoint}/authenticate?function=authenticate`,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                data: {
+                    user_id: userdtls.account_user_id                       // YMDJD12
+                }
+            };
+
+            let response = await axios(config);
+            let responseData = response.data.data
+
+            let payLoad = {
+                status: 200,
+                userId: usercode,
+                currency: userdtls.currency,
+                cash: responseData.cash,
+                bonus: 0,
+                token: tokenStr,
+                // country: response.country,
+                // jurisdiction: response.jurisdiction,
+                error: 0,
+                description: "Success"
+            }
+
+            return res.status(200).send(payLoad);
         }
-
-        let payLoad = {
-            status: 200,
-            userId: usercode,
-            currency: userdtls.currency,
-            cash: balance,
-            bonus: 0,
-            token: tokenStr,
-            country: 'US',
-            jurisdiction: setdata.jurisdiction,
-            error: 0,
-            description: "Success"
-        }
-
-        return res.status(200).send(payLoad);
-
     } catch (error) {
         console.log(error.message);
-        const errArr = {
+        const payLoad = {
             error: 120,
             description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
         }
@@ -191,10 +220,6 @@ let userBalance = async () => {
     let response = await axios(config);
 }
 
-let checkUserExists = async (data) => {
-
-}
-
 let isTokenvalid = async (tokenStr) => {
     let requestsend = {};
     let tokenValidate = tokenStr.includes('-ucd-') ? true : false;
@@ -210,10 +235,21 @@ let isTokenvalid = async (tokenStr) => {
                 description: 'Player authentication failed due to invalid, not found or expired token'
             }
         } else {
-            requestsend = {
-                error: 0,
-                description: 'This is valid Token'
+            let userData = commonController.checkUsercodeExists(userId);
+            let checkUserData = checkLib.isEmpty(userData);
+
+            if (checkUserData == true) {
+                requestsend = {
+                    error: 4,
+                    description: 'Player authentication failed due to invalid, not found or expired token'
+                }
+            } else {
+                requestsend = {
+                    error: 0,
+                    description: 'This is valid Token'
+                }
             }
+
         }
     } else {
         requestsend = {
