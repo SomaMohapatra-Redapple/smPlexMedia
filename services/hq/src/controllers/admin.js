@@ -1,6 +1,17 @@
-const admin = require("../services/admin");
-const { AddToAdminTable, FindAdmin } = admin;
+// const admin = require("../services/admin");
+// const { AddToAdminTable, FindAdmin } = admin;
+const mongoose = require('mongoose');
+const AdminTable = mongoose.model('SuperAdmin');
 const jwt = require("jsonwebtoken");
+
+const AddToAdminTable = async (query) => {
+  const admin = await AdminTable.create(query);
+  return admin;
+};
+const FindAdmin = async (query) => {
+  const admin = await AdminTable.findOne(query);
+  return admin;
+};
 
 const add_admin = async (req, res, next) => {
   try {
