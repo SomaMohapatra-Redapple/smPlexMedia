@@ -9,6 +9,10 @@
 
 const mongoose = require('mongoose');
 const playerModel = mongoose.model('Player');
+const AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
+const ClientProviderModel = mongoose.model('Client_provider_mapping');
+const GameModel = mongoose.model('Game');
+const TransactionModel = mongoose.model('Transaction');
 
 /**
  * 
@@ -27,6 +31,69 @@ const checkUsercodeExists = async (usercode) => {
     }
 }
 
+const isBetEnabled = async (account_id, provider_id) => {
+    try {
+        let maintenance_mode_status = "Y";
+        let rejectionStatus = true;
+
+        let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: account_id }).lean();
+
+        if (checkLib.isEmpty(acountDetails) == false) {
+
+            maintenance_mode_status = acountDetails.is_maintenance_mode_on;
+            let accountProviderTag = await ClientProviderModel.findOne({ account_id: account_id, client_id: acountDetails.client_id, provider_id: provider_id }).lean();
+
+            if (checkLib.isEmpty(accountProviderTag) == false) {
+                rejectionStatus = false;
+            } else {
+                rejectionStatus = true;
+            }
+
+            return {
+                rejectionStatus: rejectionStatus,
+                maintenance_mode_status: maintenance_mode_status
+            }
+        } else {
+            return {
+                rejectionStatus: true,
+                maintenance_mode_status: "Y"
+            }
+        }
+    } catch (e) {
+        console.log('error ==>', e);
+        return {
+            rejectionStatus: true,
+            maintenance_mode_status: "Y"
+        }
+    }
+}
+
+const getGameDetailsByGameCode = async(gamecode, provider_id) => {
+    try {
+        let gamedtls = await GameModel.findOne({ game_code: gamecode, provider_id: provider_id }).lean();
+        return gamedtls;
+    } catch (e) {
+        console.log('error ==>', e);
+        return {};
+    }
+}
+
+const insertLog = async(data) => {
+    try {
+        await TransactionModel.create(data);
+    } catch (e) {
+        console.log('error ==>', e);
+    }
+}
+
+const getVersion = async() => {
+    return Math.floor(Date.now() / 1000);
+}
+
 module.exports = {
-    checkUsercodeExists : checkUsercodeExists
+    checkUsercodeExists : checkUsercodeExists,
+    isBetEnabled : isBetEnabled,
+    getGameDetailsByGameCode : getGameDetailsByGameCode,
+    insertLog : insertLog,
+    getVersion : getVersion,
 }
