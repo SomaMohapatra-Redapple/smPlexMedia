@@ -54,7 +54,7 @@ let apiValidator = async (req, res, next) => {
             case "win":
                 value = await winSchema.validate(req.body);
                 break;
-            case "rollback":
+            case "refund":
                 value = await rollbackSchema.validate(req.body);
                 break;
             default:

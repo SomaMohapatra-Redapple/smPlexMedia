@@ -203,7 +203,7 @@ let handler = (req, res) => {
             case "win":
                 win(req, res);
                 break;
-            case "rollback":
+            case "refund":
                 rollback(req, res);
                 break;
             default:
