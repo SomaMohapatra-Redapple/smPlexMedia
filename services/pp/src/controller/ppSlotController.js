@@ -4,12 +4,15 @@ let axios = require("axios").default;
 let mongoose = require('mongoose');
 let AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
 let PlayerModel = mongoose.model('Player');
+let GameModel = mongoose.model('Game');
+let ProviderModel = mongoose.model('Provider');
 let checkLib = require('../libs/checkLib');
+let timeLib = require('../libs/timeLib');
 let commonController = require('../controller/commonController');
 let walletController = require('../controller/walletController');
 
 
-//// This the function handler
+//  Function handler for PP API's
 let handler = async (req, res) => {
     try {
         let response;
@@ -28,11 +31,15 @@ let handler = async (req, res) => {
             case "bet":
                 response = await bet(req, res);
                 break;
+            case "result":
+                response = await result(req, res);
+                break;
             default:
                 apiResponse = responseLib.generate(false, "No Function defined", {});
                 res.status(200).send(apiResponse);
                 break;
         }
+        return res.status(200).send(response);
     } catch (error) {
         console.log(error);
         const payLoad = {
@@ -61,7 +68,7 @@ let authenticate = async (req, res) => {
         const tokenValid = await isTokenvalid(tokenStr);
 
         if (tokenValid.error > 0) {
-            return res.status(200).send(tokenValid)
+            return tokenValid;
         }
 
         let splitToken = tokenStr.split("-ucd-");
@@ -77,11 +84,11 @@ let authenticate = async (req, res) => {
                 description: "Player not found or is logged out. Should be returned in the response onany request sent by Pragmatic Play if the player can’t be found or islogged out at Casino Operator’s side"
             }
 
-            return res.status(200).send(payLoad);
+            return payLoad;
         } else {
             let config = {
                 method: 'post',
-                url: `${acountDetails.service_endpoint}/authenticate?function=authenticate`,
+                url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -91,7 +98,26 @@ let authenticate = async (req, res) => {
             };
 
             let response = await axios(config);
-            let responseData = response.data.data
+
+            // checking the response has any error or not
+            if (response.data.err == true) {
+                code = 3;
+                Status = "Bet is not allowed. Should be returned in any case when the player is notallowed to play a specific game. For example, because of special bonus.";
+                return await invalidError(code, Status);
+            }
+
+            let function_name = "authenticate";
+            let responseData = response.data.data;
+            let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
+
+            /* checking the client data format has any error or not */
+            if (responseCheck.error == true) {
+                let payLoad = {
+                    "error": 1,
+                    "description": "error"
+                }
+                return payLoad;
+            }
 
             let payLoad = {
                 status: 200,
@@ -106,7 +132,7 @@ let authenticate = async (req, res) => {
                 description: "Success"
             }
 
-            return res.status(200).send(payLoad);
+            return payLoad;
         }
     } catch (error) {
         console.log(error.message);
@@ -197,20 +223,12 @@ let bet = async (req, res) => {
     try {
         const bodyData = req.body;
         const usercode = bodyData.userId;
-        const token = bodyData.token;
+        const tokenStr = bodyData.token;
         const betamount = bodyData.amount;
         const gamecode = bodyData.gameId; // provider game ID
-        const reference = bodyData.reference; // provider transction ID
+        const providerId = bodyData.providerId;
+        const reference_id = bodyData.reference; // provider transction ID
         const roundId = bodyData.roundId; //provider Id of the round
-
-        const required_field = { hash: '', userId: '', providerId: '', gameId: '', roundId: '', amount: '', roundDetails: '', reference: '', timestamp: '' };
-        const checkrequiredfield = Object.keys(required_field).every(key => Object.keys(bodyData).includes(key));
-
-        if (!checkrequiredfield || betamount < 1) {
-            Status = 'Bad parameters in the request, please check post parameters.';
-            code = 7;
-            return await invalidError(code, Status);
-        }
 
         const tokenValid = await isTokenvalid(tokenStr);
         if (check.checkObjectLen(tokenValid) > 0) {
@@ -219,7 +237,6 @@ let bet = async (req, res) => {
 
         /*** get user detail ***/
         let userdtls = await commonController.checkUsercodeExists(usercode);
-
         let account_user_id = userdtls.account_user_id;
         let account_id = userdtls.account_id;
 
@@ -235,11 +252,13 @@ let bet = async (req, res) => {
             code = 7;
             return await invalidError(code, Status);
         }
-        /* **************************************************** */
+
+        let gameDetails = GameModel.findOne({ game_code: gamecode }).lean();
+        let providerDetails = ProviderModel.findOne({ _id: gameDetails.game_provider_id }).lean();
 
         let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: account_id }).lean();
         if (checkLib.isEmpty(acountDetails)) {
-            const payLoad = {
+            payLoad = {
                 error: 2,
                 description: "Player not found or is logged out. Should be returned in the response onany request sent by Pragmatic Play if the player can’t be found or islogged out at Casino Operator’s side"
             }
@@ -249,25 +268,244 @@ let bet = async (req, res) => {
 
         let config = {
             method: 'post',
-            url: `${acountDetailsservice_endpoint}/user-balance?function=balance`,
+            url: `${acountDetailsservice_endpoint}/callback?function=bet`,
             headers: {
                 'Content-Type': 'application/json',
             },
             data: {
-                "user_id": "1234567890"
+                "user_id": "fgfdg",
+                "transaction_id": "12345",
+                "round_id": "12345",
+                "game_id": "12345",
+                "category_id": "12345",
+                "amount": "120",
+                "bonus": "10"
             }
         };
-
         let response = await axios(config);
 
+        // checking the response has any error or not
+        if (response.data.err == true) {
+            code = 3;
+            Status = "Bet is not allowed. Should be returned in any case when the player is notallowed to play a specific game. For example, because of special bonus.";
+            return await invalidError(code, Status);
+        }
 
+        let function_name = "bet";
+        let responseData = response.data.data;
+        let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
+        /* checking the client data format has any error or not */
+        if (responseCheck.error == true) {
+            let payLoad = {
+                "error": 1,
+                "description": "error"
+            }
+            return res.status(200).send(payLoad);
+        }
 
+        let transaction_code = responseData.code;
+        switch (transaction_code) {
+            case 'SUCCEED':
+                // prepare data to log
+                let logData = {
+                    session_id: null,
+                    account_id: userdtls.account_id,
+                    account_user_id: userdtls.account_user_id,
+                    user_id: userdtls._id,
+                    game_id: gameDetails.game_id,
+                    game_name: gameDetails.game_name,
+                    provider_id: gameDetails.game_provider_id,
+                    provider_name: providerDetails.game_provider_name,
+                    game_category_id: gameDetails.game_category_id,
+                    game_category_name: gameDetails.game_category_name,
+                    provider_transaction_id: reference_id,
+                    roundID: roundId,
+                    operator_transaction_id: responseData.operator_transaction_id,
+                    transaction_amount: betamount,
+                    transaction_type: "Debit",
+                    status: 0,
+                    created_at: timeLib.currentDateTime(),
+                    updated_at: timeLib.currentDateTime()
+                }
 
+                // log the data
+                await commonController.insertLog(logData);
+
+                // set success response
+                payLoad = {
+                    transactionId: reference,
+                    currency: userdtls.currency,
+                    cash: useravaiblebalnce,
+                    bonus: 0,
+                    error: 0,
+                    description: "Success"
+                }
+                break;
+            case 'BALANCE_EXCEED':
+                payLoad = {
+                    error: 3,
+                    description: "Bet is not allowed. Should be returned in any case when the player is notallowed to play a specific game. For example, because of special bonus."
+                }
+                break;
+            case 'ALREADY_PROCESSED':
+                payLoad = {
+                    error: 3,
+                    description: "Bet is not allowed. Should be returned in any case when the player is notallowed to play a specific game. For example, because of special bonus."
+                }
+                break;
+            default:
+                payLoad = {
+                    error: 120,
+                    description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
+                }
+
+                break;
+        }
+
+    } catch (error) {
+        console.log(error.message);
+        const payLoad = {
+            error: 120,
+            description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
+        }
+        return payLoad;
+    }
+}
+
+let result = async (req, res) => {
+    try {
+        const bodyData = data.data;
+        const usercode = bodyData.userId;
+        const tokenStr = bodyData.token;
+        const winamount = bodyData.amount;
+        const gamecode = bodyData.gameId;
+        const reference_id = bodyData.reference;
+        const roundId = bodyData.roundId;
+
+        const tokenValid = await isTokenvalid(tokenStr);
+        if (check.checkObjectLen(tokenValid) > 0) {
+            return tokenValid;
+        }
+
+        /*** get user detail ***/
+        let userdtls = await commonController.checkUsercodeExists(usercode);
+        let account_user_id = userdtls.account_user_id;
+        let account_id = userdtls.account_id;
+
+        // do the hash calculation here
+
+        //
+
+        let gameDetails = GameModel.findOne({ game_code: gamecode }).lean();
+        let providerDetails = ProviderModel.findOne({ _id: gameDetails.game_provider_id }).lean();
+
+        let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: account_id }).lean();
+        if (checkLib.isEmpty(acountDetails)) {
+            payLoad = {
+                error: 2,
+                description: "Player not found or is logged out. Should be returned in the response onany request sent by Pragmatic Play if the player can’t be found or islogged out at Casino Operator’s side"
+            }
+            return payLoad;
+        }
+
+        let config = {
+            method: 'post',
+            url: `${acountDetailsservice_endpoint}/callback?function=win`,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: {
+                "user_id": "fgfdg",
+                "transaction_id": "12345",
+                "round_id": "12345",
+                "game_id": "12345",
+                "category_id": "12345",
+                "amount": "120",
+                "bonus": "10"
+            }
+        };
+        let response = await axios(config);
+        let function_name = "bet";
+        let responseData = response.data.data;
+        let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
+
+        /* checking the client data format has any error or not */
+        if (responseCheck.error == true) {
+            let payLoad = {
+                "error": 1,
+                "description": "error"
+            }
+            return res.status(200).send(payLoad);
+        }
+
+        let transaction_code = responseData.code;
+        switch (transaction_code) {
+            case 'SUCCEED':
+                // prepare data to log
+                let logData = {
+                    session_id: null,
+                    account_id: userdtls.account_id,
+                    account_user_id: userdtls.account_user_id,
+                    user_id: userdtls._id,
+                    game_id: gameDetails.game_id,
+                    game_name: gameDetails.game_name,
+                    provider_id: gameDetails.game_provider_id,
+                    provider_name: providerDetails.game_provider_name,
+                    game_category_id: gameDetails.game_category_id,
+                    game_category_name: gameDetails.game_category_name,
+                    provider_transaction_id: reference_id,
+                    roundID: roundId,
+                    operator_transaction_id: responseData.operator_transaction_id,
+                    transaction_amount: winamount,
+                    transaction_type: "Credit",
+                    status: 0,
+                    created_at: timeLib.currentDateTime(),
+                    updated_at: timeLib.currentDateTime()
+                }
+
+                // log the data
+                await commonController.insertLog(logData);
+
+                // set success response
+                payLoad = {
+                    transactionId: reference,
+                    currency: userdtls.currency,
+                    cash: useravaiblebalnce,
+                    bonus: 0,
+                    error: 0,
+                    description: "Success"
+                }
+                break;
+            case 'BALANCE_EXCEED':
+                payLoad = {
+                    error: 3,
+                    description: "Bet is not allowed. Should be returned in any case when the player is notallowed to play a specific game. For example, because of special bonus."
+                }
+                break;
+            case 'ALREADY_PROCESSED':
+                payLoad = {
+                    error: 3,
+                    description: "Bet is not allowed. Should be returned in any case when the player is notallowed to play a specific game. For example, because of special bonus."
+                }
+                break;
+            default:
+                payLoad = {
+                    error: 120,
+                    description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
+                }
+
+                break;
+        }
 
 
     } catch (error) {
         console.log(error.message);
+        const payLoad = {
+            error: 120,
+            description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
+        }
+        return payLoad;
     }
 }
 

@@ -8,6 +8,36 @@ const clientSmBalanceSchema = Joi.object({
     bonus: Joi.number().required().allow(0)
 });
 
+const clientAuthenticationValidateSchema = Joi.object({
+    cash: Joi.number().required().allow(0),
+    currency: Joi.string().required(),
+    bonus: Joi.number(),
+    country: Joi.string(),
+    jurisdiction: Joi.string()
+});
+
+const clientBetValidateSchema = Joi.object({
+    transaction_status: Joi.boolean().required(),
+    bet_amount: Joi.number().required().allow(0),
+    code: Joi.string().required(),
+    currency: Joi.string().required(),
+    bonus: Joi.number(),
+    round_id: Joi.string().required(),
+    txn_id: Joi.string().required(),
+    operator_transaction_id: Joi.string().required().allow(null),
+});
+
+const clientResultValidationSchema = Joi.object({
+    transaction_status: Joi.boolean().required(),
+    bet_amount: Joi.number().required().allow(0),
+    code: Joi.string().required(),
+    currency: Joi.string().required(),
+    bonus: Joi.number(),
+    round_id: Joi.string().required(),
+    txn_id: Joi.string().required(),
+    operator_transaction_id: Joi.string().required().allow(null),
+});
+
 
 
 let ppSmValidator = async (function_name, responseData) => {
@@ -15,10 +45,16 @@ let ppSmValidator = async (function_name, responseData) => {
         let value = {};
         switch (function_name) {
             case "authenticate":
-                value = await reqAuthValidateSchema.validate();
+                value = await clientAuthenticationValidateSchema.validate(responseData);
                 break;
             case "balance":
-                value = await clientSmBalanceSchema.validate();
+                value = await clientSmBalanceSchema.validate(responseData);
+                break;
+            case "bet":
+                value = await clientBetValidateSchema.validate(responseData);
+                break;
+            case "result":
+                value = await clientResultValidationSchema.validate(responseData);
                 break;
             default:
                 value.error = true;
