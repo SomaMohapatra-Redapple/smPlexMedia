@@ -18,7 +18,7 @@ const ShowAccount = async (query) => {
 //add account
 const add_account = async (req, res, next) => {
   try {
-    const query = validatedBody.value;
+    const query = req.body;
     const added_account = await AddAccount(query)
       .then((result) => {
         res.status(200).send({
