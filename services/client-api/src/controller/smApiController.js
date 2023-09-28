@@ -51,34 +51,38 @@ let bet = (req, res) => {
         switch(rand){
             case 1 :
                 payLoad = {
+                    
                     transaction_status : true,
-                    amount: +1000,
+                    bet_amount: +1000,
                     code: 'SUCCEED',
                     currency: "kwr",
                     bonus : +100,
-                    transaction_id : req.body.transaction_id,
+                    txn_id : req.body.txn_id,
+                    operator_transaction_id : "123abcd85666",
                     round_id : req.body.round_id
                 }
                 break;
             case 2 :
                 payLoad = {
                     transaction_status : false,
-                    amount: +1000,
+                    bet_amount: +1000,
                     code: 'BALANCE_EXCEED',
                     currency: "kwr",
                     bonus : +100,
-                    transaction_id : req.body.transaction_id,
+                    txn_id : req.body.txn_id,
+                    operator_transaction_id : "123abcd85666",
                     round_id : req.body.round_id
                 }
                 break;
             case 3 :
                 payLoad = {
                     transaction_status : false,
-                    amount: +1000,
+                    bet_amount: +1000,
                     code: 'ALREADY_PROCESSED',
                     currency: "kwr",
                     bonus : +100,
-                    transaction_id : req.body.transaction_id,
+                    txn_id : req.body.txn_id,
+                    operator_transaction_id : "123abcd85666",
                     round_id : req.body.round_id
                 }
                 break;
@@ -104,33 +108,36 @@ let win = (req, res) => {
             case 1 :
                 payLoad = {
                     transaction_status : true,
-                    amount: +1000,
+                    win_amount: +1000,
                     code: 'SUCCEED',
                     currency: "kwr",
                     bonus : +100,
-                    transaction_id : req.body.transaction_id,
+                    txn_id : req.body.txn_id,
+                    operator_transaction_id : "123abcd85666",
                     round_id : req.body.round_id
                 }
                 break;
             case 2 :
                 payLoad = {
                     transaction_status : false,
-                    amount: +1000,
+                    win_amount: +1000,
                     code: 'BALANCE_EXCEED',
                     currency: "kwr",
-                    bonus : +100,
-                    transaction_id : req.body.transaction_id,
+                    bonus : +100, 
+                    txn_id : req.body.txn_id,
+                    operator_transaction_id : "123abcd85666",
                     round_id : req.body.round_id
                 }
                 break;
             case 3 :
                 payLoad = {
                     transaction_status : false,
-                    amount: +1000,
+                    win_amount: +1000,
                     code: 'ALREADY_PROCESSED',
                     currency: "kwr",
                     bonus : +100,
-                    transaction_id : req.body.transaction_id,
+                    txn_id : req.body.txn_id,
+                    operator_transaction_id : "123abcd85666",
                     round_id : req.body.round_id
                 }
                 break;
