@@ -199,9 +199,9 @@ let bet = async (req, res) => {
         const usercode = bodyData.userId;
         const token = bodyData.token;
         const betamount = bodyData.amount;
-        const gamecode = bodyData.gameId;
-        const reference = bodyData.reference;
-        const roundId = bodyData.roundId;
+        const gamecode = bodyData.gameId; // provider game ID
+        const reference = bodyData.reference; // provider transction ID
+        const roundId = bodyData.roundId; //provider Id of the round
 
         const required_field = { hash: '', userId: '', providerId: '', gameId: '', roundId: '', amount: '', roundDetails: '', reference: '', timestamp: '' };
         const checkrequiredfield = Object.keys(required_field).every(key => Object.keys(bodyData).includes(key));
@@ -228,13 +228,41 @@ let bet = async (req, res) => {
         //
 
         /* ************* Checking Bet Rejection *************** */
-        let isBetEnable = await walletController.betControlStatus(usercode, account_id);
+
+        let isBetEnable = await walletController.betControlStatus(account_id, provider_id);
         if ((isBetEnable.rejectionStatus == true) || (isBetEnable.maintenance_mode_status == 'Y')) {
             Status = 'Maintenance in progress. Try again later!';
             code = 7;
             return await invalidError(code, Status);
         }
         /* **************************************************** */
+
+        let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: account_id }).lean();
+        if (checkLib.isEmpty(acountDetails)) {
+            const payLoad = {
+                error: 2,
+                description: "Player not found or is logged out. Should be returned in the response onany request sent by Pragmatic Play if the player can’t be found or islogged out at Casino Operator’s side"
+            }
+
+            return res.status(200).send(payLoad);
+        }
+
+        let config = {
+            method: 'post',
+            url: `${acountDetailsservice_endpoint}/user-balance?function=balance`,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: {
+                "user_id": "1234567890"
+            }
+        };
+
+        let response = await axios(config);
+
+
+
+
 
 
 
