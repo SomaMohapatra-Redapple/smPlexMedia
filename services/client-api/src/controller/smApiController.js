@@ -161,14 +161,18 @@ const rollback = async(req, res) => {
                 payLoad = {
                     amount: +1000,
                     txn_id : req.body.txn_id,
-                    operator_transaction_id : "123abcd85666"
+                    operator_transaction_id : "123abcd85666",
+                    currency: "kwr",
+                    bonus : +100,
                 }
                 break;
             case 2 :
                 payLoad = {
                     amount: +1000,
                     txn_id : req.body.txn_id,
-                    operator_transaction_id : null
+                    operator_transaction_id : null,
+                    currency: "kwr",
+                    bonus : +100,
                 }
                 break;
         }
