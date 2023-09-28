@@ -47,13 +47,12 @@ let bet = (req, res) => {
         // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
         let payLoad = {};
         let rand = Math.floor(Math.random() * (3 - 1 + 1) + 1);
-        console.log(rand);
         switch(rand){
             case 1 :
                 payLoad = {
                     
                     transaction_status : true,
-                    bet_amount: +1000,
+                    amount: +1000,
                     code: 'SUCCEED',
                     currency: "kwr",
                     bonus : +100,
@@ -65,7 +64,7 @@ let bet = (req, res) => {
             case 2 :
                 payLoad = {
                     transaction_status : false,
-                    bet_amount: +1000,
+                    amount: +1000,
                     code: 'BALANCE_EXCEED',
                     currency: "kwr",
                     bonus : +100,
@@ -77,7 +76,7 @@ let bet = (req, res) => {
             case 3 :
                 payLoad = {
                     transaction_status : false,
-                    bet_amount: +1000,
+                    amount: +1000,
                     code: 'ALREADY_PROCESSED',
                     currency: "kwr",
                     bonus : +100,
@@ -103,12 +102,11 @@ let win = (req, res) => {
         // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
         let payLoad = {};
         let rand = Math.floor(Math.random() * (3 - 1 + 1) + 1);
-        console.log(rand);
         switch(rand){
             case 1 :
                 payLoad = {
                     transaction_status : true,
-                    win_amount: +1000,
+                    amount: +1000,
                     code: 'SUCCEED',
                     currency: "kwr",
                     bonus : +100,
@@ -120,7 +118,7 @@ let win = (req, res) => {
             case 2 :
                 payLoad = {
                     transaction_status : false,
-                    win_amount: +1000,
+                    amount: +1000,
                     code: 'BALANCE_EXCEED',
                     currency: "kwr",
                     bonus : +100, 
@@ -132,7 +130,7 @@ let win = (req, res) => {
             case 3 :
                 payLoad = {
                     transaction_status : false,
-                    win_amount: +1000,
+                    amount: +1000,
                     code: 'ALREADY_PROCESSED',
                     currency: "kwr",
                     bonus : +100,
@@ -145,6 +143,38 @@ let win = (req, res) => {
         
 
         let apiResponse = responseLib.generate(false, "Win API", payLoad);
+        res.status(200).send(apiResponse);
+
+    } catch (error) {
+        let apiResponse = responseLib.generate(true, error.message, {});
+        res.status(500).send(apiResponse);
+    }
+}
+
+const rollback = async(req, res) => {
+    try {
+        // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
+        let payLoad = {};
+        let rand = Math.floor(Math.random() * (2 - 1 + 1) + 1);
+        switch(rand){
+            case 1 :
+                payLoad = {
+                    amount: +1000,
+                    txn_id : req.body.txn_id,
+                    operator_transaction_id : "123abcd85666"
+                }
+                break;
+            case 2 :
+                payLoad = {
+                    amount: +1000,
+                    txn_id : req.body.txn_id,
+                    operator_transaction_id : null
+                }
+                break;
+        }
+        
+
+        let apiResponse = responseLib.generate(false, "Rollback", payLoad);
         res.status(200).send(apiResponse);
 
     } catch (error) {
@@ -168,6 +198,9 @@ let handler = (req, res) => {
                 break;
             case "win":
                 win(req, res);
+                break;
+            case "rollback":
+                rollback(req, res);
                 break;
             default:
                 res.status(404).send({});
