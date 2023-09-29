@@ -13,6 +13,7 @@ const AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
 const ClientProviderModel = mongoose.model('Client_provider_mapping');
 const GameModel = mongoose.model('Game');
 const TransactionModel = mongoose.model('Transaction');
+const checker = require('../libs/checkLib');
 
 /**
  * 
@@ -38,12 +39,12 @@ const isBetEnabled = async (account_id, provider_id) => {
 
         let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: account_id }).lean();
 
-        if (checkLib.isEmpty(acountDetails) == false) {
+        if (checker.isEmpty(acountDetails) == false) {
 
             maintenance_mode_status = acountDetails.is_maintenance_mode_on;
             let accountProviderTag = await ClientProviderModel.findOne({ account_id: account_id, client_id: acountDetails.client_id, provider_id: provider_id }).lean();
 
-            if (checkLib.isEmpty(accountProviderTag) == false) {
+            if (checker.isEmpty(accountProviderTag) == false) {
                 rejectionStatus = false;
             } else {
                 rejectionStatus = true;
@@ -70,7 +71,7 @@ const isBetEnabled = async (account_id, provider_id) => {
 
 const getGameDetailsByGameCode = async(gamecode, provider_id) => {
     try {
-        let gamedtls = await GameModel.findOne({ game_code: gamecode, provider_id: provider_id }).lean();
+        let gamedtls = await GameModel.findOne({ game_code: gamecode, game_provider_id: provider_id }).lean();
         return gamedtls;
     } catch (e) {
         console.log('error ==>', e);

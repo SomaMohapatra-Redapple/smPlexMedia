@@ -26,7 +26,18 @@ const clientAuthenticationValidateSchema = Joi.object({
 
 const clientBetValidateSchema = Joi.object({
     transaction_status: Joi.boolean().required(),
-    bet_amount: Joi.number().required().allow(0),
+    amount: Joi.number().required().allow(0),
+    code: Joi.string().required(),
+    currency: Joi.string().required(),
+    bonus: Joi.number(),
+    round_id: Joi.string().required(),
+    txn_id: Joi.string().required(),
+    operator_transaction_id: Joi.string().required().allow(null),
+});
+
+const clientWinValidateSchema = Joi.object({
+    transaction_status: Joi.boolean().required(),
+    amount: Joi.number().required().allow(0),
     code: Joi.string().required(),
     currency: Joi.string().required(),
     bonus: Joi.number(),
@@ -55,7 +66,7 @@ let clientResponseValidator = async (data, function_name) => {
                 value = await clientBetValidateSchema.validate(data);
                 break;
             case "win":
-                value = await boongoReqBetValidateSchema.validate(data);
+                value = await clientWinValidateSchema.validate(data);
                 break;
             case "rollback":
                 value = await boongoReqWinValidateSchema.validate(data);

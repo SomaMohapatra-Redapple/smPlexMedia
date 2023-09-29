@@ -14,7 +14,7 @@ const mongoose = require('mongoose');
 const AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
 const commonController = require('../controllers/commonController'); 
 const checker = require('../libs/checkLib');
-const { moment } = require('moment-timezone');
+const time = require('../libs/timeLib');
 
 /**
  * 
@@ -230,42 +230,44 @@ const transaction = async(data) => {
         let playerToken = data.token.split("-ucd-");
         let usercode = playerToken[1];
         const userdtls = await commonController.checkUsercodeExists(usercode);
-        let provider_id = data.provider_id;
-        let transaction_type = returnData = amount = '';
+        let provider_id = "65142a47b0aef485da243a29";
+        let transaction_type = amount = '';
         let transaction_id = data.uid;
         // check if bet is allowed
         let betStatus = await commonController.isBetEnabled(userdtls.account_id, provider_id);
-        if(betStatus.rejectionStatus === false || betStatus.maintenance_mode_status === 'Y'){
-            returnData =  {
+        console.log(betStatus);
+        if(betStatus.rejectionStatus === true || betStatus.maintenance_mode_status === 'Y'){
+            return {
                 "uid": data.uid,            
                 "error": {
                     "code": "SESSION_CLOSED"  
                 }
             }
         }
-        let gamedtls = await commonController.getGameDetailsByGameCode(data.game_id, data.provider_id);
-        let bet = (bodyData.args && bodyData.args.bet) ? bodyData.args.bet : '';
-        let win = (bodyData.args && bodyData.args.win) ? bodyData.args.win : '';
+        let gamedtls = await commonController.getGameDetailsByGameCode(data.game_id, provider_id);
+        let bet = (data.args && data.args.bet) ? data.args.bet : '';
+        let win = (data.args && data.args.win) ? data.args.win : '';
         let roundId = data.args.round_id;
         if(bet.trim() !== ''){
 
             transaction_type = 'DEBIT';
+            amount = bet;
 
             // prepare data to send to client
             let dataToSend = {
                 txn_id : transaction_id,
-                round_id : roundId,
+                round_id : roundId.toString(),
                 bet_amount : amount,
-                game_id : gamedtls.game_id,
+                game_id : gamedtls._id,
                 category_id : gamedtls.game_category_id,
                 bonus : '',
-                user_id : account_user_id
+                user_id : userdtls.account_user_id
             }
 
             let acountDetails = await AccountsTechnicalsModel.findOne({account_id: userdtls.account_id }).lean();
 
             if(checker.isEmpty(acountDetails)){
-                returnData =  {
+                return {
                     "uid": data.uid,            
                     "error": {
                         "code": "FATAL_ERROR"  
@@ -288,7 +290,7 @@ const transaction = async(data) => {
                 let validation = await clientValidator.validateResponse(response.data.data, 'bet');
 
                 if(validation.error === true){
-                    returnData =  {
+                    return {
                         "uid": data.uid,            
                         "error": {
                             "code": "FATAL_ERROR"  
@@ -305,7 +307,7 @@ const transaction = async(data) => {
                                 account_id : userdtls.account_id,
                                 account_user_id : userdtls.account_user_id,
                                 user_id : userdtls._id,
-                                game_id : gamedtls.game_id,
+                                game_id : gamedtls._id,
                                 game_name : gamedtls.game_name,
                                 provider_id : data.provider_id,
                                 provider_name : data.provider_name,
@@ -317,15 +319,15 @@ const transaction = async(data) => {
                                 transaction_amount : amount,
                                 transaction_type : transaction_type,
                                 status : 0,
-                                created_at : moment().toISOString(),
-                                updated_at : moment().toISOString()
+                                created_at : time.now(),
+                                updated_at : time.now()
                             }
                             
                             // log the data
                             await commonController.insertLog(logData);
 
                             // set success response
-                            returnData = {
+                            return {
                                 uid: data.uid,
                                 balance: {
                                     value: (response.data.data.bet_amount).toFixed(2),
@@ -333,31 +335,27 @@ const transaction = async(data) => {
                                     code: 3
                                 }
                             }
-                            break;
                         case 'BALANCE_EXCEED':
-                            returnData =  {
+                            return {
                                 "uid": data.uid,            
                                 "error": {
                                     "code": "FUNDS_EXCEED"  
                                 }
                             }
-                            break;
                         case 'ALREADY_PROCESSED':
-                            returnData =  {
+                            return {
                                 "uid": data.uid,            
                                 "error": {
                                     "code": "FUNDS_EXCEED"  
                                 }
                             }
-                            break;
                         default:
-                            returnData =  {
+                            return {
                                 "uid": data.uid,            
                                 "error": {
                                     "code": "FATAL_ERROR"  
                                 }
                             }
-                            break;
                     }
                 }
             }
@@ -365,16 +363,17 @@ const transaction = async(data) => {
         if(win.trim() !== ''){
 
             transaction_type = 'CREDIT';
+            amount = win;
 
             // prepare data to send to client
             let dataToSend = {
                 txn_id : transaction_id,
-                round_id : roundId,
+                round_id : roundId.toString(),
                 win_amount : amount,
-                game_id : gamedtls.game_id,
+                game_id : gamedtls._id,
                 category_id : gamedtls.game_category_id,
                 bonus : '',
-                user_id : account_user_id
+                user_id : userdtls.account_user_id
             }
 
             let acountDetails = await AccountsTechnicalsModel.findOne({account_id: userdtls.account_id }).lean();
@@ -403,7 +402,7 @@ const transaction = async(data) => {
                 let validation = await clientValidator.validateResponse(response.data.data, 'win');
 
                 if(validation.error === true){
-                    returnData =  {
+                    return {
                         "uid": data.uid,            
                         "error": {
                             "code": "FATAL_ERROR"  
@@ -420,7 +419,7 @@ const transaction = async(data) => {
                                 account_id : userdtls.account_id,
                                 account_user_id : userdtls.account_user_id,
                                 user_id : userdtls._id,
-                                game_id : gamedtls.game_id,
+                                game_id : gamedtls._id,
                                 game_name : gamedtls.game_name,
                                 provider_id : data.provider_id,
                                 provider_name : data.provider_name,
@@ -432,15 +431,15 @@ const transaction = async(data) => {
                                 transaction_amount : amount,
                                 transaction_type : transaction_type,
                                 status : 0,
-                                created_at : moment().toISOString(),
-                                updated_at : moment().toISOString()
+                                created_at : time.now(),
+                                updated_at : time.now()
                             }
                             
                             // log the data
                             await commonController.insertLog(logData);
 
                             // set success response
-                            returnData = {
+                            return {
                                 uid: data.uid,
                                 balance: {
                                     value: (response.data.data.win_amount).toFixed(2),
@@ -448,31 +447,20 @@ const transaction = async(data) => {
                                     code: 3
                                 }
                             }
-                            break;
-                        case 'BALANCE_EXCEED':
-                            returnData =  {
-                                "uid": data.uid,            
-                                "error": {
-                                    "code": "FUNDS_EXCEED"  
-                                }
-                            }
-                            break;
                         case 'ALREADY_PROCESSED':
-                            returnData =  {
-                                "uid": data.uid,            
-                                "error": {
-                                    "code": "FUNDS_EXCEED"  
-                                }
-                            }
-                            break;
-                        default:
-                            returnData =  {
+                            return {
                                 "uid": data.uid,            
                                 "error": {
                                     "code": "FATAL_ERROR"  
                                 }
                             }
-                            break;
+                        default:
+                            return {
+                                "uid": data.uid,            
+                                "error": {
+                                    "code": "FATAL_ERROR"  
+                                }
+                            }
                     }
                 }
             }
@@ -480,6 +468,7 @@ const transaction = async(data) => {
         return returnData;
 
     } catch (error) {
+        console.log(error.message);
         return {
             "uid": data.uid,            
             "error": {
