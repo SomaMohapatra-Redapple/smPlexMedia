@@ -47,7 +47,6 @@ let bet = (req, res) => {
         // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
         let payLoad = {};
         let rand = Math.floor(Math.random() * (3 - 1 + 1) + 1);
-        console.log(rand);
         switch(rand){
             case 1 :
                 payLoad = {
@@ -103,7 +102,6 @@ let win = (req, res) => {
         // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
         let payLoad = {};
         let rand = Math.floor(Math.random() * (3 - 1 + 1) + 1);
-        console.log(rand);
         switch(rand){
             case 1 :
                 payLoad = {
@@ -153,6 +151,42 @@ let win = (req, res) => {
     }
 }
 
+const rollback = async(req, res) => {
+    try {
+        // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
+        let payLoad = {};
+        let rand = Math.floor(Math.random() * (2 - 1 + 1) + 1);
+        switch(rand){
+            case 1 :
+                payLoad = {
+                    amount: +1000,
+                    txn_id : req.body.txn_id,
+                    operator_transaction_id : "123abcd85666",
+                    currency: "kwr",
+                    bonus : +100,
+                }
+                break;
+            case 2 :
+                payLoad = {
+                    amount: +1000,
+                    txn_id : req.body.txn_id,
+                    operator_transaction_id : null,
+                    currency: "kwr",
+                    bonus : +100,
+                }
+                break;
+        }
+        
+
+        let apiResponse = responseLib.generate(false, "Rollback", payLoad);
+        res.status(200).send(apiResponse);
+
+    } catch (error) {
+        let apiResponse = responseLib.generate(true, error.message, {});
+        res.status(500).send(apiResponse);
+    }
+}
+
 let handler = (req, res) => {
     try {
         const functionName = req.query.function;
@@ -168,6 +202,9 @@ let handler = (req, res) => {
                 break;
             case "win":
                 win(req, res);
+                break;
+            case "refund":
+                rollback(req, res);
                 break;
             default:
                 res.status(404).send({});
