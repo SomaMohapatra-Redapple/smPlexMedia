@@ -52,7 +52,7 @@ let bet = (req, res) => {
                 payLoad = {
                     
                     transaction_status : true,
-                    bet_amount: +1000,
+                    amount: +1000,
                     code: 'SUCCEED',
                     currency: "kwr",
                     bonus : +100,
@@ -64,7 +64,7 @@ let bet = (req, res) => {
             case 2 :
                 payLoad = {
                     transaction_status : false,
-                    bet_amount: +1000,
+                    amount: +1000,
                     code: 'BALANCE_EXCEED',
                     currency: "kwr",
                     bonus : +100,
@@ -76,7 +76,7 @@ let bet = (req, res) => {
             case 3 :
                 payLoad = {
                     transaction_status : false,
-                    bet_amount: +1000,
+                    amount: +1000,
                     code: 'ALREADY_PROCESSED',
                     currency: "kwr",
                     bonus : +100,
@@ -107,7 +107,7 @@ let win = (req, res) => {
             case 1 :
                 payLoad = {
                     transaction_status : true,
-                    win_amount: +1000,
+                    amount: +1000,
                     code: 'SUCCEED',
                     currency: "kwr",
                     bonus : +100,
@@ -119,7 +119,7 @@ let win = (req, res) => {
             case 2 :
                 payLoad = {
                     transaction_status : false,
-                    win_amount: +1000,
+                    amount: +1000,
                     code: 'ALREADY_PROCESSED',
                     currency: "kwr",
                     bonus : +100,
