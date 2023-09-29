@@ -35,16 +35,33 @@ const checkUsercodeExists = async (usercode) => {
  * @returns userdtls/null
  * 
  */
-const insertLog = async(data) => {
+const insertLog = async (data) => {
     try {
-        await TransactionModel.create(data);
+        let transactionData = new TransactionModel(data);
+        let saveData = await transactionData.save();
+        console.log(saveData);
+        if (saveData) {
+            let insertData = {
+                erroe: false
+            }
+            return insertData;
+        }
+
+        else {
+            let insertData = {
+                erroe: false
+            }
+            return insertData;
+        }
+
     } catch (e) {
         console.log('error ==>', e);
+        return false;
     }
 }
 
 
 module.exports = {
     checkUsercodeExists: checkUsercodeExists,
-    insertLog:insertLog
+    insertLog: insertLog
 }

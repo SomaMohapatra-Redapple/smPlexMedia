@@ -273,7 +273,7 @@ let bet = async (req, res) => {
         const tokenStr = bodyData.token;
         const betamount = bodyData.amount;
         const gamecode = bodyData.gameId; // provider game ID
-        const providerId = bodyData.providerId;
+        // const providerId = bodyData.providerId;
         const reference_id = bodyData.reference; // provider transction ID
         const roundId = bodyData.roundId; //provider Id of the round
 
@@ -293,15 +293,15 @@ let bet = async (req, res) => {
 
         /* ************* Checking Bet Rejection *************** */
 
-        let isBetEnable = await walletController.betControlStatus(account_id, provider_id);
+        let gameDetails = GameModel.findOne({ game_code: gamecode }).lean();
+        let providerDetails = ProviderModel.findOne({ _id: gameDetails.game_provider_id }).lean();
+
+        let isBetEnable = await walletController.betControlStatus(account_id, providerDetails._id);
         if ((isBetEnable.rejectionStatus == true) || (isBetEnable.maintenance_mode_status == 'Y')) {
             Status = 'Maintenance in progress. Try again later!';
             code = 7;
             return await invalidError(code, Status);
         }
-
-        let gameDetails = GameModel.findOne({ game_code: gamecode }).lean();
-        let providerDetails = ProviderModel.findOne({ _id: gameDetails.game_provider_id }).lean();
 
         let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: account_id }).lean();
         if (checkLib.isEmpty(acountDetails)) {
@@ -356,7 +356,7 @@ let bet = async (req, res) => {
             case 'SUCCEED':
                 // prepare data to log
                 let logData = {
-                    session_id: null,
+                    session_id: "",
                     account_id: userdtls.account_id,
                     account_user_id: userdtls.account_user_id,
                     user_id: userdtls._id,
@@ -371,13 +371,14 @@ let bet = async (req, res) => {
                     operator_transaction_id: responseData.operator_transaction_id,
                     transaction_amount: betamount,
                     transaction_type: "Debit",
+                    action: "BET",
                     status: 0,
                     created_at: timeLib.currentDateTime(),
                     updated_at: timeLib.currentDateTime()
                 }
 
                 // log the data
-                await commonController.insertLog(logData);
+                let inserData =  await commonController.insertLog(logData);
 
                 // set success response
                 payLoad = {
