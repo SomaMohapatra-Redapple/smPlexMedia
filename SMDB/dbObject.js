@@ -391,6 +391,11 @@ let smObj = {
             type: String,
             required : true,
         },
+        action: {
+            type: String,
+            default : "",
+            required : true,
+        },
         status: {
             type: String,
             // default : "online",
