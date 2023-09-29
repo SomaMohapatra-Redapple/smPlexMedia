@@ -11,6 +11,10 @@ const reqAuthValidateSchema = Joi.object({
     user_id: Joi.string().required()
 });
 
+const rollbackSchema = Joi.object({
+    txn_id: Joi.string().required()
+});
+
 const betSchema = Joi.object({
     user_id: Joi.string().required(),
     game_id: Joi.string().required(),
@@ -49,6 +53,9 @@ let apiValidator = async (req, res, next) => {
                 break;
             case "win":
                 value = await winSchema.validate(req.body);
+                break;
+            case "refund":
+                value = await rollbackSchema.validate(req.body);
                 break;
             default:
                 let apiResponse = responseLib.generate(true, `INVALID_REQUEST`, {});
