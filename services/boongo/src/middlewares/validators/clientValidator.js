@@ -26,7 +26,7 @@ const clientAuthenticationValidateSchema = Joi.object({
 
 const clientBetValidateSchema = Joi.object({
     transaction_status: Joi.boolean().required(),
-    amount: Joi.number().required().allow(0),
+    available_balance: Joi.number().required().allow(0),
     code: Joi.string().required(),
     currency: Joi.string().required(),
     bonus: Joi.number(),
@@ -37,7 +37,7 @@ const clientBetValidateSchema = Joi.object({
 
 const clientWinValidateSchema = Joi.object({
     transaction_status: Joi.boolean().required(),
-    amount: Joi.number().required().allow(0),
+    available_balance: Joi.number().required().allow(0),
     code: Joi.string().required(),
     currency: Joi.string().required(),
     bonus: Joi.number(),

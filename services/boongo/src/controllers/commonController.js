@@ -71,8 +71,29 @@ const isBetEnabled = async (account_id, provider_id) => {
 
 const getGameDetailsByGameCode = async(gamecode, provider_id) => {
     try {
-        let gamedtls = await GameModel.findOne({ game_code: gamecode, game_provider_id: provider_id }).lean();
-        return gamedtls;
+        let gamedtls = await GameModel.aggregate([
+            {
+              $match: {
+                game_code : gamecode,
+                game_provider_id : new mongoose.Types.ObjectId(provider_id)
+              }
+            },
+            {
+              $lookup: {
+                from: "categories",
+                localField: "game_category_id",
+                foreignField: "_id",
+                as: "categorydtls"
+              }
+            },
+            {
+              $unwind: "$categorydtls"
+            }
+          ]);
+          if(gamedtls.length > 0)
+            return gamedtls[0];
+          else
+            return {};
     } catch (e) {
         console.log('error ==>', e);
         return {};
@@ -81,7 +102,12 @@ const getGameDetailsByGameCode = async(gamecode, provider_id) => {
 
 const insertLog = async(data) => {
     try {
-        await TransactionModel.create(data);
+        let transactionData = new TransactionModel(data);
+        let saveData = await transactionData.save();
+        if(saveData)
+            return true;
+        else
+            return false;
     } catch (e) {
         console.log('error ==>', e);
     }

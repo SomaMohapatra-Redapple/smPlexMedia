@@ -235,7 +235,6 @@ const transaction = async(data) => {
         let transaction_id = data.uid;
         // check if bet is allowed
         let betStatus = await commonController.isBetEnabled(userdtls.account_id, provider_id);
-        console.log(betStatus);
         if(betStatus.rejectionStatus === true || betStatus.maintenance_mode_status === 'Y'){
             return {
                 "uid": data.uid,            
@@ -303,21 +302,23 @@ const transaction = async(data) => {
                         case 'SUCCEED':
                             // prepare data to log
                             let logData = {
-                                session_id : null,
+                                session_id : "1234",
                                 account_id : userdtls.account_id,
                                 account_user_id : userdtls.account_user_id,
                                 user_id : userdtls._id,
                                 game_id : gamedtls._id,
-                                game_name : gamedtls.game_name,
-                                provider_id : data.provider_id,
+                                game_name : gamedtls.game_name.en,
+                                provider_id : provider_id,
                                 provider_name : data.provider_name,
                                 game_category_id : gamedtls.game_category_id,
-                                game_category_name : gamedtls.game_category_name,
+                                game_category_name : gamedtls.categorydtls.category,
                                 provider_transaction_id : transaction_id,
-                                roundID : roundId,
+                                round_id : roundId,
                                 operator_transaction_id : response.data.data.operator_transaction_id,
                                 transaction_amount : amount,
                                 transaction_type : transaction_type,
+                                bet_id : "1234",                                                        // REMOVE
+                                action : 'BET',
                                 status : 0,
                                 created_at : time.now(),
                                 updated_at : time.now()
@@ -330,7 +331,7 @@ const transaction = async(data) => {
                             return {
                                 uid: data.uid,
                                 balance: {
-                                    value: (response.data.data.bet_amount).toFixed(2),
+                                    value: (response.data.data.available_balance).toFixed(2),
                                     version: await commonController.getVersion(),
                                     code: 3
                                 }
@@ -415,21 +416,23 @@ const transaction = async(data) => {
                         case 'SUCCEED':
                             // prepare data to log
                             let logData = {
-                                session_id : null,
+                                session_id : "1234",
                                 account_id : userdtls.account_id,
                                 account_user_id : userdtls.account_user_id,
                                 user_id : userdtls._id,
                                 game_id : gamedtls._id,
-                                game_name : gamedtls.game_name,
-                                provider_id : data.provider_id,
+                                game_name : gamedtls.game_name.en,
+                                provider_id : provider_id,
                                 provider_name : data.provider_name,
                                 game_category_id : gamedtls.game_category_id,
-                                game_category_name : gamedtls.game_category_name,
+                                game_category_name : gamedtls.categorydtls.category,
                                 provider_transaction_id : transaction_id,
-                                roundID : roundId,
+                                round_id : roundId,
                                 operator_transaction_id : response.data.data.operator_transaction_id,
                                 transaction_amount : amount,
                                 transaction_type : transaction_type,
+                                bet_id : "1234",                                                        // REMOVE
+                                action : 'WIN',
                                 status : 0,
                                 created_at : time.now(),
                                 updated_at : time.now()
@@ -442,7 +445,7 @@ const transaction = async(data) => {
                             return {
                                 uid: data.uid,
                                 balance: {
-                                    value: (response.data.data.win_amount).toFixed(2),
+                                    value: (response.data.data.available_balance).toFixed(2),
                                     version: await commonController.getVersion(),
                                     code: 3
                                 }
