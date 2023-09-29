@@ -328,7 +328,8 @@ let smObj = {
     Transaction : {
         session_id: {
             type: String,
-            required : true,
+            required : false,
+            default : "",
         },
         account_id: {
             type: String,
@@ -368,10 +369,6 @@ let smObj = {
             isObjectId: true
         },
         game_category_name: {
-            type: String,
-            required : true,
-        },
-        bet_id: {
             type: String,
             required : true,
         },
