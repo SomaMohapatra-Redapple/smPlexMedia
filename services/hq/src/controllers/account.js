@@ -11,14 +11,34 @@ const AccountTable = mongoose.model('Accounts');
 const AddAccount = async (query) => {
   return await AccountTable.create(query);
 };
-const ShowAccount = async (query) => {
-  //const {page,limit} = validatedBody;
-  return await AccountTable.find(query);
+const ShowAccount = async (validatedBody) => {
+  console.log("validated body",validatedBody);
+  
+  const { client_id, username, page, limit } =
+    validatedBody;
+  let query = {};
+  if (client_id) {
+    //query.client_id = new RegExp(client_id,"i");
+    query.client_id = client_id;
+  }
+  if (username) {
+    query.username = username;
+  }
+  let options = {
+    page: parseInt(page) || 1,
+    limit: parseInt(limit) || 15,
+    sort: { createdAt: -1 },
+  };
+  return await AccountTable.paginate(query, options);
 };
+// const ShowAccount = async (query) => {
+//   //const {page,limit} = validatedBody;
+//   return await AccountTable.find(query);
+// };
 //add account
 const add_account = async (req, res, next) => {
   try {
-    const query = validatedBody.value;
+    const query = req.body;
     const added_account = await AddAccount(query)
       .then((result) => {
         res.status(200).send({
