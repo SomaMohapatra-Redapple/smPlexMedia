@@ -42,6 +42,7 @@ let superAdminSchema = new Schema(smObj.SuperAdmin);
 let transactionSchema = new Schema(smObj.Transaction);
 
 clientSchema.plugin(mongoosePaginate);
+accountSchema.plugin(mongoosePaginate);
 
 mongoose.model("Accounts", accountSchema);
 mongoose.model("AccountsTechnicals", accountTechnicalsSchema);
