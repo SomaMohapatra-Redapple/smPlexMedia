@@ -1,4 +1,12 @@
-let responseLib = require('../libs/responseLib');
+/**
+ * 
+ * @author Akash Paul
+ * @purpose Pragmatic Play provider integration and game launch related works
+ * @createdDate Sep 25 2023
+ * @lastUpdated Sep 25 2023
+ * @lastUpdatedBy Akash Paul
+ */
+
 let ppClientSmValidator = require('../middlewares/validator/ppClientSmValidator');
 let axios = require("axios").default;
 let mongoose = require('mongoose');
@@ -12,11 +20,17 @@ let commonController = require('../controller/commonController');
 let walletController = require('../controller/walletController');
 
 
-//  Function handler for PP API's
+/**
+ * 
+ * @author Akash Paul
+ * @function handler
+ * @param {*} req res
+ * @returns res
+ * 
+ */
 let handler = async (req, res) => {
     try {
         let response;
-        let payLoad;
         let apiResponse;
         switch (req.params.function) {
             case "getGameUrl":
@@ -35,8 +49,10 @@ let handler = async (req, res) => {
                 response = await result(req, res);
                 break;
             default:
-                apiResponse = responseLib.generate(false, "No Function defined", {});
-                res.status(200).send(apiResponse);
+                response = {
+                    error: 120,
+                    description: "Internal server error. Casino Operator will return this error code if theirsystem   has   internal   problem   and   cannot   process   the   request   andOperator logic does not require a retry of the request. Request will NOTfollow Reconciliation process"
+                }
                 break;
         }
         return res.status(200).send(response);
@@ -59,6 +75,14 @@ let getGameUrl = async () => {
     }
 }
 
+/**
+ * 
+ * @author Akash Paul
+ * @function authenticate
+ * @param {*} req, res
+ * @returns object
+ * 
+ */
 let authenticate = async (req, res) => {
     try {
         const tokenStr = req.body.token;
@@ -74,8 +98,8 @@ let authenticate = async (req, res) => {
         let splitToken = tokenStr.split("-ucd-");
         let usercode = splitToken[1];
         const userdtls = await commonController.checkUsercodeExists(usercode);
-        let account_user_id = userdtls.client_user_id;
-        let account_id = userdtls.client_id;
+        let account_user_id = userdtls.account_user_id;
+        let account_id = userdtls.account_id;
 
         let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: account_id }).lean();
         if (checkLib.isEmpty(acountDetails)) {
@@ -101,8 +125,8 @@ let authenticate = async (req, res) => {
 
             // checking the response has any error or not
             if (response.data.err == true) {
-                code = 3;
-                Status = "Bet is not allowed. Should be returned in any case when the player is notallowed to play a specific game. For example, because of special bonus.";
+                code = 120;
+                Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
                 return await invalidError(code, Status);
             }
 
@@ -113,8 +137,8 @@ let authenticate = async (req, res) => {
             /* checking the client data format has any error or not */
             if (responseCheck.error == true) {
                 let payLoad = {
-                    "error": 1,
-                    "description": "error"
+                    "error": 120,
+                    "description": "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
                 }
                 return payLoad;
             }
@@ -123,7 +147,7 @@ let authenticate = async (req, res) => {
                 status: 200,
                 userId: usercode,
                 currency: userdtls.currency_code,
-                cash: responseData.cash,
+                cash: responseData.amount,
                 bonus: 0,
                 token: tokenStr,
                 country: responseData.country,
@@ -141,17 +165,48 @@ let authenticate = async (req, res) => {
             description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
         }
 
-        return res.status(200).send(payLoad);
+        return payLoad;
     }
 }
 
+/**
+ * 
+ * @author Akash Paul
+ * @function balance
+ * @param {*} req, res
+ * @returns object
+ * 
+ */
 let balance = async (req, res) => {
     try {
-        let acountDetails = await AccountsTechnicalsModel.find({ client_id: `650ad4f9a08fe4a5e828815c`, account_id: `650ad363a08fe4a5e8288155` }).lean();
+        const tokenStr = req.body.token;
+        const hash = req.body.hash;
+
+        const tokenValid = await isTokenvalid(tokenStr);
+
+        if (tokenValid.error > 0) {
+            return tokenValid;
+        }
+
+        let splitToken = tokenStr.split("-ucd-");
+        let usercode = splitToken[1];
+        const userdtls = await commonController.checkUsercodeExists(usercode);
+        let account_user_id = userdtls.account_user_id;
+        let account_id = userdtls.account_id;
+
+        let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: account_id }).lean();
+        if (checkLib.isEmpty(acountDetails)) {
+            const payLoad = {
+                error: 2,
+                description: "Player not found or is logged out. Should be returned in the response onany request sent by Pragmatic Play if the player can’t be found or islogged out at Casino Operator’s side"
+            }
+
+            return payLoad;
+        }
 
         let config = {
             method: 'post',
-            url: `${acountDetails[0].service_endpoint}/user-balance?function=balance`,
+            url: `${acountDetails.service_endpoint}/callback?function=balance`,
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -163,62 +218,54 @@ let balance = async (req, res) => {
         let response = await axios(config);
 
         // checking the response has any error or not
-        if (response.data.err == false) {
-            let responseData = response.data.data;
-            let function_name = "balance";
-
-            let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
-
-            // checking the data format has any error or not
-            if (responseCheck.error == false) {
-                let payLoad = {
-                    "currency": response.data.data.currency,
-                    "cash": response.data.data.cash,
-                    "bonus": response.data.data.bonus,
-                    "error": 0,
-                    "description": "Success"
-                }
-                return res.status(200).send(payLoad);
-
-            } else {
-                let payLoad = {
-                    "currency": "",
-                    "cash": 0,
-                    "bonus": 0,
-                    "error": 1,
-                    "description": "error"
-                }
-
-                return res.status(200).send(payLoad);
-            }
-
-        } else {
-            let payLoad = {
-                "currency": "",
-                "cash": 0,
-                "bonus": 0,
-                "error": 1,
-                "description": "error"
-            }
-
-            return res.status(200).send(payLoad);
+        if (response.data.err == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
         }
+
+        let function_name = 'balance';
+        let responseData = response.data.data;
+        let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
+
+        // checking the data format has any error or not
+        if (responseCheck.error == true) {
+            let payLoad = {
+                "error": 120,
+                "description": "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
+            }
+            return payLoad;
+        }
+        let payLoad = {
+            "currency": responseData.currency,
+            "cash": responseData.amount,
+            "bonus": responseData.bonus,
+            "error": 0,
+            "description": "sucess"
+        }
+
+        return payLoad;
 
 
     } catch (error) {
         console.log(error.message);
         let payLoad = {
-            "currency": "",
-            "cash": 0,
-            "bonus": 0,
-            "error": 1,
-            "description": error.message
+            "error": 120,
+            "description": "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
         }
 
-        return res.status(200).send(payLoad);
+        return payLoad;
     }
 }
 
+/**
+ * 
+ * @author Akash Paul
+ * @function bet
+ * @param {*} req, res
+ * @returns object
+ * 
+ */
 let bet = async (req, res) => {
     try {
         const bodyData = req.body;
@@ -373,6 +420,14 @@ let bet = async (req, res) => {
     }
 }
 
+/**
+ * 
+ * @author Akash Paul
+ * @function result
+ * @param {*} req, res
+ * @returns object
+ * 
+ */
 let result = async (req, res) => {
     try {
         const bodyData = data.data;
@@ -529,6 +584,14 @@ let userBalance = async () => {
     let response = await axios(config);
 }
 
+/**
+ * 
+ * @author Akash Paul
+ * @function isTokenvalid
+ * @param {*} tokenStr
+ * @returns object
+ * 
+ */
 let isTokenvalid = async (tokenStr) => {
     let requestsend = {};
     let tokenValidate = tokenStr.includes('-ucd-') ? true : false;
@@ -602,6 +665,14 @@ let isHashvalid = async (parameter, client_id) => {
     return requestsend;
 }
 
+/**
+ * 
+ * @author Akash Paul
+ * @function invalidError
+ * @param {*} errocode, description
+ * @returns object
+ * 
+ */
 let invalidError = async (errocode, description) => {
     return {
         error: errocode,

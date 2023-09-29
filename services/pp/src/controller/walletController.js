@@ -1,10 +1,10 @@
 /**
  * 
  * @author Akash Paul
- * @purpose Evoplay Other Wallet works integration and game launch related works
- * @createdDate Jun 12 2023
- * @lastUpdated Jun 20 2023
- * @lastUpdatedBy Ritesh Das
+ * @purpose Pragmatic Play Other Wallet works integration and game launch related works
+ * @createdDate Sep 25 2023
+ * @lastUpdated Sep 25 2023
+ * @lastUpdatedBy Akash Paul
  */
 
 /** Modules Import */
@@ -21,6 +21,14 @@ let PlayerModel = mongoose.model('Player');
 /** Global Variables */
 
 
+/**
+ * 
+ * @author Akash Paul
+ * @function betControlStatus
+ * @param {*} account_id, provider_id
+ * @returns object
+ * 
+ */
 let betControlStatus = async (account_id, provider_id) => {
     try {
         let maintenance_mode_status = "Y";

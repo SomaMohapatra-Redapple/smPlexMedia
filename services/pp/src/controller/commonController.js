@@ -2,8 +2,8 @@
  * 
  * @author Akash Paul
  * @purpose PP provider integration common functions
- * @createdDate Sep 26 2023
- * @lastUpdated Sep 26 2023
+ * @createdDate Sep 25 2023
+ * @lastUpdated Sep 25 2023
  * @lastUpdatedBy Akash Paul
  */
 
@@ -27,7 +27,14 @@ const checkUsercodeExists = async (usercode) => {
     }
 }
 
-
+/**
+ * 
+ * @author Akash Paul
+ * @function insertLog
+ * @param {*} data
+ * @returns userdtls/null
+ * 
+ */
 const insertLog = async(data) => {
     try {
         await TransactionModel.create(data);
