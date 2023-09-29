@@ -101,7 +101,8 @@ let win = (req, res) => {
     try {
         // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
         let payLoad = {};
-        let rand = Math.floor(Math.random() * (3 - 1 + 1) + 1);
+        let rand = Math.floor(Math.random() * (2 - 1 + 1) + 1);
+        console.log(rand);
         switch(rand){
             case 1 :
                 payLoad = {
@@ -116,18 +117,6 @@ let win = (req, res) => {
                 }
                 break;
             case 2 :
-                payLoad = {
-                    transaction_status : false,
-                    win_amount: +1000,
-                    code: 'BALANCE_EXCEED',
-                    currency: "kwr",
-                    bonus : +100, 
-                    txn_id : req.body.txn_id,
-                    operator_transaction_id : "123abcd85666",
-                    round_id : req.body.round_id
-                }
-                break;
-            case 3 :
                 payLoad = {
                     transaction_status : false,
                     win_amount: +1000,
