@@ -52,7 +52,7 @@ let bet = (req, res) => {
                 payLoad = {
                     
                     transaction_status : true,
-                    bet_amount: +1000,
+                    available_balance: +1000,
                     code: 'SUCCEED',
                     currency: "kwr",
                     bonus : +100,
@@ -64,7 +64,7 @@ let bet = (req, res) => {
             case 2 :
                 payLoad = {
                     transaction_status : false,
-                    bet_amount: +1000,
+                    available_balance: +1000,
                     code: 'BALANCE_EXCEED',
                     currency: "kwr",
                     bonus : +100,
@@ -76,7 +76,7 @@ let bet = (req, res) => {
             case 3 :
                 payLoad = {
                     transaction_status : false,
-                    bet_amount: +1000,
+                    available_balance: +1000,
                     code: 'ALREADY_PROCESSED',
                     currency: "kwr",
                     bonus : +100,
@@ -101,12 +101,13 @@ let win = (req, res) => {
     try {
         // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
         let payLoad = {};
-        let rand = Math.floor(Math.random() * (3 - 1 + 1) + 1);
+        let rand = Math.floor(Math.random() * (2 - 1 + 1) + 1);
+        console.log(rand);
         switch(rand){
             case 1 :
                 payLoad = {
                     transaction_status : true,
-                    win_amount: +1000,
+                    available_balance: +1000,
                     code: 'SUCCEED',
                     currency: "kwr",
                     bonus : +100,
@@ -118,19 +119,7 @@ let win = (req, res) => {
             case 2 :
                 payLoad = {
                     transaction_status : false,
-                    win_amount: +1000,
-                    code: 'BALANCE_EXCEED',
-                    currency: "kwr",
-                    bonus : +100, 
-                    txn_id : req.body.txn_id,
-                    operator_transaction_id : "123abcd85666",
-                    round_id : req.body.round_id
-                }
-                break;
-            case 3 :
-                payLoad = {
-                    transaction_status : false,
-                    win_amount: +1000,
+                    available_balance: +1000,
                     code: 'ALREADY_PROCESSED',
                     currency: "kwr",
                     bonus : +100,
@@ -159,7 +148,7 @@ const rollback = async(req, res) => {
         switch(rand){
             case 1 :
                 payLoad = {
-                    amount: +1000,
+                    available_balance: +1000,
                     txn_id : req.body.txn_id,
                     operator_transaction_id : "123abcd85666",
                     currency: "kwr",
@@ -168,7 +157,7 @@ const rollback = async(req, res) => {
                 break;
             case 2 :
                 payLoad = {
-                    amount: +1000,
+                    available_balance: +1000,
                     txn_id : req.body.txn_id,
                     operator_transaction_id : null,
                     currency: "kwr",
