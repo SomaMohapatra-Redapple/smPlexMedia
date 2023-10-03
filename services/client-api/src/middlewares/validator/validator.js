@@ -33,6 +33,10 @@ const winSchema = Joi.object({
     category_id: Joi.string().required(),
 });
 
+const refundSchema = Joi.object({
+    txn_id: Joi.string().required(),
+})
+
 
 let apiValidator = async (req, res, next) => {
     try {
@@ -49,6 +53,9 @@ let apiValidator = async (req, res, next) => {
                 break;
             case "win":
                 value = await winSchema.validate(req.body);
+                break;
+            case "refund":
+                value = await refundSchema.validate(req.body);
                 break;
             default:
                 let apiResponse = responseLib.generate(true, `INVALID_REQUEST`, {});
