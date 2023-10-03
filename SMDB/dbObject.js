@@ -363,6 +363,10 @@ let smObj = {
             type: String,
             required : true,
         },
+        provider_transaction_id: {
+            type: String,
+            required : true,
+        },
         game_category_id: {
             type: String,
             ref: 'categories',
