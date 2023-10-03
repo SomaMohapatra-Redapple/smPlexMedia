@@ -17,8 +17,8 @@ const betSchema = Joi.object({
     round_id: Joi.string().required(),
     txn_id: Joi.string().required(),
     category_id: Joi.string().required(),
-    bet_amount: Joi.number().required(),
-    bonus: Joi.number().required().allow(0)
+    bet_amount: Joi.string().required(),
+    bonus: Joi.string().required().allow(''),
 });
 
 const winSchema = Joi.object({
@@ -27,9 +27,13 @@ const winSchema = Joi.object({
     round_id: Joi.string().required(),
     txn_id: Joi.string().required(),
     category_id: Joi.string().required(),
-    win_amount: Joi.number().required(),
-    bonus: Joi.number().required().allow(0),
+    win_amount: Joi.string().required(),
+    bonus: Joi.string().required().allow(''),
 });
+
+const refundSchema = Joi.object({
+    txn_id: Joi.string().required(),
+})
 
 
 let apiValidator = async (req, res, next) => {
@@ -48,6 +52,9 @@ let apiValidator = async (req, res, next) => {
             case "win":
                 value = await winSchema.validate(req.body);
                 break;
+            case "refund":
+                value = await refundSchema.validate(req.body);
+                break;
             default:
                 let apiResponse = responseLib.generate(true, `INVALID_REQUEST`, {});
                 res.status(400).send(apiResponse);
@@ -61,6 +68,7 @@ let apiValidator = async (req, res, next) => {
         }
 
     } catch (err) {
+        console.log(err.message);
         let apiResponse = responseLib.generate(true, ` ERROR : ${err.message}`, {});
         res.status(400).send(apiResponse);
     }

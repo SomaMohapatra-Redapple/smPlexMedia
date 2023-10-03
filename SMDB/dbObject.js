@@ -328,7 +328,8 @@ let smObj = {
     Transaction : {
         session_id: {
             type: String,
-            required : true,
+            required : false,
+            default : "",
         },
         account_id: {
             type: String,
@@ -371,10 +372,6 @@ let smObj = {
             type: String,
             required : true,
         },
-        bet_id: {
-            type: String,
-            required : true,
-        },
         round_id: {
             type: String,
             required : true,
@@ -389,6 +386,11 @@ let smObj = {
         },
         transaction_type: {
             type: String,
+            required : true,
+        },
+        action: {
+            type: String,
+            default : "",
             required : true,
         },
         status: {
