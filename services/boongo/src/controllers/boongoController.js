@@ -15,6 +15,7 @@ const AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
 const commonController = require('../controllers/commonController'); 
 const checker = require('../libs/checkLib');
 const time = require('../libs/timeLib');
+const { invalid } = require('joi');
 
 /**
  * 
@@ -302,7 +303,7 @@ const transaction = async(data) => {
                         case 'SUCCEED':
                             // prepare data to log
                             let logData = {
-                                session_id : "1234",
+                                session_id : "",
                                 account_id : userdtls.account_id,
                                 account_user_id : userdtls.account_user_id,
                                 user_id : userdtls._id,
@@ -317,7 +318,6 @@ const transaction = async(data) => {
                                 operator_transaction_id : response.data.data.operator_transaction_id,
                                 transaction_amount : amount,
                                 transaction_type : transaction_type,
-                                bet_id : "1234",                                                        // REMOVE
                                 action : 'BET',
                                 status : 0,
                                 created_at : time.now(),
@@ -416,7 +416,7 @@ const transaction = async(data) => {
                         case 'SUCCEED':
                             // prepare data to log
                             let logData = {
-                                session_id : "1234",
+                                session_id : "",
                                 account_id : userdtls.account_id,
                                 account_user_id : userdtls.account_user_id,
                                 user_id : userdtls._id,
@@ -431,7 +431,6 @@ const transaction = async(data) => {
                                 operator_transaction_id : response.data.data.operator_transaction_id,
                                 transaction_amount : amount,
                                 transaction_type : transaction_type,
-                                bet_id : "1234",                                                        // REMOVE
                                 action : 'WIN',
                                 status : 0,
                                 created_at : time.now(),
@@ -492,8 +491,132 @@ const transaction = async(data) => {
  * 
  */
 
-const rollback = async(req, res) => {
-    
+const rollback = async(data) => {
+    try {
+
+        let playerToken = data.token.split("-ucd-");
+        let usercode = playerToken[1];
+        const userdtls = await commonController.checkUsercodeExists(usercode);
+        let provider_id = "65142a47b0aef485da243a29";
+        let transaction_type = amount = '';
+        let transaction_id = data.uid;
+        let gamedtls = await commonController.getGameDetailsByGameCode(data.game_id, provider_id);
+        let referenced_transaction_id = data.args.transaction_uid;
+        let roundId = data.args.round_id;
+
+        // check transaction
+        let transactionValid = await commonController.isTransactionValid(referenced_transaction_id);
+        if (!transactionValid) {
+            console.log('invalid transaction');
+            return {
+                "uid": data.uid,            
+                "error": {
+                    "code": "FATAL_ERROR"  
+                }
+            }    
+        }
+        else{
+            
+            let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: userdtls.account_id }).lean();
+
+            if(checker.isEmpty(acountDetails)){
+                return {
+                    "uid": data.uid,            
+                    "error": {
+                        "code": "FATAL_ERROR"  
+                    }
+                }
+            }
+            else{
+
+                let dataToSend = {
+                    txn_id : referenced_transaction_id
+                }
+
+                let config = {
+                    method: 'post',
+                    url: `${acountDetails.service_endpoint}/callback?function=refund`,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    data: dataToSend
+                };
+
+                let response = await axios(config);
+
+                let validation = await clientValidator.validateResponse(response.data.data, 'rollback');
+
+                if(validation.error === true){
+                    return {
+                        "uid": data.uid,            
+                        "error": {
+                            "code": "FATAL_ERROR"  
+                        }
+                    }
+                }
+                else{
+                    let operator_transaction_id = response.data.data.operator_transaction_id;
+
+                    if (operator_transaction_id !== null) {
+
+                        let logData = {
+                            session_id : "",
+                            account_id : userdtls.account_id,
+                            account_user_id : userdtls.account_user_id,
+                            user_id : userdtls._id,
+                            game_id : gamedtls._id,
+                            game_name : gamedtls.game_name.en,
+                            provider_id : provider_id,
+                            provider_name : data.provider_name,
+                            game_category_id : gamedtls.game_category_id,
+                            game_category_name : gamedtls.categorydtls.category,
+                            provider_transaction_id : transaction_id,
+                            round_id : roundId,
+                            operator_transaction_id : operator_transaction_id,
+                            transaction_amount : amount,
+                            transaction_type : transaction_type,
+                            action : 'ROLLBACK',
+                            status : 0,
+                            created_at : time.now(),
+                            updated_at : time.now()
+                        }
+
+                        // log the data
+                        await commonController.insertLog(logData);
+
+                        // set success response
+                        return {
+                            uid: data.uid,
+                            balance: {
+                                value: (response.data.data.available_balance).toFixed(2),
+                                version: await commonController.getVersion(),
+                                code: 3
+                            }
+                        }
+                    }
+                    else{
+                        return {
+                            "uid": data.uid,            
+                            "error": {
+                                "code": "FATAL_ERROR"  
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        
+
+    } catch (error) {
+        console.log(error.message);
+        return {
+            "uid": data.uid,            
+            "error": {
+                "code": "FATAL_ERROR"  
+            }
+        }
+    }
 }
 
 module.exports = {

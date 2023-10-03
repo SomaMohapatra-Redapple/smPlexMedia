@@ -46,6 +46,15 @@ const clientWinValidateSchema = Joi.object({
     operator_transaction_id: Joi.string().required().allow(null),
 });
 
+
+const clientRefundValidateSchema = Joi.object({
+    available_balance: Joi.number().required().allow(0),
+    currency: Joi.string().required(),
+    bonus: Joi.number(),
+    txn_id: Joi.string().required(),
+    operator_transaction_id: Joi.string().required().allow(null),
+});
+
 /**
  * 
  * @author Rajdeep Adhikary
@@ -69,7 +78,7 @@ let clientResponseValidator = async (data, function_name) => {
                 value = await clientWinValidateSchema.validate(data);
                 break;
             case "rollback":
-                value = await boongoReqWinValidateSchema.validate(data);
+                value = await clientRefundValidateSchema.validate(data);
                 break;
             case "balance":
                 value = await clientGetBalanceValidateSchema.validate(data);

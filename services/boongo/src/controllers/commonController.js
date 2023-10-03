@@ -117,6 +117,10 @@ const getVersion = async() => {
     return Math.floor(Date.now() / 1000);
 }
 
+const isTransactionValid = async() => {
+    
+}
+
 module.exports = {
     checkUsercodeExists : checkUsercodeExists,
     isBetEnabled : isBetEnabled,
