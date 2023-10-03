@@ -9,6 +9,7 @@
 
 const mongoose = require('mongoose');
 const playerModel = mongoose.model('Player');
+const TransactionModel = mongoose.model('Transaction');
 
 /**
  * 
@@ -39,24 +40,24 @@ const insertLog = async (data) => {
     try {
         let transactionData = new TransactionModel(data);
         let saveData = await transactionData.save();
-        console.log(saveData);
+        // console.log(saveData);
         if (saveData) {
             let insertData = {
-                erroe: false
+                _id: saveData._id,
+                error: false
             }
             return insertData;
         }
-
         else {
             let insertData = {
-                erroe: false
+                erroe: true
             }
             return insertData;
         }
 
     } catch (e) {
         console.log('error ==>', e);
-        return false;
+        return true;
     }
 }
 

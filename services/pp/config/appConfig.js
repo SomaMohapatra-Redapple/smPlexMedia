@@ -11,6 +11,7 @@ appConfig.allowedCorsOrigin = "*";
 appConfig.apiVersion = '/api/v1';
 appConfig.socketNameSpace = 'wsio';
 appConfig.sessionExpTime = (120 * 120);
+appConfig.provider_id = "65157b954338356038e72b80";
 
 appConfig.MSG_1000 = 'Oops! Something went wrong...';
 appConfig.db = {
