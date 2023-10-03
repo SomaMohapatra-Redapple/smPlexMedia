@@ -19,7 +19,7 @@ const betSchema = Joi.object({
     category_id: Joi.string().required(),
     bet_amount: Joi.string().required(),
     bonus: Joi.string().required().allow(''),
-    category_id: Joi.string().required(),
+    // category_id: Joi.string().required(),
 });
 
 const winSchema = Joi.object({
