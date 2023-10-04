@@ -82,6 +82,8 @@ const adminRegisterValidateSchema = Joi.object({
         .required(),
     status: Joi.string()
         .required(),
+    role: Joi.string()
+        .required(),
     email: Joi.string().required().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
     contact: Joi.string().length(10).pattern(/^[0-9]+$/).required(),
     // source_type: Joi.number().required()
