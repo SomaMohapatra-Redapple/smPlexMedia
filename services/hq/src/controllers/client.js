@@ -1,4 +1,3 @@
-const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 const apiError = require("../libs/apiError");
 const responseMessage = require("../libs/responseMessage");
