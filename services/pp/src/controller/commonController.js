@@ -10,6 +10,43 @@
 const mongoose = require('mongoose');
 const playerModel = mongoose.model('Player');
 const TransactionModel = mongoose.model('Transaction');
+const ProviderModel = mongoose.model('Provider');
+const appConfig = require('../../config/appConfig');
+const checkLib = require('../libs/checkLib');
+const apiLib = require('../libs/apiLib');
+
+const setProviderInRedis = async () => {
+    let { redisClient } = require('../../www/db/db');
+    try {
+        let provider_id = appConfig.provider_id;
+        let providerdtls = await ProviderModel.findById(provider_id);
+        if (checkLib.isEmpty(providerdtls))
+            return false;
+        else {
+            await redisClient.set('provider_pp', JSON.stringify(providerdtls));
+            return true;
+        }
+    } catch (error) {
+        console.log("redis data storing erroe ===> ", error.message);
+    }
+
+}
+
+const postDataFromAPI = async (apiUrl, endpoint, bodyData) => {
+    try {
+        const api = new apiLib(apiUrl);
+        const data = await api.postData(endpoint, bodyData);
+        console.log('API Response:', data);
+        return data;
+    } catch (error) {
+        console.error('Error:', error);
+        let data = {
+            err: true
+        }
+        return data;
+    }
+}
+
 
 /**
  * 
@@ -63,6 +100,8 @@ const insertLog = async (data) => {
 
 
 module.exports = {
+    setProviderInRedis: setProviderInRedis,
     checkUsercodeExists: checkUsercodeExists,
-    insertLog: insertLog
+    insertLog: insertLog,
+    postDataFromAPI: postDataFromAPI
 }

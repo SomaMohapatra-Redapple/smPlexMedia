@@ -16,7 +16,8 @@ let AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
 let PlayerModel = mongoose.model('Player');
 let GameModel = mongoose.model('Game');
 let ProviderModel = mongoose.model('Provider');
-let Category = mongoose.model('Category');
+let CategoryModel = mongoose.model('Category');
+let TransactionModel = mongoose.model('Transaction');
 let checkLib = require('../libs/checkLib');
 let timeLib = require('../libs/timeLib');
 let commonController = require('../controller/commonController');
@@ -116,18 +117,24 @@ let authenticate = async (req, res) => {
 
             return payLoad;
         } else {
-            let config = {
-                method: 'post',
-                url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                data: {
-                    user_id: userdtls.account_user_id                       // YMDJD12
-                }
-            };
+            // let config = {
+            //     method: 'post',
+            //     url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     },
+            //     data: {
+            //         user_id: userdtls.account_user_id
+            //     }
+            // };
 
-            let response = await axios(config);
+            // let response = await axios(config);
+            let postData = {
+                user_id: userdtls.account_user_id
+            }
+
+            let response = await commonController.postDataFromAPI(acountDetails.service_endpoint, req.params.function, postData);
+            console.log(response);
 
             // checking the response has any error or not
             if (response.data.err == true) {
@@ -137,7 +144,7 @@ let authenticate = async (req, res) => {
             }
 
             let function_name = "authenticate";
-            let responseData = response.data.data;
+            let responseData = response.data;
             let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
             /* checking the client data format has any error or not */
@@ -667,18 +674,19 @@ let result = async (req, res) => {
  */
 let refund = async (req, res) => {
     try {
+        let payLoad;
         const bodyData = data.data;
         const usercode = bodyData.userId;
-        const tokenStr = bodyData.token;
-        const winamount = bodyData.amount;
-        const gamecode = bodyData.gameId;
+        // const tokenStr = bodyData.token;
+        // const winamount = bodyData.amount;
+        // const gamecode = bodyData.gameId;
         const reference_id = bodyData.reference;
-        const roundId = bodyData.roundId;
+        // const roundId = bodyData.roundId;
 
-        const tokenValid = await isTokenvalid(tokenStr);
-        if (check.checkObjectLen(tokenValid) > 0) {
-            return tokenValid;
-        }
+        // const tokenValid = await isTokenvalid(tokenStr);
+        // if (check.checkObjectLen(tokenValid) > 0) {
+        //     return tokenValid;
+        // }
 
         /*** get user detail ***/
         let userdtls = await commonController.checkUsercodeExists(usercode);
@@ -689,8 +697,17 @@ let refund = async (req, res) => {
 
         //
 
-        let gameDetails = GameModel.findOne({ game_code: gamecode }).lean();
-        let providerDetails = ProviderModel.findOne({ _id: gameDetails.game_provider_id }).lean();
+        // let gameDetails = GameModel.findOne({ game_code: gamecode }).lean();
+        // let providerDetails = ProviderModel.findOne({ _id: gameDetails.game_provider_id }).lean();
+
+        let transctionDetails = await TransactionModel.findOne({ provider_transaction_id: reference_id }).lean();
+        if (checkLib.isEmpty(transctionDetails)) {
+            payLoad = {
+                error: 120,
+                description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
+            }
+            return payLoad;
+        }
 
         let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: account_id }).lean();
         if (checkLib.isEmpty(acountDetails)) {
@@ -703,53 +720,48 @@ let refund = async (req, res) => {
 
         let config = {
             method: 'post',
-            url: `${acountDetailsservice_endpoint}/callback?function=win`,
+            url: `${acountDetails.service_endpoint}/callback?function=refund`,
             headers: {
                 'Content-Type': 'application/json',
             },
             data: {
-                "user_id": "fgfdg",
-                "transaction_id": "12345",
-                "round_id": "12345",
-                "game_id": "12345",
-                "category_id": "12345",
-                "amount": "120",
-                "bonus": "10"
+                "txn_id": `${reference_id}`,
             }
         };
         let response = await axios(config);
-        let function_name = "bet";
+        let function_name = "refund";
         let responseData = response.data.data;
         let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
         /* checking the client data format has any error or not */
         if (responseCheck.error == true) {
-            let payLoad = {
+            payLoad = {
                 "error": 1,
                 "description": "error"
             }
-            return res.status(200).send(payLoad);
+            return payLoad;
         }
 
-        let transaction_code = responseData.code;
+        let transaction_code = responseData.operator_transaction_id == null ? "FAILED" : "SUCCEED";
+
         switch (transaction_code) {
             case 'SUCCEED':
                 // prepare data to log
                 let logData = {
-                    session_id: null,
-                    account_id: userdtls.account_id,
-                    account_user_id: userdtls.account_user_id,
-                    user_id: userdtls._id,
-                    game_id: gameDetails.game_id,
-                    game_name: gameDetails.game_name,
-                    provider_id: gameDetails.game_provider_id,
-                    provider_name: providerDetails.game_provider_name,
-                    game_category_id: gameDetails.game_category_id,
-                    game_category_name: gameDetails.game_category_name,
-                    provider_transaction_id: reference_id,
-                    roundID: roundId,
+                    session_id: "",
+                    account_id: transctionDetails.account_id,
+                    account_user_id: transctionDetails.account_user_id,
+                    user_id: transctionDetails.user_id,
+                    game_id: transctionDetails.game_id,
+                    game_name: transctionDetails.game_name,
+                    provider_id: transctionDetails.provider_id,
+                    provider_name: transctionDetails.provider_name,
+                    game_category_id: transctionDetails.game_category_id,
+                    game_category_name: transctionDetails.game_category_name,
+                    provider_transaction_id: transctionDetails.provider_transaction_id,
+                    round_id: transctionDetails.round_id,
                     operator_transaction_id: responseData.operator_transaction_id,
-                    transaction_amount: winamount,
+                    transaction_amount: transctionDetails.transaction_amount,
                     transaction_type: "Credit",
                     action: "Rollback",
                     status: 0,
@@ -758,28 +770,24 @@ let refund = async (req, res) => {
                 }
 
                 // log the data
-                await commonController.insertLog(logData);
+                let inserData = await commonController.insertLog(logData);
 
-                // set success response
-                payLoad = {
-                    transactionId: reference,
-                    currency: userdtls.currency,
-                    cash: useravaiblebalnce,
-                    bonus: 0,
-                    error: 0,
-                    description: "Success"
-                }
-                break;
-            case 'BALANCE_EXCEED':
-                payLoad = {
-                    error: 3,
-                    description: "Bet is not allowed. Should be returned in any case when the player is notallowed to play a specific game. For example, because of special bonus."
-                }
-                break;
-            case 'ALREADY_PROCESSED':
-                payLoad = {
-                    error: 3,
-                    description: "Bet is not allowed. Should be returned in any case when the player is notallowed to play a specific game. For example, because of special bonus."
+                if (inserData.error == false) {
+                    // set success response
+                    payLoad = {
+                        transactionId: inserData._id,
+                        currency: responseData.currency,
+                        cash: responseData.available_balance,
+                        bonus: responseData.bonus,
+                        error: 0,
+                        description: "Success"
+                    }
+                } else {
+                    payLoad = {
+                        error: 120,
+                        description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
+                    }
+                    return payLoad;
                 }
                 break;
             default:
@@ -792,29 +800,17 @@ let refund = async (req, res) => {
         }
 
     } catch (error) {
-
+        console.log(error.message);
+        const payLoad = {
+            error: 120,
+            description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
+        }
+        return payLoad;
     }
 }
 
 
 /*************************************************************************************************/ /* This is the required functions for API's */
-
-let userBalance = async () => {
-    let acountDetails = await AccountsTechnicalsModel.find({ client_id: `650ad4f9a08fe4a5e828815c`, account_id: `650ad363a08fe4a5e8288155` }).lean();
-
-    let config = {
-        method: 'post',
-        url: `${acountDetails[0].service_endpoint}/user-balance?function=balance`,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        data: {
-            "user_id": "1234567890"
-        }
-    };
-
-    let response = await axios(config);
-}
 
 /**
  * 
