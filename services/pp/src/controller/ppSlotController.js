@@ -422,7 +422,7 @@ let bet = async (req, res) => {
                         description: "Success"
                     }
                 } else {
-                    const payLoad = {
+                    payLoad = {
                         error: 120,
                         description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
                     }
@@ -474,18 +474,15 @@ let bet = async (req, res) => {
  */
 let result = async (req, res) => {
     try {
-        const bodyData = data.data;
+        let payLoad;
+        const bodyData = req.body;
         const usercode = bodyData.userId;
-        const tokenStr = bodyData.token;
+        // const tokenStr = bodyData.token;
         const winamount = bodyData.amount;
-        const gamecode = bodyData.gameId;
-        const reference_id = bodyData.reference;
-        const roundId = bodyData.roundId;
-
-        const tokenValid = await isTokenvalid(tokenStr);
-        if (check.checkObjectLen(tokenValid) > 0) {
-            return tokenValid;
-        }
+        const gamecode = bodyData.gameId; // provider game ID
+        // const providerId = bodyData.providerId;
+        const reference_id = bodyData.reference; // provider transction ID
+        const roundId = bodyData.roundId; //provider Id of the round
 
         /*** get user detail ***/
         let userdtls = await commonController.checkUsercodeExists(usercode);
@@ -496,8 +493,37 @@ let result = async (req, res) => {
 
         //
 
-        let gameDetails = GameModel.findOne({ game_code: gamecode }).lean();
-        let providerDetails = ProviderModel.findOne({ _id: gameDetails.game_provider_id }).lean();
+        /* ************* Checking Bet Rejection *************** */
+
+        let gameDetails = await GameModel.findOne({ game_provider_id: ProviderID, game_code: gamecode }).lean();
+        // let providerDetails = await ProviderModel.findOne({ _id: gameDetails.game_provider_id }).lean();
+
+        const pipeline = [
+            {
+                $match: {
+                    _id: gameDetails.game_provider_id
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: '_id', // Field in the "provider_table" collection
+                    foreignField: 'game_provider_id', // Field in the "category_table" collection
+                    as: 'categories',
+                },
+            },
+            {
+                $unwind: '$categories'
+            }
+        ]
+        let providerDetails = await ProviderModel.aggregate(pipeline);
+
+        let isBetEnable = await walletController.betControlStatus(account_id, providerDetails[0]._id);
+        if ((isBetEnable.rejectionStatus == true) || (isBetEnable.maintenance_mode_status == 'Y')) {
+            Status = 'Maintenance in progress. Try again later!';
+            code = 7;
+            return await invalidError(code, Status);
+        }
 
         let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: account_id }).lean();
         if (checkLib.isEmpty(acountDetails)) {
@@ -505,37 +531,48 @@ let result = async (req, res) => {
                 error: 2,
                 description: "Player not found or is logged out. Should be returned in the response onany request sent by Pragmatic Play if the player can’t be found or islogged out at Casino Operator’s side"
             }
+
             return payLoad;
         }
 
         let config = {
             method: 'post',
-            url: `${acountDetailsservice_endpoint}/callback?function=win`,
+            url: `${acountDetails.service_endpoint}/callback?function=win`,
             headers: {
                 'Content-Type': 'application/json',
             },
             data: {
                 "user_id": "fgfdg",
-                "transaction_id": "12345",
+                "txn_id": "12345",
                 "round_id": "12345",
                 "game_id": "12345",
                 "category_id": "12345",
-                "amount": "120",
+                "win_amount": "120",
                 "bonus": "10"
             }
         };
         let response = await axios(config);
+
+        // checking the response has any error or not
+        if (response.data.err == true) {
+            payLoad = {
+                error: 120,
+                description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
+            }
+            return payLoad;
+        }
+
         let function_name = "bet";
         let responseData = response.data.data;
         let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
         /* checking the client data format has any error or not */
         if (responseCheck.error == true) {
-            let payLoad = {
-                "error": 1,
-                "description": "error"
+            payLoad = {
+                error: 120,
+                description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
             }
-            return res.status(200).send(payLoad);
+            return payLoad;
         }
 
         let transaction_code = responseData.code;
@@ -543,44 +580,54 @@ let result = async (req, res) => {
             case 'SUCCEED':
                 // prepare data to log
                 let logData = {
-                    session_id: null,
+                    session_id: "",
                     account_id: userdtls.account_id,
                     account_user_id: userdtls.account_user_id,
                     user_id: userdtls._id,
-                    game_id: gameDetails.game_id,
-                    game_name: gameDetails.game_name,
+                    game_id: gameDetails._id,
+                    game_name: gameDetails.game_name.En,
                     provider_id: gameDetails.game_provider_id,
-                    provider_name: providerDetails.game_provider_name,
+                    provider_name: providerDetails[0].game_provider_name,
                     game_category_id: gameDetails.game_category_id,
-                    game_category_name: gameDetails.game_category_name,
+                    game_category_name: providerDetails[0].categories.category,
                     provider_transaction_id: reference_id,
-                    roundID: roundId,
+                    round_id: roundId,
                     operator_transaction_id: responseData.operator_transaction_id,
                     transaction_amount: winamount,
                     transaction_type: "Credit",
-                    action: "Win",
+                    action: "WIN",
                     status: 0,
                     created_at: timeLib.currentDateTime(),
                     updated_at: timeLib.currentDateTime()
                 }
 
                 // log the data
-                await commonController.insertLog(logData);
+                let inserData = await commonController.insertLog(logData);
 
-                // set success response
-                payLoad = {
-                    transactionId: reference,
-                    currency: userdtls.currency,
-                    cash: useravaiblebalnce,
-                    bonus: 0,
-                    error: 0,
-                    description: "Success"
+                if (inserData.error == false) {
+                    // set success response
+                    payLoad = {
+                        transactionId: inserData._id,
+                        currency: responseData.currency,
+                        cash: responseData.available_balance,
+                        bonus: responseData.bonus,
+                        error: 0,
+                        description: "Success"
+                    }
+                } else {
+                    payLoad = {
+                        error: 120,
+                        description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
+                    }
+                    return payLoad;
                 }
+
+
                 break;
             case 'BALANCE_EXCEED':
                 payLoad = {
-                    error: 3,
-                    description: "Bet is not allowed. Should be returned in any case when the player is notallowed to play a specific game. For example, because of special bonus."
+                    error: 120,
+                    description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
                 }
                 break;
             case 'ALREADY_PROCESSED':
@@ -597,6 +644,8 @@ let result = async (req, res) => {
 
                 break;
         }
+
+        return payLoad;
 
     } catch (error) {
         console.log(error.message);
