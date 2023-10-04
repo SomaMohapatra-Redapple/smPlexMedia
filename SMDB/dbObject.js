@@ -295,6 +295,10 @@ let smObj = {
             type: String,
             required : true,
         },
+        role: {
+            type: String,
+            required : true,
+        },
         contact: {
             type: String,
             default : null,
