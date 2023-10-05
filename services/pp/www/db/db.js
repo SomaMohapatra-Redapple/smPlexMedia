@@ -1,8 +1,10 @@
 
 let dataAPI;
 // const mode = process.env.NODE_ENV;
+const redis = require('redis');
 const server = require('../rest/server');
 const appConfig = require('../../config/appConfig');
+let redisClient;
 
 /**
  * Proceed with Multiple databases connection from ENV
@@ -69,19 +71,25 @@ const startDB = (app, db_type) => {
         mongoose.connection.on('open', function (err) {
           if (err) {
             console.log(`database error:${JSON.stringify(err)}`);
-            process.exit(1)
+            process.exit(1);
           } else {
-            console.log("database connection open success");
+            console.log("mongo database connection open success");
 
-            // const redis_client = redis.createClient({
-            //     url:appConfig.redis_url
-            // });
+            redisClient = redis.createClient({
+                url:appConfig.redis_url
+            });
             
-            // redis_client.connect();
-            // redis_client.on('error', (err) => {
-            //     console.log("REDIS Error " + err)
-            // });
-            // module.exports.redis_client = redis_client;
+            redisClient.connect();
+            redisClient.on('error', (err) => {
+                console.log("REDIS Error " + err)
+            });
+            console.log("redis database connection open success");
+            
+            module.exports.redisClient = redisClient;
+
+            // pp 
+            const commonController = require('../../src/controller/commonController');
+            commonController.setProviderInRedis();
 
             /**
              * Create HTTP server.
