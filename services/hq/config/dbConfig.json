@@ -10,8 +10,8 @@
       "charset": "utf8mb4_unicode_ci"
     },
     "datetime": "yyyy-MM-dd HH:mm:ss",
-    "redis_url": "redis://localhost:6379",
-    "mq_url": "amqp://localhost:5672"
+    "redis_url": "",
+    "mq_url": ""
   },
   "stg": {
     "username": "",

@@ -74,14 +74,14 @@ const startDB = (app,db_type)=>{
                     process.exit(1)
                 } else {
                     console.log("database connection open success");
-                    const redis_client = redis.createClient({
-                        url:appConfig.redis_url
-                    });
-                    redis_client.connect();
-                    redis_client.on('error', (err) => {
-                        console.log("REDIS Error " + err)
-                    });
-                    module.exports.redis_client = redis_client;
+                    // const redis_client = redis.createClient({
+                    //     url:appConfig.redis_url
+                    // });
+                    // redis_client.connect();
+                    // redis_client.on('error', (err) => {
+                    //     console.log("REDIS Error " + err)
+                    // });
+                    // module.exports.redis_client = redis_client;
                     /**
                      * Create HTTP server.
                      */

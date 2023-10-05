@@ -4,8 +4,7 @@ const Joi = require('joi').extend(require('@joi/date'));
 
 
 const customLoginValidateSchema = Joi.object({
-    event_id: Joi.string()
-    ,
+    
     username: Joi.string()
         .required(),
     password: Joi.string()
@@ -63,8 +62,8 @@ const addAccountSchema = Joi.object({
   status: Joi.string().required()
 });
 
-const AdminLoginValidateSchema = Joi.object({
-    admin_name: Joi.string()
+const LoginValidateSchema = Joi.object({
+    username: Joi.string()
         .required(),
     password: Joi.string()
         .max(20)
@@ -81,6 +80,8 @@ const adminRegisterValidateSchema = Joi.object({
         .max(20)
         .required(),
     status: Joi.string()
+        .required(),
+    role: Joi.string()
         .required(),
     email: Joi.string().required().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
     contact: Joi.string().length(10).pattern(/^[0-9]+$/).required(),
@@ -200,21 +201,6 @@ const deleteEventValidateSchema = Joi.object({
 })
 
 
-let loginValidate = async(req, res, next) => {
-    try {
-        const value = await customLoginValidateSchema.validate(req.body);
-        if (value.hasOwnProperty('error')) {
-            throw new Error(value.error);
-        } else {
-            next();
-        }
-    } catch (err) {
-        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
-        res.status(400);
-        res.send(apiResponse)
-    }
-}
-
 let addClient = async(req,res,next)=>{
     try{
         const value = await addClientValidationSchema.validate(req.body);
@@ -253,9 +239,9 @@ let showAllClient = async(req,res,next)=>{
     }
 }
 
-let adminloginValidate = async(req, res, next) => {
+let loginValidate = async(req, res, next) => {
     try {
-        const value = await AdminLoginValidateSchema.validate(req.body);
+        const value = await LoginValidateSchema.validate(req.body);
         if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
         } else {
@@ -468,7 +454,6 @@ let deleteEventValidate = async(req, res, next) => {
 module.exports = {
     loginValidate: loginValidate,
     addClient : addClient,
-    adminloginValidate:adminloginValidate,
     showAllClient :showAllClient,
     adminRegisterValidate: adminRegisterValidate,
     addAccountValidation :addAccountValidation,
