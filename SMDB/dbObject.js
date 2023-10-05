@@ -338,6 +338,10 @@ let smObj = {
             type: String,
             required : true,
         },
+        role: {
+            type: String,
+            required : true,
+        },
         contact: {
             type: String,
             default : null,
@@ -403,6 +407,10 @@ let smObj = {
             isObjectId: true
         },
         provider_name: {
+            type: String,
+            required : true,
+        },
+        provider_transaction_id: {
             type: String,
             required : true,
         },

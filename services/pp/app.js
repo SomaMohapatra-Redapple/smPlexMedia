@@ -40,20 +40,20 @@ process.on('unhandledRejection', (reason, p) => {
 
 app.use(express.static(path.join(__dirname, 'views')));
 
-const schemaPath = './src/models';
 //Bootstrap models
+const schemaPath = './src/models';
 fs.readdirSync(schemaPath).forEach(function (file) {
   if (~file.indexOf('.js')) require(schemaPath + '/' + file)
 });
 
 // Bootstrap route
-// const routesPath = './src/routes';
-// fs.readdirSync(routesPath).forEach(function (file) {
-//   if (~file.indexOf('.js')) {
-//     let route = require(routesPath + '/' + file);
-//     route.setRouter(app);
-//   }
-// });
+const routesPath = './src/routes';
+fs.readdirSync(routesPath).forEach(function (file) {
+  if (~file.indexOf('.js')) {
+    let route = require(routesPath + '/' + file);
+    route.setRouter(app);
+  }
+});
 
 
 // Module route bootstrap

@@ -1,6 +1,14 @@
 const responseLib = require('../libs/responseLib');
 const appConfig = require('../../config/appConfig');
 let check = require('../libs/checkLib');
+const limit = require('express-rate-limit');
+
+
+        const limiter = limit({
+            windowMs : 60*60*1000,
+            max : 3,
+            message : "exceeded"
+        })
 
 
 let rateLimiter =   (secondsWindow=60,allowedHits=5) => {
@@ -63,6 +71,7 @@ let rateLimiterByIP =   (secondsWindow=60,allowedHits=5) => {
 
 
 module.exports = {
+    limiter :limiter,
     rateLimiter:rateLimiter,
     rateLimiterByIP:rateLimiterByIP
 }

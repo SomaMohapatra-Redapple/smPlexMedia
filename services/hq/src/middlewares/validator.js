@@ -5,7 +5,7 @@ const Joi = require('joi').extend(require('@joi/date'));
 
 const customLoginValidateSchema = Joi.object({
     event_id: Joi.string()
-    .required(),
+    ,
     username: Joi.string()
         .required(),
     password: Joi.string()
@@ -14,8 +14,57 @@ const customLoginValidateSchema = Joi.object({
         // source_type: Joi.number().required()
 });
 
-const customAdminLoginValidateSchema = Joi.object({
-    username: Joi.string()
+const showAllClientValidateSchema = Joi.object({
+    parent_client_id: Joi.string(),
+    e_mail: Joi.string().email(),
+    client_name: Joi.string(),
+    user_name: Joi.string(),
+    contact: Joi.string()
+      .min(10)
+      .max(13)
+      .pattern(/^[0-9]+$/),
+    page: Joi.string(),
+    limit: Joi.string(),
+  });
+
+const addClientValidationSchema = Joi.object({
+    
+        //client_id: Joi.string().required(),
+      parent_client_id: Joi.string().required(),
+      password: Joi.string()
+        .required()
+        .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
+      email: Joi.string().email().required(),
+      status: Joi.string().required(),
+      environment: Joi.string().required(),
+      client_name: Joi.string().required(),
+      username: Joi.string().required(),
+      updated_by: Joi.string().required(),
+      contact: Joi.string()
+        .min(10)
+        .max(13)
+        .pattern(/^[0-9]+$/)
+        .required(),
+      environment: Joi.string().required(),
+      status: Joi.string().required(),
+   
+
+})
+
+const addAccountSchema = Joi.object({
+  //client_id: Joi.string().required(),
+  client_id: Joi.string().required(),
+  username: Joi.string().required(),
+  status: Joi.string().required(),
+  password: Joi.string()
+    .required()
+    .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
+
+  status: Joi.string().required()
+});
+
+const AdminLoginValidateSchema = Joi.object({
+    admin_name: Joi.string()
         .required(),
     password: Joi.string()
         .max(20)
@@ -24,14 +73,19 @@ const customAdminLoginValidateSchema = Joi.object({
 });
 
 const adminRegisterValidateSchema = Joi.object({
+    admin_name : Joi.string()
+    .required(),
     username: Joi.string()
         .required(),
     password: Joi.string()
         .max(20)
         .required(),
-    user_type: Joi.number().integer().required().valid(1, 2),
+    status: Joi.string()
+        .required(),
+    role: Joi.string()
+        .required(),
     email: Joi.string().required().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
-    mobile: Joi.string().length(10).pattern(/^[0-9]+$/).required(),
+    contact: Joi.string().length(10).pattern(/^[0-9]+$/).required(),
     // source_type: Joi.number().required()
 });
 
@@ -162,9 +216,48 @@ let loginValidate = async(req, res, next) => {
         res.send(apiResponse)
     }
 }
+
+let addClient = async(req,res,next)=>{
+    try{
+        const value = await addClientValidationSchema.validate(req.body);
+        if(value.hasOwnProperty('error')){
+        throw new Error(value.error);
+    }
+    else{
+        next();
+    }
+
+    }
+    catch(err){
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+
+    }
+}
+
+let showAllClient = async(req,res,next)=>{
+    try{
+        const value = await showAllClientValidateSchema.validate(req.body);
+        if(value.hasOwnProperty('error')){
+        throw new Error(value.error);
+    }
+    else{
+        next();
+    }
+
+    }
+    catch(err){
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+
+    }
+}
+
 let adminloginValidate = async(req, res, next) => {
     try {
-        const value = await customAdminLoginValidateSchema.validate(req.body);
+        const value = await AdminLoginValidateSchema.validate(req.body);
         if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
         } else {
@@ -180,6 +273,21 @@ let adminloginValidate = async(req, res, next) => {
 let adminRegisterValidate = async(req, res, next) => {
     try {
         const value = await adminRegisterValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
+
+let addAccountValidation = async(req, res, next) => {
+    try {
+        const value = await addAccountSchema.validate(req.body);
         if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
         } else {
@@ -361,8 +469,11 @@ let deleteEventValidate = async(req, res, next) => {
 
 module.exports = {
     loginValidate: loginValidate,
+    addClient : addClient,
     adminloginValidate:adminloginValidate,
+    showAllClient :showAllClient,
     adminRegisterValidate: adminRegisterValidate,
+    addAccountValidation :addAccountValidation,
     customRegisterValidate: customRegisterValidate,
     createQuestionValidate: createQuestionValidate,
     updateQuestionValidate: updateQuestionValidate,
