@@ -50,6 +50,10 @@ let smObj = {
             type: String,
             required : true,
         },
+        currency:{
+            type: String,
+            required : true 
+        },
         is_maintenance_mode_on: {
             type: String,
             required : true,
@@ -290,6 +294,45 @@ let smObj = {
             default: ""
         }
     },
+    Provider_account:{
+        provider_account_name:{
+            type: String,
+            required:true
+        },
+        provider_id: {
+            type: String,
+            ref: 'providers',
+            isObjectId: true
+        },
+        technical_detais:[
+            Object
+        ],
+        account_status:{
+            type:String,
+            default: "Active",
+            required:true
+        },
+        game_category:{
+            type:String,
+            required:true
+        },
+        currency:{
+            type:String,
+            required:true
+        },
+        is_default:{
+            type:String,
+            required:true
+        },
+        created_at: {
+            type: Date,
+            default: ""
+        },
+        updated_at: {
+            type: Date,
+            default: ""
+        }
+    },
     SuperAdmin : {
         admin_name: {
             type: String,
@@ -461,6 +504,59 @@ let smObj = {
             enum : [0, 1, 2 ]
         }
     },
+    Client_provider_account_mapping:{
+        client_id : {
+            type: String,
+            required : true,
+            isObjectId: true
+        },
+        account_id : {
+            type: String,
+            required : true,
+            isObjectId: true
+        },
+        provider_account_id : {
+            type: String,
+            required : true,
+            isObjectId: true
+        },
+        status : {
+            type : Number,
+            required : true,
+            default : 0,
+            enum : [0, 1, 2 ]
+        },
+        created_at: {
+            type: Date,
+            default: ""
+        },
+        updated_at: {
+            type: Date,
+            default: ""
+        }
+
+    },
+    Currency:{
+        currency_code:{
+            type: String,
+            required:true
+        },
+        status : {
+            type : Number,
+            required : true,
+            default : 0,
+            enum : [0, 1, 2 ]
+        },
+        created_at: {
+            type: Date,
+            default: ""
+        },
+        updated_at: {
+            type: Date,
+            default: ""
+        }
+
+    }
   }
   
   module.exports = smObj;
