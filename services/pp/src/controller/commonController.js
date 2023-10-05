@@ -13,7 +13,7 @@ const TransactionModel = mongoose.model('Transaction');
 const ProviderModel = mongoose.model('Provider');
 const appConfig = require('../../config/appConfig');
 const checkLib = require('../libs/checkLib');
-const apiLib = require('../libs/apiLib');
+const serverLib = require('../libs/serverLib');
 
 const setProviderInRedis = async () => {
     let { redisClient } = require('../../www/db/db');
@@ -34,8 +34,15 @@ const setProviderInRedis = async () => {
 
 const postDataFromAPI = async (apiUrl, endpoint, bodyData) => {
     try {
-        const api = new apiLib(apiUrl);
-        const data = await api.postData(endpoint, bodyData);
+        let url = `${apiUrl}/callback?function=${endpoint}`;
+        let requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: bodyData
+        };
+        const data = await serverLib.server.getData(url, requestOptions);
         console.log('API Response:', data);
         return data;
     } catch (error) {
