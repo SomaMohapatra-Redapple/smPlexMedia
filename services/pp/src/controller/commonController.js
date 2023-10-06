@@ -54,7 +54,6 @@ const postDataFromAPI = async (apiUrl, endpoint, bodyData) => {
     }
 }
 
-
 /**
  * 
  * @author Akash Paul
@@ -105,10 +104,52 @@ const insertLog = async (data) => {
     }
 }
 
+/**
+ * 
+ * @author Akash Paul
+ * @function insertLog
+ * @param {*} data
+ * @returns userdtls/null
+ * 
+ */
+const checkUserOrRegister = async (account_user_id, account_id, currency, language) => {
+    try {
+        let plyr_details = await playerModel.findOne({
+            account_id: account_id, account_user_id: account_user_id, currency_code: currency, language_code: language
+        })
+        if (checkLib.isEmpty(plyr_details)) {
+            let newPlayer = new playerModel({
+                account_id: account_id,
+                account_user_id: account_user_id,
+                currency_code: currency,
+                language_code: language,
+                status: "online"
+            })
+            let data = await newPlayer.save();
+            return {
+                error: false,
+                data: data
+            }
+        } else {
+            return {
+                error: false,
+                data: plyr_details
+            }
+        }
+
+    } catch (error) {
+        return {
+            error: true,
+            desc: error.message
+        }
+    }
+}
+
 
 module.exports = {
     setProviderInRedis: setProviderInRedis,
     checkUsercodeExists: checkUsercodeExists,
     insertLog: insertLog,
-    postDataFromAPI: postDataFromAPI
+    postDataFromAPI: postDataFromAPI,
+    checkUserOrRegister: checkUserOrRegister
 }
