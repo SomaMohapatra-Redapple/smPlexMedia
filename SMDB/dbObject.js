@@ -144,9 +144,7 @@ let smObj = {
         updated_by: {
             type: String,
             default: null
-        },
-        created_at: timeLib.currentDateTime(),
-        updated_at: timeLib.currentDateTime()
+        }
     },
     Game: {
         game_provider_id: {
