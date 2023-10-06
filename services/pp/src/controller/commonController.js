@@ -13,7 +13,7 @@ const TransactionModel = mongoose.model('Transaction');
 const ProviderModel = mongoose.model('Provider');
 const appConfig = require('../../config/appConfig');
 const checkLib = require('../libs/checkLib');
-const apiLib = require('../libs/apiLib');
+const serverLib = require('../libs/serverLib');
 
 const setProviderInRedis = async () => {
     let { redisClient } = require('../../www/db/db');
@@ -34,8 +34,15 @@ const setProviderInRedis = async () => {
 
 const postDataFromAPI = async (apiUrl, endpoint, bodyData) => {
     try {
-        const api = new apiLib(apiUrl);
-        const data = await api.postData(endpoint, bodyData);
+        let url = `${apiUrl}/callback?function=${endpoint}`;
+        let requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: bodyData
+        };
+        const data = await serverLib.server.getData(url, requestOptions);
         console.log('API Response:', data);
         return data;
     } catch (error) {
@@ -46,7 +53,6 @@ const postDataFromAPI = async (apiUrl, endpoint, bodyData) => {
         return data;
     }
 }
-
 
 /**
  * 
@@ -98,10 +104,52 @@ const insertLog = async (data) => {
     }
 }
 
+/**
+ * 
+ * @author Akash Paul
+ * @function insertLog
+ * @param {*} data
+ * @returns userdtls/null
+ * 
+ */
+const checkUserOrRegister = async (account_user_id, account_id, currency, language) => {
+    try {
+        let plyr_details = await playerModel.findOne({
+            account_id: account_id, account_user_id: account_user_id, currency_code: currency, language_code: language
+        })
+        if (checkLib.isEmpty(plyr_details)) {
+            let newPlayer = new playerModel({
+                account_id: account_id,
+                account_user_id: account_user_id,
+                currency_code: currency,
+                language_code: language,
+                status: "online"
+            })
+            let data = await newPlayer.save();
+            return {
+                error: false,
+                data: data
+            }
+        } else {
+            return {
+                error: false,
+                data: plyr_details
+            }
+        }
+
+    } catch (error) {
+        return {
+            error: true,
+            desc: error.message
+        }
+    }
+}
+
 
 module.exports = {
     setProviderInRedis: setProviderInRedis,
     checkUsercodeExists: checkUsercodeExists,
     insertLog: insertLog,
-    postDataFromAPI: postDataFromAPI
+    postDataFromAPI: postDataFromAPI,
+    checkUserOrRegister: checkUserOrRegister
 }

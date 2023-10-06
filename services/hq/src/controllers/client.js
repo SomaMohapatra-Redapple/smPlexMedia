@@ -137,21 +137,30 @@ let log_in = async (req, res, next) => {
     };
     const client = await FindSpecificClient(query);
     console.log("client", client);
-    if (client.user_name == user_name && client.password == password) {
-      token = jwt.sign(
-        { id: client.id, email: client.user_name },
-        process.env.ENC_KEY,
-        { expiresIn: process.env.JWT_TOKEN_EXPIRE_TIME }
-      );
-      res.status(200).send({
-        message: "you are logged in",
-        token: token,
-      });
-    } else {
-      res.status(400).send({
-        message: "error in log in",
-      });
+    if(client){
+      if (client.user_name == user_name && client.password == password) {
+        token = jwt.sign(
+          { id: client.id, email: client.user_name },
+          process.env.ENC_KEY,
+          { expiresIn: process.env.JWT_TOKEN_EXPIRE_TIME }
+        );
+        res.status(200).send({
+          message: "you are logged in",
+          token: token,
+        });
+      } else {
+        res.status(400).send({
+          message: "error in log in",
+        });
+      }
+
     }
+    else{
+      res.status(400).send({
+        message : "there is no such client in client table"
+      })
+    }
+
   } catch (e) {
     console.log("error", e);
   }
