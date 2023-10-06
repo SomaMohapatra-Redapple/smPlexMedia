@@ -152,7 +152,9 @@ let smObj = {
         updated_at: {
             type: Date,
             default: ""
-        }
+        },
+        created_at: timeLib.currentDateTime(),
+        updated_at: timeLib.currentDateTime()
     },
     Game: {
         game_provider_id: {
