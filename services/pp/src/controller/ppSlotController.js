@@ -74,9 +74,9 @@ let handler = async (req, res) => {
     }
 }
 
-let getGameUrl = async () => {
+let getGameUrl = async (req, res) => {
     try {
-
+        
     } catch (error) {
         console.log(error.message);
     }
