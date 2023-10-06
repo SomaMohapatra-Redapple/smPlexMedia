@@ -1,33 +1,33 @@
 let smObj = {
-    Account : {
+    Account: {
         client_id: {
-          type: String,
-          ref: 'clients',
-          isObjectId: true
+            type: String,
+            ref: 'clients',
+            isObjectId: true
         },
         username: {
-          type: String,
-          default: ''
+            type: String,
+            default: ''
         },
         password: {
-          type: String,
-          default: null
+            type: String,
+            default: null
         },
         status: {
-          type: String,
-          default: 'online',
-          required: true
+            type: String,
+            default: 'online',
+            required: true
         },
         created_at: {
-          type: Date,
-          default: null 
+            type: Date,
+            default: null
         },
         updated_at: {
-          type: Date,
-          default: null 
+            type: Date,
+            default: null
         }
     },
-    AccountTechnicals : {
+    AccountTechnicals: {
         client_id: {
             type: String,
             ref: 'clients',
@@ -40,24 +40,24 @@ let smObj = {
         },
         api_username: {
             type: String,
-            required : true,
+            required: true,
         },
         api_secret: {
             type: String,
-            required : true,
+            required: true,
         },
         service_endpoint: {
             type: String,
-            required : true,
+            required: true,
         },
-        currency:{
+        currency: {
             type: String,
-            required : true 
+            required: true
         },
         is_maintenance_mode_on: {
             type: String,
-            required : true,
-            default : 'N',
+            required: true,
+            default: 'N',
         },
         created_at: {
             type: Date,
@@ -68,29 +68,29 @@ let smObj = {
             default: ""
         }
     },
-    Category : {
+    Category: {
         game_provider_id: {
             type: String,
             ref: 'providers',
-            required : true,
+            required: true,
             isObjectId: true,
         },
         category: {
             type: String,
-            required : true,
+            required: true,
         },
         category_icon: {
             type: String,
-            required : true,
+            required: true,
         },
         category_order: {
             type: String,
-            required : true,
+            required: true,
         },
         status: {
             type: String,
             // default : "online",
-            required : true,
+            required: true,
         },
         created_at: {
             type: Date,
@@ -101,10 +101,10 @@ let smObj = {
             default: ""
         }
     },
-    Client : {
+    Client: {
         client_name: {
             type: String,
-            required : true,
+            required: true,
         },
         parent_client_id: {
             type: String,
@@ -113,37 +113,37 @@ let smObj = {
         },
         contact: {
             type: String,
-            default : null,
+            default: null,
         },
         email: {
             type: String,
-            default : null,
+            default: null,
         },
         username: {
             type: String,
-            required : true,
+            required: true,
         },
         password: {
             type: String,
-            required : true,
+            required: true,
         },
         status: {
             type: String,
-            default : "online",
-            required : true,
+            default: "online",
+            required: true,
         },
         environment: {
             type: String,
-            default : "staging",
-            required : true,
+            default: "staging",
+            required: true,
         },
-        created_by : {
+        created_by: {
             type: String,
-            default : null
+            default: null
         },
-        updated_by : {
+        updated_by: {
             type: String,
-            default : null
+            default: null
         },
         created_at: {
             type: Date,
@@ -154,17 +154,17 @@ let smObj = {
             default: ""
         }
     },
-    Game : {
+    Game: {
         game_provider_id: {
             type: String,
             ref: 'providers',
-            required : true,
+            required: true,
             isObjectId: true
         },
         game_category_id: {
             type: String,
             ref: 'categories',
-            required : true,
+            required: true,
             isObjectId: true
         },
         game_name: [
@@ -172,52 +172,52 @@ let smObj = {
         ],
         game_image: {
             type: String,
-            required : true,
+            required: true,
         },
         game_code: {
             type: String,
-            required : true,
+            required: true,
         },
         is_featured: {
             type: Boolean,
-            required : true,
+            required: true,
         },
         is_jackpot: {
             type: Boolean,
-            required : true,
+            required: true,
         },
         is_popular: {
             type: Boolean,
-            required : true,
+            required: true,
         },
         is_new: {
             type: Boolean,
-            required : true,
+            required: true,
         },
         game_tag_image: {
             type: String,
-            default : null,
+            default: null,
         },
         game_type: {
             type: String,
-            required : true,
+            required: true,
         },
         game_order: {
             type: String,
-            required : true,
+            required: true,
         },
         status: {
             type: String,
             // default : "online",
-            required : true,
+            required: true,
         },
         release_date: {
             type: Date,
-            required : true,
+            required: true,
         },
         game_type_name: {
             type: String,
-            required : true,
+            required: true,
         },
         created_at: {
             type: Date,
@@ -228,7 +228,7 @@ let smObj = {
             default: ""
         }
     },
-    Player : {
+    Player: {
         account_id: {
             type: String,
             ref: 'accounts',
@@ -236,25 +236,25 @@ let smObj = {
         },
         account_user_id: {
             type: String,
-            required : true,
+            required: true,
             isObjectId: true
         },
         username: {
             type: String,
-            default : null,
+            default: null,
         },
         currency_code: {
             type: String,
-            required : true,
+            required: true,
         },
         language_code: {
             type: String,
-            required : true,
+            required: true,
         },
         status: {
             type: String,
             // default : "online",
-            required : true,
+            required: true,
         },
         created_at: {
             type: Date,
@@ -265,25 +265,25 @@ let smObj = {
             default: ""
         }
     },
-    Provider : {
+    Provider: {
         game_provider_name: {
             type: String,
-            required : true,
+            required: true,
         },
         is_subprovider: {
-            type: Boolean,  
-            required : true,
-            default : false,
+            type: Boolean,
+            required: true,
+            default: false,
         },
         parent_game_provider_id: {
             type: String,
             ref: 'providers',
-            required : false,
+            required: false,
         },
         status: {
             type: String,
             // default : "online",
-            required : true,
+            required: true,
         },
         created_at: {
             type: Date,
@@ -294,35 +294,35 @@ let smObj = {
             default: ""
         }
     },
-    Provider_account:{
-        provider_account_name:{
+    Provider_account: {
+        provider_account_name: {
             type: String,
-            required:true
+            required: true
         },
         provider_id: {
             type: String,
             ref: 'providers',
             isObjectId: true
         },
-        technical_detais:[
+        technical_detais: [
             Object
         ],
-        account_status:{
-            type:String,
+        account_status: {
+            type: String,
             default: "Active",
-            required:true
+            required: true
         },
-        game_category:{
-            type:String,
-            required:true
+        game_category: {
+            type: String,
+            required: true
         },
-        currency:{
-            type:String,
-            required:true
+        currency: {
+            type: Array,
+            required: true
         },
-        is_default:{
-            type:String,
-            required:true
+        is_default: {
+            type: Boolean,
+            required: true,
         },
         created_at: {
             type: Date,
@@ -333,35 +333,35 @@ let smObj = {
             default: ""
         }
     },
-    SuperAdmin : {
+    SuperAdmin: {
         admin_name: {
             type: String,
-            required : true,
+            required: true,
         },
         role: {
             type: String,
-            required : true,
+            required: true,
         },
         contact: {
             type: String,
-            default : null,
+            default: null,
         },
         email: {
             type: String,
-            required : true,
+            required: true,
         },
         username: {
             type: String,
-            required : true,
+            required: true,
         },
         password: {
             type: String,
-            required : true,
+            required: true,
         },
         status: {
             type: String,
-            default : "online",
-            required : true,
+            default: "online",
+            required: true,
         },
         created_at: {
             type: Date,
@@ -372,11 +372,11 @@ let smObj = {
             default: ""
         }
     },
-    Transaction : {
+    Transaction: {
         session_id: {
             type: String,
-            required : false,
-            default : "",
+            required: false,
+            default: "",
         },
         account_id: {
             type: String,
@@ -385,7 +385,7 @@ let smObj = {
         },
         account_user_id: {
             type: String,
-            required : true,
+            required: true,
         },
         user_id: {
             type: String,
@@ -399,7 +399,7 @@ let smObj = {
         },
         game_name: {
             type: String,
-            required : true,
+            required: true,
         },
         provider_id: {
             type: String,
@@ -408,11 +408,11 @@ let smObj = {
         },
         provider_name: {
             type: String,
-            required : true,
+            required: true,
         },
         provider_transaction_id: {
             type: String,
-            required : true,
+            required: true,
         },
         game_category_id: {
             type: String,
@@ -421,33 +421,33 @@ let smObj = {
         },
         game_category_name: {
             type: String,
-            required : true,
+            required: true,
         },
         round_id: {
             type: String,
-            required : true,
+            required: true,
         },
         operator_transaction_id: {
             type: String,
-            required : true,
+            required: true,
         },
         transaction_amount: {
             type: Number,
-            required : true,
+            required: true,
         },
         transaction_type: {
             type: String,
-            required : true,
+            required: true,
         },
         action: {
             type: String,
-            default : "",
-            required : true,
+            default: "",
+            required: true,
         },
         status: {
             type: String,
             // default : "online",
-            required : true,
+            required: true,
         },
         created_at: {
             type: Date,
@@ -458,73 +458,78 @@ let smObj = {
             default: ""
         }
     },
-    Client_provider_mapping : {
-        client_id : {
+    Client_provider_mapping: {
+        client_id: {
             type: String,
-            required : true,
+            required: true,
             isObjectId: true
         },
-        account_id : {
+        account_id: {
             type: String,
-            required : true,
+            required: true,
             isObjectId: true
         },
-        provider_id : {
+        provider_id: {
             type: String,
-            required : true,
+            required: true,
             isObjectId: true
         },
-        status : {
-            type : Number,
-            required : true,
-            default : 0,
-            enum : [0, 1, 2 ]
+        status: {
+            type: Number,
+            required: true,
+            default: 0,
+            enum: [0, 1, 2]
         }
     },
-    Client_game_mapping : {
-        client_id : {
+    Client_game_mapping: {
+        client_id: {
             type: String,
-            required : true,
+            required: true,
             isObjectId: true
         },
-        account_id : {
+        account_id: {
             type: String,
-            required : true,
+            required: true,
             isObjectId: true
         },
-        game_id : {
+        game_id: {
             type: String,
-            required : true,
+            required: true,
             isObjectId: true
         },
-        status : {
-            type : Number,
-            required : true,
-            default : 0,
-            enum : [0, 1, 2 ]
+        status: {
+            type: Number,
+            required: true,
+            default: 0,
+            enum: [0, 1, 2]
         }
     },
-    Client_provider_account_mapping:{
-        client_id : {
+    Client_provider_account_mapping: {
+        client_id: {
             type: String,
-            required : true,
+            required: true,
             isObjectId: true
         },
-        account_id : {
+        account_id: {
             type: String,
-            required : true,
+            required: true,
             isObjectId: true
         },
-        provider_account_id : {
+        provider_id: {
             type: String,
-            required : true,
+            required: true,
             isObjectId: true
         },
-        status : {
-            type : Number,
-            required : true,
-            default : 0,
-            enum : [0, 1, 2 ]
+        provider_account_id: {
+            type: String,
+            required: true,
+            isObjectId: true
+        },
+        status: {
+            type: Number,
+            required: true,
+            default: 0,
+            enum: [0, 1, 2]
         },
         created_at: {
             type: Date,
@@ -536,16 +541,16 @@ let smObj = {
         }
 
     },
-    Currency:{
-        currency_code:{
+    Currency: {
+        currency_code: {
             type: String,
-            required:true
+            required: true
         },
-        status : {
-            type : Number,
-            required : true,
-            default : 0,
-            enum : [0, 1, 2 ]
+        status: {
+            type: Number,
+            required: true,
+            default: 0,
+            enum: [0, 1, 2]
         },
         created_at: {
             type: Date,
@@ -557,7 +562,6 @@ let smObj = {
         }
 
     }
-  }
-  
-  module.exports = smObj;
-  
+}
+
+module.exports = smObj;
