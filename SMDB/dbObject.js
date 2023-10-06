@@ -1,3 +1,4 @@
+const timeLib = require("../services/hq/src/libs/timeLib");
 let smObj = {
     Account : {
         client_id: {
@@ -140,10 +141,7 @@ let smObj = {
         updated_by : {
             type: String,
             default : null
-        },
-        
-        created_at: timeLib.currentDateTime(),
-        updated_at: timeLib.currentDateTime()
+        }
 
 
 

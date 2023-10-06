@@ -66,7 +66,9 @@ let checkCurrDateRange = (initial, final) => {
     let finalDate = moment(final).tz(timeZone).format('YYYY-MM-DD');
     return moment(now).isBetween(initDate, finalDate, undefined, '[]');
 }
-
+let currentDateTime = () => {
+    return moment().format('DD/MM/YYYY HH:mm:ss')
+  }
 module.exports = {
     getLocalTime: getLocalTime,
     convertToLocalTime: convertToLocalTime,
@@ -78,5 +80,6 @@ module.exports = {
     now: now,
     getCurrentTimeStamp: getCurrentTimeStamp,
     checkCurrDateRange: checkCurrDateRange,
-    getLocalDateFormat:getLocalDateFormat
+    getLocalDateFormat:getLocalDateFormat,
+    currentDateTime : currentDateTime
 }

@@ -55,6 +55,8 @@ let add_client = async (req, res, next) => {
     console.log("req.body.value", req.body);
     req.body.created_by = req.user.id;
     const query = req.body;
+    req.body.parent_client_id = req.user.id;
+    req.body.client_name = req.body.firstname+" "+req.body.lastname;
     const requester = req.connection.remoteAddress.slice(0,9);
     const added_client = await AddClient(query)
       .then((result) => {
