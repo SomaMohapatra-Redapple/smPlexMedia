@@ -101,8 +101,8 @@ const AdminLoginValidateSchema = Joi.object({
     password: Joi.string()
         .max(20)
         .required(),
-    role: Joi.string()
-        .required(),
+    // role: Joi.string()
+    //     .required(),
         // source_type: Joi.number().required()
 });
 

@@ -38,16 +38,15 @@ const add_admin = async (req, res, next) => {
 
 const admin_login = async (req, res, next) => {
   try {
-    const { user_name, password,role } = req.body;
-    const query = { user_name: user_name };
+    const { username, password,role } = req.body;
+    const query = { username: username };
     const admin = await FindAdmin(query);
+    
     if(admin){
-    console.log("req.connection", req.connection.remoteAddress);
-    console.log("req.body", req.body);
-    console.log("admin", admin);
-    if (role == "admin" && admin.user_name == user_name && admin.password == password) {
+    
+    if (admin.username === username & admin.password === password) {
       token = jwt.sign(
-        { id: admin.id, user_name: admin.user_name },
+        { id: admin.id, username: admin.username },
         process.env.ENC_KEY,
         { expiresIn: process.env.JWT_TOKEN_EXPIRE_TIME }
       );
@@ -57,7 +56,7 @@ const admin_login = async (req, res, next) => {
       });
     } else {
       res.status(400).send({
-        message: "you are not the admin",
+        message: "please enter correct username and password",
       });
     }
       
@@ -65,7 +64,7 @@ const admin_login = async (req, res, next) => {
     }
     else{
       res.status(400).send({
-        message : "there is no such admin in admin table"
+        message : "there is no user in such username"
       })
     }
     
@@ -83,7 +82,7 @@ const superadmin_login = async (req, res, next) => {
     console.log("req.connection", req.connection.remoteAddress);
     console.log("req.body", req.body);
     console.log("admin", admin);
-    if (role == "superadmin" && admin.user_name == user_name && admin.password == password) {
+    if (admin.user_name == user_name && admin.password == password) {
       token = jwt.sign(
         { id: admin.id, user_name: admin.user_name },
         process.env.ENC_KEY,
