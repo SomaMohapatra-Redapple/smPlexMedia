@@ -3,7 +3,7 @@
  * @author Rajdeep Adhikary
  * @purpose Boongo provider integration and game launch related works
  * @createdDate Sep 26 2023
- * @lastUpdated Sep 26 2023
+ * @lastUpdated Oct 04 2023
  * @lastUpdatedBy Rajdeep Adhikary
  */
 
@@ -15,7 +15,7 @@ const AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
 const commonController = require('../controllers/commonController'); 
 const checker = require('../libs/checkLib');
 const time = require('../libs/timeLib');
-const { invalid } = require('joi');
+const redis = required('../libs/redisLib.js');
 
 /**
  * 
@@ -85,37 +85,43 @@ const login = async(data) => {
             }
         }
         else{
-            let config = {
-                method: 'post',
-                url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                data: {
-                    user_id : userdtls.account_user_id                       // YMDJD12
-                }
-            };
+            // let config = {
+            //     method: 'post',
+            //     url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     },
+            //     data: {
+            //         user_id : userdtls.account_user_id                       // YMDJD12
+            //     }
+            // };
     
-            let response = await axios(config);
-    
-            let validation = await clientValidator.validateResponse(response.data.data, 'login');
+            // let response = await axios(config);
+
+            let dataToSend = {
+                user_id : userdtls.account_user_id                       // YMDJD12
+            }
+
+            let response = await commonController.post(acountDetails.service_endpoint, 'authenticate', dataToSend);
+            let validation = await clientValidator.validateResponse(response.data, 'login');
+
     
             if(validation.error === false){
-                let user_balance = response.data.data.cash;
+                let user_balance = response.data.amount;
                 let version = await commonController.getVersion();
-                let currency = response.data.data.currency;
+                let currency = response.data.currency;
     
                 return {
                     uid: uid,
                     player: {
-                    id: usercode,
-                    currency: currency,
-                    mode: mode,
-                    is_test: false,
+                        id: usercode,
+                        currency: currency,
+                        mode: mode,
+                        is_test: false,
                     },
                     balance: {
-                    value: parseFloat(user_balance).toFixed(2),
-                    version: version
+                        value: parseFloat(user_balance).toFixed(2),
+                        version: version
                     },
                     tag: ''
                 }
@@ -166,31 +172,36 @@ const getbalance = async(data) => {
         }
         else{
 
-            let config = {
-                method: 'post',
-                url: `${acountDetails.service_endpoint}/callback?function=balance`,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                data: {
-                    user_id : 'yudn2mak3lsmj0kgkdmd91'
-                }
-            };
+            // let config = {
+            //     method: 'post',
+            //     url: `${acountDetails.service_endpoint}/callback?function=balance`,
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     },
+            //     data: {
+            //         user_id : 'yudn2mak3lsmj0kgkdmd91'
+            //     }
+            // };
 
-            let response = await axios(config);
+            let dataToSend = {
+                user_id : 'yudn2mak3lsmj0kgkdmd91'
+            }
+
+            // let response = await axios(config);
+            let response = await commonController.post(acountDetails.service_endpoint, 'authenticate', dataToSend);
             // console.log(response)
             // const walletEndTime = new Date();
             // const walletTimeDifference = walletEndTime - walletStartTime;
 
-            let version = Math.floor(Date.now() / 1000);
+            let version = await commonController.getVersion();
 
-            let validation = await clientValidator.validateResponse(response.data.data, 'balance');
+            let validation = await clientValidator.validateResponse(response.data, 'balance');
 
             if(validation.error === false){
                 return {
                     "uid": data.uid,
                     "balance": {
-                        "value": parseFloat(response.data.data.cash.toFixed(2)),
+                        "value": parseFloat(response.data.amount.toFixed(2)),
                         "version": version
                     }
                 }
@@ -498,7 +509,7 @@ const rollback = async(data) => {
         let usercode = playerToken[1];
         const userdtls = await commonController.checkUsercodeExists(usercode);
         let provider_id = "65142a47b0aef485da243a29";
-        let transaction_type = amount = '';
+        let transaction_type = 'CREDIT';
         let transaction_id = data.uid;
         let gamedtls = await commonController.getGameDetailsByGameCode(data.game_id, provider_id);
         let referenced_transaction_id = data.args.transaction_uid;
@@ -573,7 +584,7 @@ const rollback = async(data) => {
                             provider_transaction_id : transaction_id,
                             round_id : roundId,
                             operator_transaction_id : operator_transaction_id,
-                            transaction_amount : amount,
+                            transaction_amount : transactionValid.transaction_amount,
                             transaction_type : transaction_type,
                             action : 'ROLLBACK',
                             status : 0,
@@ -615,6 +626,130 @@ const rollback = async(data) => {
             "error": {
                 "code": "FATAL_ERROR"  
             }
+        }
+    }
+}
+
+/**
+ * 
+ * @author Rajdeep Adhikary
+ * @function getGameUrl
+ * @param {*} data 
+ * @returns object
+ * 
+ */
+
+const getGameUrl = async(data) => {
+    try {
+        let resultarr = '';
+        const userCode = data.usercode;
+        const token = data.token;
+        const language = data.lang.toLowerCase();
+        const gm_title = 'Boongo Game';
+        const wl = "prod";
+        const account_id = data.account_id;
+        const currency = data.currency;
+        const game_id = data.game_code;
+
+        if(await commonController.isAccountExists(account_id) === false){
+            return {
+                status: 1,
+                code: "INVALID_ACCOUNT_ID", // Invalid Account Id
+                data: null
+            }
+        }
+
+        const isUser = await commonController.checkUserExistsOrRegister(userCode, account_id, currency, language);
+        if(isUser.error){
+            return {
+                status: 1,
+                code: "INVALID_USER_CODE",  // Invalid user or unable to save user
+                data: null
+            }
+        }
+        let user = isUser.data;
+
+        let gamedtls = await commonController.getGameDetailsByGameId(game_id);
+
+        if(checker.isEmpty(gamedtls)){
+            return {
+                status: 1,
+                code: "INVALID_GAME_CODE", //invalid game id
+                data: null
+            }
+        }
+
+        let getProviderAccount = await commonController.checkProviderAccountLink(account_id, provider_id); //get provider id first
+
+        if(getProviderAccount.error){
+            return {
+                status: 1,
+                code: "ACCOUNT_NOT_MAPPED", // account id not mapped with any provider account & unable to retrieve default provider account
+                data: null
+            }
+        }
+
+        let providerAccount = getProviderAccount.data;
+
+        if(providerAccount.currency.includes(currency) === false){
+            return {
+                status: 1,
+                code: "INVALID_CURRENCY", // currency not supported by provider
+                data: null
+            }
+        }
+
+        let providerTechnicals = await commonController.getProviderAccountTechnicals(provider_id, providerAccount._id);
+
+        if(checker.isEmpty(providerTechnicals) || providerTechnicals.error){
+            return {
+                status: 1,
+                code: "PROVIDER_NOT_READY", // provider technical details not found
+                data: null
+            }
+        }
+
+        let game_url = providerTechnicals.data.technical_details.game_url;
+
+        await redis.addWithTtl(`user-${user._id}-game-${game_id}`, token, appConfig.sessionExpTime);
+
+        let newToken = `${token}-ucd-${user._id}`;
+        let gmCode = gamedtls.game_code;
+
+        const params = {
+            "wl": wl,
+            "token": token,
+            "game": gmCode,
+            "lang": language,
+            "sound": "1",
+            "ts": new Date().getTime(),
+            "title": gm_title,
+            "exit_url": data.return_url,
+            "cashier_url": data.return_url
+        };
+
+        let query = "";
+
+        for (let key in params) {
+            query += encodeURIComponent(key) + "=" + encodeURIComponent(params[key]) + "&";
+        }
+        query = query.slice(0, -1); // Remove the last "&"
+
+        let finalLaunchUrl = game_url + "?" + query;
+
+        return {
+          status: 0,
+          code: "SUCCESS",
+          data: {
+            return_url: finalLaunchUrl
+          }
+        };
+    } catch (error) {
+        console.log(error.message);
+        return {
+          status: 1,
+          code: "FATAL_ERROR",
+          data: null
         }
     }
 }
