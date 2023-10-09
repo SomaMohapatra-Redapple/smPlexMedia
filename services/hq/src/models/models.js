@@ -34,7 +34,7 @@ modifyObjectForObjectId(smObj);
 let accountSchema = new Schema(smObj.Account);
 let accountTechnicalsSchema = new Schema(smObj.AccountTechnicals);
 let categorySchema = new Schema(smObj.Category);
-let clientSchema = new Schema(smObj.Client,{ timestamps: true });
+let clientSchema = new Schema(smObj.Client);
 let gameSchema = new Schema(smObj.Game);
 let playerSchema = new Schema(smObj.Player);
 let providerSchema = new Schema(smObj.Provider);
