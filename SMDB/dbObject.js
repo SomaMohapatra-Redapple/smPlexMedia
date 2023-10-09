@@ -144,6 +144,14 @@ let smObj = {
         updated_by: {
             type: String,
             default: null
+        },
+        created_at: {
+            type: Date,
+            default: ""
+        },
+        updated_at: {
+            type: Date,
+            default: ""
         }
     },
     Game: {
