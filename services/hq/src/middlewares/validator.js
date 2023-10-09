@@ -28,24 +28,24 @@ const showAllClientValidateSchema = Joi.object({
 
 const addClientValidationSchema = Joi.object({
     
-        //client_id: Joi.string().required(),
-      parent_client_id: Joi.string().required(),
+        
+      firstname : Joi.string().required(),
+      lastname : Joi.string(),
       password: Joi.string()
         .required()
-        .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
-      email: Joi.string().email().required(),
-      status: Joi.string().required(),
-      environment: Joi.string().required(),
-      client_name: Joi.string().required(),
+        .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/).required(),
+      email: Joi.string().email(),
+      status: Joi.string(),
+      environment: Joi.string(),
       username: Joi.string().required(),
-      updated_by: Joi.string().required(),
+      updated_by: Joi.string(),
       contact: Joi.string()
         .min(10)
         .max(13)
         .pattern(/^[0-9]+$/)
-        .required(),
-      environment: Joi.string().required(),
-      status: Joi.string().required(),
+        ,
+      environment: Joi.string(),
+      status: Joi.string(),
    
 
 })
@@ -101,8 +101,8 @@ const AdminLoginValidateSchema = Joi.object({
     password: Joi.string()
         .max(20)
         .required(),
-    role: Joi.string()
-        .required(),
+    // role: Joi.string()
+    //     .required(),
         // source_type: Joi.number().required()
 });
 
