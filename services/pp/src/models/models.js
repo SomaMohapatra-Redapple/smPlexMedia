@@ -44,5 +44,5 @@ mongoose.model('Player', playerSchema);
 mongoose.model('Provider', providerSchema);
 mongoose.model('SuperAdmin', superAdminSchema);
 mongoose.model('Transaction', transactionSchema);
-mongoose.model('ClientProvider', clientProviderMappingSchema);
-mongoose.model('ClientGame', clientGameMappingSchema);
+mongoose.model('client_provider_mapping', clientProviderMappingSchema);
+mongoose.model('client_game_mapping', clientGameMappingSchema);

@@ -18,7 +18,7 @@ const clientAuthenticationValidateSchema = Joi.object({
 
 const clientBetValidateSchema = Joi.object({
     transaction_status: Joi.boolean().required(),
-    bet_amount: Joi.number().required().allow(0),
+    available_balance: Joi.number().required().allow(0),
     code: Joi.string().required(),
     currency: Joi.string().required(),
     bonus: Joi.number(),
@@ -38,6 +38,14 @@ const clientResultValidationSchema = Joi.object({
     operator_transaction_id: Joi.string().required().allow(null),
 });
 
+const clientRefundValidationSchema = Joi.object({
+    available_balance: Joi.boolean().required(),
+    txn_id: Joi.number().required().allow(0),
+    operator_transaction_id: Joi.string().required().allow(null),
+    currency: Joi.string().required(),
+    bonus: Joi.number()
+});
+
 
 
 let ppSmValidator = async (function_name, responseData) => {
@@ -55,6 +63,9 @@ let ppSmValidator = async (function_name, responseData) => {
                 break;
             case "result":
                 value = await clientResultValidationSchema.validate(responseData);
+                break;
+            case "refund":
+                value = await clientRefundValidationSchema.validate(responseData);
                 break;
             default:
                 value.error = true;
