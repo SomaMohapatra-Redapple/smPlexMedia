@@ -1,4 +1,3 @@
-
 let smObj = {
     Account: {
         client_id: {
