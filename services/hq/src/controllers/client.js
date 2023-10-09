@@ -1,3 +1,4 @@
+const timeLIb = require("../libs/timeLib");
 const jwt = require("jsonwebtoken");
 const apiError = require("../libs/apiError");
 const responseMessage = require("../libs/responseMessage");
@@ -57,6 +58,8 @@ let add_client = async (req, res, next) => {
     const query = req.body;
     req.body.parent_client_id = req.user.id;
     req.body.client_name = req.body.firstname+" "+req.body.lastname;
+    query.created_at = timeLIb.now();
+    query.updated_at = timeLIb.now();
     const requester = req.connection.remoteAddress.slice(0,9);
     const added_client = await AddClient(query)
       .then((result) => {
