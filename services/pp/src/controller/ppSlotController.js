@@ -74,9 +74,174 @@ let handler = async (req, res) => {
     }
 }
 
+/**
+ * 
+ * @author Akash Paul
+ * @function handler
+ * @param {*} req res
+ * @returns res
+ * 
+ */
+// ** ** this API is called from user , to Pragmatic Play provider
 let getGameUrl = async (req, res) => {
     try {
-        
+        let resultarr = '';
+        let bodyData = data.data;
+        let mode = bodyData.mode.toLowerCase();
+        let userCode = bodyData.usercode;
+        let token = bodyData.token;
+        const accountID = data.data.account_id;
+        let gameId = bodyData.game;
+        // let providerId = bodyData.providerId;
+        let language = (bodyData.lang) ? bodyData.lang.toLowerCase() : 'en';
+        let currency = bodyData.currency
+        let returnUrl = (bodyData.return_url) ? bodyData.return_url : '';
+
+        if (mode != 'real') {
+            return {
+                status: false,
+                code: 120,
+                data: {}
+            }
+        }
+
+        // ** Checking account Exist or not
+        if (await commonController.isAccountExists(accountID) === false) {
+            return {
+                status: false,
+                code: 120,
+                data: {}
+            }
+        }
+
+        // ** Checking client is on maintanance
+        let isBetEnable = await walletController.betControlStatus(accountID, providerId);
+        if ((isBetEnable.rejectionStatus == true) || (isBetEnable.maintenance_mode_status == 'Y')) {
+            return {
+                status: false,
+                code: 120,
+                data: {}
+            }
+        }
+
+        //** registering or log IN the user
+        const isUser = await commonController.checkUserOrRegister(userCode, account_id, currency, language);
+        if (isUser.error) {
+            return {
+                status: false,
+                code: 120,
+                data: {}
+            }
+        }
+        let user = isUser.data;
+
+        // get game details 
+        let gamedtls = await commonController.getGameDetailsByGameId(gameId);
+        if (checker.isEmpty(gamedtls)) {
+            return {
+                status: false,
+                code: 120,
+                data: {}
+            }
+        }
+
+        // get provider details
+        let getProviderAccount = await commonController.checkProviderAccountLink(account_id, providerId); //get provider id first
+        if (getProviderAccount.error) {
+            return {
+                status: false,
+                code: 120,
+                data: {}
+            }
+        }
+
+        // get provider details
+        let providerAccount = getProviderAccount.data;
+        if (providerAccount.currency.includes(currency) === false) {
+            return {
+                status: false,
+                code: 120,
+                data: {}
+            }
+        }
+
+        // get provider details
+        let providerTechnicals = await commonController.getProviderAccountTechnicals(provider_id, providerAccount._id);
+        if (checker.isEmpty(providerTechnicals) || providerTechnicals.error) {
+            return {
+                status: false,
+                code: 120,
+                data: {}
+            }
+        }
+
+        let gmCode = gamedtls.game_code;
+
+        let domain = providerTechnicals.api_url;
+        let symbol = gmCode;
+        let technology = 'H5';
+        let platform = 'WEB';
+        let country = 'USA';
+        let cashierUrl = returnUrl;
+        let lobbyUrl = returnUrl;
+        let secureLogin = user;
+        let key = providerTechnicals.key;
+
+        let posturl = domain + 'game/url';
+        let urlparam = {
+            cashierUrl: cashierUrl,
+            country: country,
+            currency: currency,
+            language: language,
+            lobbyUrl: lobbyUrl,
+            platform: platform,
+            secureLogin: secureLogin,
+            stylename: secureLogin,
+            symbol: symbol,
+            technology: technology,
+            token: token
+        }
+
+        let bodyparam = httpBuildQuery(urlparam);
+
+        let finalstring = decodeURIComponent(bodyparam) + key;
+        let hashval = check.createMd5hash(finalstring);
+
+        console.log("finalstring ==", finalstring)
+
+        const headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        };
+        const response = await axios.post(posturl, (bodyparam + '&hash=' + hashval), {
+            headers: headers
+        });
+
+        const returnDataArr = response.data;
+
+        if (returnDataArr && returnDataArr.error == '0') {
+
+            const launchBaseUrl = returnDataArr.gameURL;
+
+            let finalLaunchUrl = launchBaseUrl;
+
+            //console.log(finalLaunchUrl);
+
+            return {
+                status: 0,
+                code: "success",
+                message: "Game URL has been generated!",
+                data: {
+                    return_url: finalLaunchUrl
+                }
+            }
+        } else {
+            return {
+                status: false,
+                code: 120,
+                data: {}
+            }
+        }
+
     } catch (error) {
         console.log(error.message);
     }
