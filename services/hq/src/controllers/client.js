@@ -121,6 +121,13 @@ let all_client = async (req, res, next) => {
           const obj = JSON.parse(JSON.stringify(result));
           console.log("obj",obj);
           for(let i of obj.docs){
+            if(i.parent_client_id){
+              i.upper_level= "client";
+            }
+            else{
+              i.upper_level= "superadmin";
+
+            }
             i.upper_level= "client";
             
             
