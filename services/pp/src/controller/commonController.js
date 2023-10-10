@@ -11,6 +11,10 @@ const mongoose = require('mongoose');
 const playerModel = mongoose.model('Player');
 const TransactionModel = mongoose.model('Transaction');
 const ProviderModel = mongoose.model('Provider');
+const AccountsModel = mongoose.model('Accounts');
+const ClientProviderAccountMappingModel = mongoose.model('client_provider_account_mapping');
+const ProviderAccountModel = mongoose.model('provider_account');
+const GameModel = mongoose.model('Game');
 const appConfig = require('../../config/appConfig');
 const checkLib = require('../libs/checkLib');
 const serverLib = require('../libs/serverLib');
@@ -112,7 +116,7 @@ const insertLog = async (data) => {
  * @author Akash Paul
  * @function insertLog
  * @param {*} data
- * @returns userdtls/null
+ * @returns object
  * 
  */
 const checkUserOrRegister = async (account_user_id, account_id, currency, language) => {
@@ -246,7 +250,7 @@ const getGameDetailsByGameId = async (game_id) => {
  * 
  */
 const checkProviderAccountLink = async (account_id, provider_id) => {
-    let providerAccount = await ClientproviderAccountMappingModel.aggregate([
+    let providerAccount = await ClientProviderAccountMappingModel.aggregate([
         {
             $match: {
                 account_id: account_id,

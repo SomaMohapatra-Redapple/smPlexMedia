@@ -88,11 +88,11 @@ let getGameUrl = async (req, res) => {
         let resultarr = '';
         let bodyData = data.data;
         let mode = bodyData.mode.toLowerCase();
-        let userCode = bodyData.usercode;
+        let accountUserCode = bodyData.usercode;
         let token = bodyData.token;
         const accountID = data.data.account_id;
         let gameId = bodyData.game;
-        // let providerId = bodyData.providerId;
+        let providerId = appConfig.provider_id;
         let language = (bodyData.lang) ? bodyData.lang.toLowerCase() : 'en';
         let currency = bodyData.currency
         let returnUrl = (bodyData.return_url) ? bodyData.return_url : '';
@@ -125,7 +125,7 @@ let getGameUrl = async (req, res) => {
         }
 
         //** registering or log IN the user
-        const isUser = await commonController.checkUserOrRegister(userCode, account_id, currency, language);
+        const isUser = await commonController.checkUserOrRegister(accountUserCode, accountID, currency, language);
         if (isUser.error) {
             return {
                 status: false,
@@ -145,7 +145,7 @@ let getGameUrl = async (req, res) => {
             }
         }
 
-        // get provider details
+        // get provider account details
         let getProviderAccount = await commonController.checkProviderAccountLink(account_id, providerId); //get provider id first
         if (getProviderAccount.error) {
             return {
@@ -155,7 +155,7 @@ let getGameUrl = async (req, res) => {
             }
         }
 
-        // get provider details
+        // checking that is user currency same as provider accounts currency
         let providerAccount = getProviderAccount.data;
         if (providerAccount.currency.includes(currency) === false) {
             return {
@@ -165,7 +165,7 @@ let getGameUrl = async (req, res) => {
             }
         }
 
-        // get provider details
+        // get provider account details
         let providerTechnicals = await commonController.getProviderAccountTechnicals(provider_id, providerAccount._id);
         if (checker.isEmpty(providerTechnicals) || providerTechnicals.error) {
             return {
@@ -175,7 +175,18 @@ let getGameUrl = async (req, res) => {
             }
         }
 
-        let gmCode = gamedtls.game_code;
+        let gameCategory = "SLOT";
+        // let session = check.createMd5hash(gameId + timeLib.currentTimeStamp());
+        // token = game_details.PlayerToken;
+        // let currency = user_details.currency;
+        let gmCode = game_details.game_code;
+        let terminateparams = {
+            usercode: userCode,
+            client_id: client_id,
+            currency: currency,
+            game_category: '',
+            field_keys: {}
+        };
 
         let domain = providerTechnicals.api_url;
         let symbol = gmCode;
