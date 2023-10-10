@@ -15,7 +15,7 @@ const commonController = require("./commonController");
 const checkLib = require("../libs/checkLib");
 let mongoose = require('mongoose');
 let AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
-let ClientProviderModel = mongoose.model('ClientProvider');
+let ClientProviderModel = mongoose.model('client_provider_mapping');
 let PlayerModel = mongoose.model('Player');
 
 /** Global Variables */

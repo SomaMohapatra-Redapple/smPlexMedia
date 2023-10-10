@@ -4,8 +4,7 @@ const Joi = require('joi').extend(require('@joi/date'));
 
 
 const customLoginValidateSchema = Joi.object({
-    event_id: Joi.string()
-    ,
+    
     username: Joi.string()
         .required(),
     password: Joi.string()
@@ -29,25 +28,49 @@ const showAllClientValidateSchema = Joi.object({
 
 const addClientValidationSchema = Joi.object({
     
-        //client_id: Joi.string().required(),
-      parent_client_id: Joi.string().required(),
+        
+      firstname : Joi.string().required(),
+      lastname : Joi.string(),
       password: Joi.string()
         .required()
-        .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
-      email: Joi.string().email().required(),
-      status: Joi.string().required(),
-      environment: Joi.string().required(),
-      client_name: Joi.string().required(),
+        .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/).required(),
+      email: Joi.string().email(),
+      status: Joi.string(),
+      environment: Joi.string(),
       username: Joi.string().required(),
-      updated_by: Joi.string().required(),
+      updated_by: Joi.string(),
       contact: Joi.string()
         .min(10)
         .max(13)
         .pattern(/^[0-9]+$/)
-        .required(),
-      environment: Joi.string().required(),
-      status: Joi.string().required(),
+        ,
+      environment: Joi.string(),
+      status: Joi.string(),
    
+
+})
+
+const addAdminValidationSchema = Joi.object({
+    
+    //client_id: Joi.string().required(),
+  parent_client_id: Joi.string().required(),
+  password: Joi.string()
+    .required()
+    .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
+  email: Joi.string().email().required(),
+  status: Joi.string().required(),
+  environment: Joi.string().required(),
+  client_name: Joi.string().required(),
+  username: Joi.string().required(),
+  updated_by: Joi.string().required(),
+  contact: Joi.string()
+    .min(10)
+    .max(13)
+    .pattern(/^[0-9]+$/)
+    .required(),
+  environment: Joi.string().required(),
+  status: Joi.string().required(),
+  role : Joi.string().required()
 
 })
 
@@ -63,12 +86,23 @@ const addAccountSchema = Joi.object({
   status: Joi.string().required()
 });
 
-const AdminLoginValidateSchema = Joi.object({
-    admin_name: Joi.string()
+const LoginValidateSchema = Joi.object({
+    username: Joi.string()
         .required(),
     password: Joi.string()
         .max(20)
         .required()
+        // source_type: Joi.number().required()
+});
+
+const AdminLoginValidateSchema = Joi.object({
+    username: Joi.string()
+        .required(),
+    password: Joi.string()
+        .max(20)
+        .required(),
+    // role: Joi.string()
+    //     .required(),
         // source_type: Joi.number().required()
 });
 
@@ -202,21 +236,6 @@ const deleteEventValidateSchema = Joi.object({
 })
 
 
-let loginValidate = async(req, res, next) => {
-    try {
-        const value = await customLoginValidateSchema.validate(req.body);
-        if (value.hasOwnProperty('error')) {
-            throw new Error(value.error);
-        } else {
-            next();
-        }
-    } catch (err) {
-        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
-        res.status(400);
-        res.send(apiResponse)
-    }
-}
-
 let addClient = async(req,res,next)=>{
     try{
         const value = await addClientValidationSchema.validate(req.body);
@@ -255,7 +274,22 @@ let showAllClient = async(req,res,next)=>{
     }
 }
 
-let adminloginValidate = async(req, res, next) => {
+let loginValidate = async(req, res, next) => {
+    try {
+        const value = await LoginValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
+
+let AdminLoginValidate = async(req, res, next) => {
     try {
         const value = await AdminLoginValidateSchema.validate(req.body);
         if (value.hasOwnProperty('error')) {
@@ -469,8 +503,8 @@ let deleteEventValidate = async(req, res, next) => {
 
 module.exports = {
     loginValidate: loginValidate,
+    AdminLoginValidate :AdminLoginValidate,
     addClient : addClient,
-    adminloginValidate:adminloginValidate,
     showAllClient :showAllClient,
     adminRegisterValidate: adminRegisterValidate,
     addAccountValidation :addAccountValidation,

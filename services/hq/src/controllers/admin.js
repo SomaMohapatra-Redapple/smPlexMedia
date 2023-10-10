@@ -34,9 +34,49 @@ const add_admin = async (req, res, next) => {
   }
 };
 
+//admin_login
+
 const admin_login = async (req, res, next) => {
   try {
-    const { user_name, password } = req.body;
+    const { username, password,role } = req.body;
+    const query = { username: username };
+    const admin = await FindAdmin(query);
+    
+    if(admin){
+    
+    if (admin.username === username & admin.password === password) {
+      token = jwt.sign(
+        { id: admin.id, username: admin.username },
+        process.env.ENC_KEY,
+        { expiresIn: process.env.JWT_TOKEN_EXPIRE_TIME }
+      );
+      res.status(200).send({
+        message: "admin has logged in successfully",
+        token: token,
+      });
+    } else {
+      res.status(400).send({
+        message: "please enter correct username and password",
+      });
+    }
+      
+
+    }
+    else{
+      res.status(400).send({
+        message : "there is no user in such username"
+      })
+    }
+    
+  } catch (e) {
+    console.log("error", e);
+  }
+};
+
+//superadmin_login
+const superadmin_login = async (req, res, next) => {
+  try {
+    const { user_name, password,role } = req.body;
     const query = { user_name: user_name };
     const admin = await FindAdmin(query);
     console.log("req.connection", req.connection.remoteAddress);
@@ -49,12 +89,12 @@ const admin_login = async (req, res, next) => {
         { expiresIn: process.env.JWT_TOKEN_EXPIRE_TIME }
       );
       res.status(200).send({
-        message: "admin has logged in successfully",
+        message: "super admin has logged in successfully",
         token: token,
       });
     } else {
       res.status(400).send({
-        message: "you are not the admin",
+        message: "you are not the super admin",
       });
     }
   } catch (e) {
@@ -65,4 +105,5 @@ const admin_login = async (req, res, next) => {
 module.exports = {
   add_admin: add_admin,
   admin_login: admin_login,
+  superadmin_login : superadmin_login
 };

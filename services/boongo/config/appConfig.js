@@ -10,7 +10,9 @@ appConfig.eventEmitter = eventEmitter;
 appConfig.allowedCorsOrigin = "*";
 appConfig.apiVersion = '/api/v1';
 appConfig.socketNameSpace = 'wsio';
-appConfig.sessionExpTime = (120 * 120);
+appConfig.sessionExpTime = (3600 * 2);
+appConfig.redis_url = dbConfig.redis.url;
+appConfig.provider_id = '65142a47b0aef485da243a29';
 
 appConfig.MSG_1000 ='Oops! Something went wrong...';
 appConfig.db = {
