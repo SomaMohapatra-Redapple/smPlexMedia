@@ -13,6 +13,20 @@ const customLoginValidateSchema = Joi.object({
         .required()
         // source_type: Joi.number().required()
 });
+
+const showAllClientValidateSchema = Joi.object({
+    parent_client_id: Joi.string(),
+    e_mail: Joi.string().email(),
+    client_name: Joi.string(),
+    user_name: Joi.string(),
+    contact: Joi.string()
+      .min(10)
+      .max(13)
+      .pattern(/^[0-9]+$/),
+    page: Joi.string(),
+    limit: Joi.string(),
+  });
+
 const addClientValidationSchema = Joi.object({
     
         //client_id: Joi.string().required(),
@@ -37,6 +51,18 @@ const addClientValidationSchema = Joi.object({
 
 })
 
+const addAccountSchema = Joi.object({
+  //client_id: Joi.string().required(),
+  client_id: Joi.string().required(),
+  username: Joi.string().required(),
+  status: Joi.string().required(),
+  password: Joi.string()
+    .required()
+    .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
+
+  status: Joi.string().required()
+});
+
 const AdminLoginValidateSchema = Joi.object({
     admin_name: Joi.string()
         .required(),
@@ -55,6 +81,8 @@ const adminRegisterValidateSchema = Joi.object({
         .max(20)
         .required(),
     status: Joi.string()
+        .required(),
+    role: Joi.string()
         .required(),
     email: Joi.string().required().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
     contact: Joi.string().length(10).pattern(/^[0-9]+$/).required(),
@@ -208,6 +236,25 @@ let addClient = async(req,res,next)=>{
     }
 }
 
+let showAllClient = async(req,res,next)=>{
+    try{
+        const value = await showAllClientValidateSchema.validate(req.body);
+        if(value.hasOwnProperty('error')){
+        throw new Error(value.error);
+    }
+    else{
+        next();
+    }
+
+    }
+    catch(err){
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+
+    }
+}
+
 let adminloginValidate = async(req, res, next) => {
     try {
         const value = await AdminLoginValidateSchema.validate(req.body);
@@ -226,6 +273,21 @@ let adminloginValidate = async(req, res, next) => {
 let adminRegisterValidate = async(req, res, next) => {
     try {
         const value = await adminRegisterValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
+
+let addAccountValidation = async(req, res, next) => {
+    try {
+        const value = await addAccountSchema.validate(req.body);
         if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
         } else {
@@ -409,7 +471,9 @@ module.exports = {
     loginValidate: loginValidate,
     addClient : addClient,
     adminloginValidate:adminloginValidate,
+    showAllClient :showAllClient,
     adminRegisterValidate: adminRegisterValidate,
+    addAccountValidation :addAccountValidation,
     customRegisterValidate: customRegisterValidate,
     createQuestionValidate: createQuestionValidate,
     updateQuestionValidate: updateQuestionValidate,

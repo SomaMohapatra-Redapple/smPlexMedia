@@ -1,4 +1,3 @@
-const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 const apiError = require("../libs/apiError");
 const responseMessage = require("../libs/responseMessage");
@@ -14,15 +13,17 @@ const AddClient = async (query) => {
   return client;
 };
 const FindAllClient = async (validatedBody) => {
-  const { e_mail, client_name, user_name, contact, page, limit } =
+  console.log("validated body",validatedBody);
+  
+  const { e_mail, client_name, parent_client_id, contact, page, limit } =
     validatedBody;
   let query = {};
   if (client_name) {
     //query.client_name = new RegExp(client_name,"i");
     query.client_name = client_name;
   }
-  if (user_name) {
-    query.user_name = user_name;
+  if (parent_client_id) {
+    query.parent_client_id = parent_client_id;
   }
   if (e_mail) {
     query.e_mail = e_mail;
@@ -50,14 +51,17 @@ const UpdateClientBalance = async (query, options) => {
 //add client by super admin
 let add_client = async (req, res, next) => {
   try {
+    console.log("req.headers.token", req.headers.token);
     console.log("req.body.value", req.body);
     req.body.created_by = req.user.id;
     const query = req.body;
+    const requester = req.connection.remoteAddress.slice(0,9);
     const added_client = await AddClient(query)
       .then((result) => {
         res.status(200).send({
           message: "client created",
           result: result,
+          requester : requester
         });
       })
       .catch((err) => {
@@ -65,7 +69,7 @@ let add_client = async (req, res, next) => {
           err: err.message,
         });
       });
-    console.log("added_client.error", added_client);
+    
   } catch (e) {
     console.log("error", e);
     return next(e);
@@ -100,35 +104,12 @@ const add_client_by_client = async(req,res,next) =>{
 //find all client
 let all_client = async (req, res, next) => {
   try {
-    const schema = Joi.object({
-      e_mail: Joi.string().email(),
-      client_name: Joi.string(),
-      user_name: Joi.string(),
-      contact: Joi.string()
-        .min(10)
-        .max(13)
-        .pattern(/^[0-9]+$/),
-      page: Joi.string(),
-      limit: Joi.string(),
-    });
-    const client = {
-      e_mail: req.body.e_mail,
-      client_name: req.body.name,
-      user_name: req.body.user_name,
-      contact: req.body.contact,
-      page: req.body.page,
-      limit: req.body.limit,
-    };
 
-    const validatedBody = schema.validate(client);
-    if (validatedBody.error) {
-      console.log("i am validated body", validatedBody.error);
-      res.status(403).send({
-        message: validatedBody.error.message,
-      });
-    } else {
+    
       //const query = {};
-      const all_client = await FindAllClient(validatedBody.value)
+      console.log("req.body",req.body);
+      //console.log("validatedBody.value",validatedBody.value);
+      const all_client = await FindAllClient(req.body)
         .then((result) => {
           res.status(200).send({
             result: result,
@@ -140,7 +121,7 @@ let all_client = async (req, res, next) => {
             err: err.message,
           });
         });
-    }
+    
   } catch (e) {
     next(e);
   }
