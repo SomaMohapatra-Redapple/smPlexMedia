@@ -9,6 +9,7 @@ const ClientTable = mongoose.model('Client');
 
 const AddClient = async (query) => {
   console.log("query", query);
+  //query.raw = true;
   const client = await ClientTable.create(query);
   console.log("client", client);
   return client;
@@ -116,8 +117,30 @@ let all_client = async (req, res, next) => {
       //console.log("validatedBody.value",validatedBody.value);
       const all_client = await FindAllClient(req.body)
         .then((result) => {
+          console.log("all client",result.docs);
+          const obj = JSON.parse(JSON.stringify(result));
+          console.log("obj",obj);
+          for(let i of obj.docs){
+            i.upper_level= "client";
+            
+            
+            i.balance = 0;
+            i.currency = "KRW";
+            i.slno = obj.docs.indexOf(i)+1;
+            delete i.contact;
+            delete i.email;
+            delete i.password;
+            delete i.status;
+            delete i.environment;
+            delete i.created_by;
+            delete i.updated_by;
+            delete i.updated_at;
+            delete i.__v;
+            
+            console.log(i);
+          }
           res.status(200).send({
-            result: result,
+            result: obj,
             mesage: "all_client list",
           });
         })
@@ -126,6 +149,7 @@ let all_client = async (req, res, next) => {
             err: err.message,
           });
         });
+        
     
   } catch (e) {
     next(e);
