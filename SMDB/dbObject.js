@@ -59,6 +59,11 @@ let smObj = {
             required: true,
             default: 'N',
         },
+        account_type: {
+            type: String,
+            required: true,
+            default: 'Seamless',
+        },
         created_at: {
             type: Date,
             default: ""
