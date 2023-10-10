@@ -20,7 +20,7 @@ const appConfig = require('../../config/appConfig');
 const apiLib = require('../libs/apiLib');
 const time = require('../libs/timeLib');
 const AccountsModel = mongoose.model('Accounts');
-const ClientproviderAccountMappingModel = mongoose.model('Client_provider_Account_mapping');
+const ClientproviderAccountMappingModel = mongoose.model('Client_provider_account_mapping');
 const ProviderAccountModel = mongoose.model('Provider_account');
 
 /**
@@ -135,12 +135,57 @@ const isTransactionValid = async(transaction_id) => {
 
 const setProviderInRedis = async () => {
     let provider_id = appConfig.provider_id;
-    let providerdtls = await ProviderModel.findById(provider_id);
-    if(checker.isEmpty(providerdtls))
+    let providerdtls = await ProviderModel.aggregate(
+        [
+            {
+              $match: {
+                "_id": new mongoose.Types.ObjectId(provider_id)
+              }
+            },
+            {
+              $lookup: {
+                from: "provider_accounts",
+                localField: "_id",
+                foreignField: "provider_id",
+                as: "accounts"
+              }
+            }
+        ]
+    );
+    if(providerdtls.length < 1 || providerdtls[0].accounts.length < 1)
         return false;
     else{
-        // await redis_client.set('provider_boongo', JSON.stringify(providerdtls));
-        let added = await redis.add('provider_boongo', providerdtls);
+        
+        providerdtls = providerdtls[0];
+
+        let dataToSave = {
+            id : providerdtls._id,
+            name : providerdtls.game_provider_name,
+            is_subprovider : providerdtls.is_subprovider,
+        }
+
+        providerdtls.accounts.forEach(element => {
+            if(element.is_default){
+                dataToSave[`account-default`] = {
+                    name : element.provider_account_name,
+                    technical_details : element.technical_details,
+                    is_default : element.is_default,
+                    currency : element.currency,
+                    game_category : element.game_category,
+                }
+            }
+            else{
+                dataToSave[`account-${element._id}`] = {
+                    name : element.provider_account_name,
+                    technical_details : element.technical_details,
+                    is_default : element.is_default,
+                    currency : element.currency,
+                    game_category : element.game_category,
+                }
+            }
+        })
+
+        let added = await redis.add(`provider-${provider_id}`, dataToSave);
         if(added)
             return true;
         else
@@ -175,9 +220,8 @@ const post = async (apiUrl, endpoint, bodyData) => {
 const checkUserExistsOrRegister = async (account_user_id,account_id,currency,language)=>{
 
     try {
-
-        let plyr_details = await playerModel.findOne({account_id: account_id,account_user_id:account_user_id})
-        if(checkLib.isEmpty(plyr_details)){
+        let plyr_details = await playerModel.findOne({account_id: new mongoose.Types.ObjectId(account_id),account_user_id:account_user_id})
+        if(checker.isEmpty(plyr_details)){
             let newPlayer = new playerModel({
                 account_id: account_id,
                 account_user_id: account_user_id,
@@ -198,7 +242,7 @@ const checkUserExistsOrRegister = async (account_user_id,account_id,currency,lan
         }
 
     }catch (error) {
-
+        console.log(error.message);
         return {
             error: true,
             desc:error
@@ -207,7 +251,7 @@ const checkUserExistsOrRegister = async (account_user_id,account_id,currency,lan
 }
 
 const isAccountExists = async(account_id) => {
-    let accountdtls = await AccountsModel.findOneById(account_id).lean();
+    let accountdtls = await AccountsModel.findById(account_id).lean();
     if(checker.isEmpty(accountdtls))
         return false;
     else
@@ -215,44 +259,24 @@ const isAccountExists = async(account_id) => {
 }
 
 const checkProviderAccountLink = async(account_id, provider_id) => {
-    let providerAccount = await ClientproviderAccountMappingModel.aggregate([
-        {
-          $match: {
-            account_id: account_id,
-            provider_id: provider_id
-          }
-        },
-        {
-          $lookup: {
-            from: "provider_accounts",
-            localField: "provider_account_id",
-            foreignField: "_id",
-            as: "accountdtls"
-          }
-        },
-        {
-          $unwind: "$accountdtls"
-        }
-    ]);
-    if(checker.isEmpty(providerAccount)){
-        let defaultAccount = await ProviderAccountModel.findOne({ provider_id : provider_id, is_default : true }).lean();
-        if(checker.isEmpty(defaultAccount)){
+    try {
+        let providerAccount = await ClientproviderAccountMappingModel.findOne({account_id: account_id, provider_id: provider_id}).lean();
+        if(checker.isEmpty(providerAccount)){
             return {
-                error : true,
-                message : "Account not linked with any provider account"
+                error : false,
+                data : null
             }
         }
         else{
             return {
                 error : false,
-                data : defaultAccount
+                data : providerAccount.provider_account_id
             }
         }
-    }
-    else{
+    } catch (error) {
         return {
-            error : false,
-            data : providerAccount.accountdtls
+            error : true,
+            message : error.message
         }
     }
 }
@@ -287,11 +311,29 @@ const getGameDetailsByGameId = async(game_id) => {
     }
 }
 
-const getProviderAccountTechnicals = async(provider_id, provider_account_id) => {
+const getProviderAccountTechnicals = async (provider_account_id) => {
     try {
+        let provider_id = appConfig.provider_id;
         let providerId = `provider-${provider_id}`;
-        let providerAccountsData = await redisLib.get(providerId);
-        let accountsData = JSON.parse(providerAccountsData);
+        let accountsData = await redis.get(providerId);
+        // let accountsData = JSON.parse(providerAccountsData);
+        // if the provider_account null we send the default provider account
+        if(accountsData.error){
+            return{
+                error : true
+            }
+        }
+        accountsData = accountsData.data;
+
+        if (provider_account_id == null) {
+            let payLoad = {
+                error: false,
+                data: accountsData[`account-default`]
+            }
+            return payLoad;
+        }
+
+        // if the provider_account_id has any value
         if (accountsData.hasOwnProperty(`account-${provider_account_id}`)) {
             let payLoad = {
                 error: false,
@@ -326,5 +368,6 @@ module.exports = {
     checkUserExistsOrRegister: checkUserExistsOrRegister,
     isAccountExists: isAccountExists,
     checkProviderAccountLink: checkProviderAccountLink,
-    getGameDetailsByGameId: getGameDetailsByGameId
+    getGameDetailsByGameId: getGameDetailsByGameId,
+    getProviderAccountTechnicals: getProviderAccountTechnicals
 }

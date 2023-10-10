@@ -64,8 +64,7 @@ class RedisCache {
     }
 
     async get(id) {
-        const value = await redis_client.get(id)
-            ;
+        const value = await redis_client.get(id);
         try {
             if (value) {
                 let data = {
@@ -74,7 +73,9 @@ class RedisCache {
                 }
                 return data;
             }
-            return false;
+            return {
+                error : true
+            };
         } catch (err) {
             console.log('getRecordsByKeyRedis ' + err.message);
             if (!value) {

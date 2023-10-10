@@ -15,7 +15,8 @@ const AccountsTechnicalsModel = mongoose.model('AccountsTechnicals');
 const commonController = require('../controllers/commonController'); 
 const checker = require('../libs/checkLib');
 const time = require('../libs/timeLib');
-const redis = required('../libs/redisLib.js');
+const redis = require('../libs/redisLib');
+const appConfig = require('../../config/appConfig');
 
 /**
  * 
@@ -188,7 +189,7 @@ const getbalance = async(data) => {
             }
 
             // let response = await axios(config);
-            let response = await commonController.post(acountDetails.service_endpoint, 'authenticate', dataToSend);
+            let response = await commonController.post(acountDetails.service_endpoint, 'balance', dataToSend);
             // console.log(response)
             // const walletEndTime = new Date();
             // const walletTimeDifference = walletEndTime - walletStartTime;
@@ -287,18 +288,20 @@ const transaction = async(data) => {
             }
             else{
 
-                let config = {
-                    method: 'post',
-                    url: `${acountDetails.service_endpoint}/callback?function=bet`,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    data: dataToSend
-                };
+                // let config = {
+                //     method: 'post',
+                //     url: `${acountDetails.service_endpoint}/callback?function=bet`,
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //     },
+                //     data: dataToSend
+                // };
 
-                let response = await axios(config);
+                // let response = await axios(config);
 
-                let validation = await clientValidator.validateResponse(response.data.data, 'bet');
+                let response = await commonController.post(acountDetails.service_endpoint, 'bet', dataToSend);
+
+                let validation = await clientValidator.validateResponse(response.data, 'bet');
 
                 if(validation.error === true){
                     return {
@@ -309,7 +312,7 @@ const transaction = async(data) => {
                     }
                 }
                 else{
-                    let transaction_code = response.data.data.code;
+                    let transaction_code = response.data.code;
                     switch (transaction_code) {
                         case 'SUCCEED':
                             // prepare data to log
@@ -326,7 +329,7 @@ const transaction = async(data) => {
                                 game_category_name : gamedtls.categorydtls.category,
                                 provider_transaction_id : transaction_id,
                                 round_id : roundId,
-                                operator_transaction_id : response.data.data.operator_transaction_id,
+                                operator_transaction_id : response.data.operator_transaction_id,
                                 transaction_amount : amount,
                                 transaction_type : transaction_type,
                                 action : 'BET',
@@ -400,18 +403,9 @@ const transaction = async(data) => {
             }
             else{
 
-                let config = {
-                    method: 'post',
-                    url: `${acountDetails.service_endpoint}/callback?function=win`,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    data: dataToSend
-                };
+                let response = await commonController.post(acountDetails.service_endpoint, 'win', dataToSend);
 
-                let response = await axios(config);
-
-                let validation = await clientValidator.validateResponse(response.data.data, 'win');
+                let validation = await clientValidator.validateResponse(response.data, 'win');
 
                 if(validation.error === true){
                     return {
@@ -422,7 +416,7 @@ const transaction = async(data) => {
                     }
                 }
                 else{
-                    let transaction_code = response.data.data.code;
+                    let transaction_code = response.data.code;
                     switch (transaction_code) {
                         case 'SUCCEED':
                             // prepare data to log
@@ -439,7 +433,7 @@ const transaction = async(data) => {
                                 game_category_name : gamedtls.categorydtls.category,
                                 provider_transaction_id : transaction_id,
                                 round_id : roundId,
-                                operator_transaction_id : response.data.data.operator_transaction_id,
+                                operator_transaction_id : response.data.operator_transaction_id,
                                 transaction_amount : amount,
                                 transaction_type : transaction_type,
                                 action : 'WIN',
@@ -544,18 +538,20 @@ const rollback = async(data) => {
                     txn_id : referenced_transaction_id
                 }
 
-                let config = {
-                    method: 'post',
-                    url: `${acountDetails.service_endpoint}/callback?function=refund`,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    data: dataToSend
-                };
+                // let config = {
+                //     method: 'post',
+                //     url: `${acountDetails.service_endpoint}/callback?function=refund`,
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //     },
+                //     data: dataToSend
+                // };
 
-                let response = await axios(config);
+                // let response = await axios(config);
 
-                let validation = await clientValidator.validateResponse(response.data.data, 'rollback');
+                let response = await commonController.post(acountDetails.service_endpoint, 'rollback', dataToSend);
+
+                let validation = await clientValidator.validateResponse(response.data, 'rollback');
 
                 if(validation.error === true){
                     return {
@@ -566,7 +562,7 @@ const rollback = async(data) => {
                     }
                 }
                 else{
-                    let operator_transaction_id = response.data.data.operator_transaction_id;
+                    let operator_transaction_id = response.data.operator_transaction_id;
 
                     if (operator_transaction_id !== null) {
 
@@ -599,7 +595,7 @@ const rollback = async(data) => {
                         return {
                             uid: data.uid,
                             balance: {
-                                value: (response.data.data.available_balance).toFixed(2),
+                                value: (response.data.available_balance).toFixed(2),
                                 version: await commonController.getVersion(),
                                 code: 3
                             }
@@ -641,30 +637,48 @@ const rollback = async(data) => {
 
 const getGameUrl = async(data) => {
     try {
-        let resultarr = '';
-        const userCode = data.usercode;
+        const userCode = data.user_code;
         const token = data.token;
-        const language = data.lang.toLowerCase();
+        const language = data.language.toLowerCase();
         const gm_title = 'Boongo Game';
         const wl = "prod";
         const account_id = data.account_id;
-        const currency = data.currency;
+        const currency = data.currency.toUpperCase();
         const game_id = data.game_code;
+
+        let provider_id = appConfig.provider_id;
 
         if(await commonController.isAccountExists(account_id) === false){
             return {
-                status: 1,
-                code: "INVALID_ACCOUNT_ID", // Invalid Account Id
-                data: null
+                code: 1001,                                 // Invalid Account Id
+                message: "INVALID_ACCOUNT_ID",
+                data: {}
+            }
+        }
+
+        let betStatus = await commonController.isBetEnabled(account_id, provider_id);
+        if(betStatus.rejectionStatus === true){
+            return {
+        code: 1002,                                         // Provider and client not mapped
+                message: "PROVIDER_NOT_MAPPED",
+                data: {}
+            }
+        }
+
+        if(betStatus.maintenance_mode_status === 'Y'){
+            return {
+                code: 1003,                                 // client maintainance mode on
+                message: "MAINTENANCE_MODE_ON",
+                data: {}
             }
         }
 
         const isUser = await commonController.checkUserExistsOrRegister(userCode, account_id, currency, language);
         if(isUser.error){
             return {
-                status: 1,
-                code: "INVALID_USER_CODE",  // Invalid user or unable to save user
-                data: null
+                code: 1004,                                 // Invalid user or unable to save user
+                message: "FATAL_ERROR",
+                data: {}
             }
         }
         let user = isUser.data;
@@ -673,9 +687,9 @@ const getGameUrl = async(data) => {
 
         if(checker.isEmpty(gamedtls)){
             return {
-                status: 1,
-                code: "INVALID_GAME_CODE", //invalid game id
-                data: null
+                code: 1005,                                 //invalid game id
+                message: "GAME_NOT_FOUND",
+                data: {}
             }
         }
 
@@ -683,33 +697,35 @@ const getGameUrl = async(data) => {
 
         if(getProviderAccount.error){
             return {
-                status: 1,
-                code: "ACCOUNT_NOT_MAPPED", // account id not mapped with any provider account & unable to retrieve default provider account
-                data: null
+                code: 1004,                                 // account id not mapped with any provider account & unable to retrieve default provider account
+                message: "FATAL_ERROR",
+                data: {}
             }
         }
 
-        let providerAccount = getProviderAccount.data;
+        let providerAccountId = getProviderAccount.data;
 
-        if(providerAccount.currency.includes(currency) === false){
+        let providerTechnicals = await commonController.getProviderAccountTechnicals(providerAccountId);
+        
+        if(providerTechnicals.error === true){
             return {
-                status: 1,
-                code: "INVALID_CURRENCY", // currency not supported by provider
-                data: null
+                code: 1004,                                  // unable to get provider account details from redis
+                message: "FATAL_ERROR",
+                data: {}
             }
         }
 
-        let providerTechnicals = await commonController.getProviderAccountTechnicals(provider_id, providerAccount._id);
+        providerTechnicals = providerTechnicals.data;
 
-        if(checker.isEmpty(providerTechnicals) || providerTechnicals.error){
+        if(providerTechnicals.currency.includes(currency) === false){
             return {
-                status: 1,
-                code: "PROVIDER_NOT_READY", // provider technical details not found
-                data: null
+                code: 1006,                                    // currency not supported by provider
+                message: "INVALID_CURRENCY",
+                data: {}
             }
         }
 
-        let game_url = providerTechnicals.data.technical_details.game_url;
+        let game_url = providerTechnicals.technical_details.game_url;
 
         await redis.addWithTtl(`user-${user._id}-game-${game_id}`, token, appConfig.sessionExpTime);
 
@@ -718,7 +734,7 @@ const getGameUrl = async(data) => {
 
         const params = {
             "wl": wl,
-            "token": token,
+            "token": newToken,
             "game": gmCode,
             "lang": language,
             "sound": "1",
@@ -738,18 +754,18 @@ const getGameUrl = async(data) => {
         let finalLaunchUrl = game_url + "?" + query;
 
         return {
-          status: 0,
-          code: "SUCCESS",
-          data: {
-            return_url: finalLaunchUrl
-          }
-        };
+            code: 1000,                                    // currency not supported by provider
+            message: "SUCCESS",
+            data: {
+                return_url: finalLaunchUrl
+            }
+        }
     } catch (error) {
         console.log(error.message);
         return {
-          status: 1,
-          code: "FATAL_ERROR",
-          data: null
+            code: 1004,                                  // unable to get provider account details from redis
+            message: "FATAL_ERROR",
+            data: {}
         }
     }
 }
