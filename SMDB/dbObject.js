@@ -236,8 +236,7 @@ let smObj = {
         },
         account_user_id: {
             type: String,
-            required : true,
-            isObjectId: true
+            required : true
         },
         username: {
             type: String,
