@@ -6,6 +6,7 @@ const responseMessage = require("../libs/responseMessage");
 // const { AddClient, FindAllClient, FindSpecificClient } = client;
 const mongoose = require('mongoose');
 const ClientTable = mongoose.model('Client');
+const AdminTable = mongoose.model('SuperAdmin');
 
 const AddClient = async (query) => {
   console.log("query", query);
@@ -40,8 +41,12 @@ const FindAllClient = async (validatedBody) => {
   };
   return await ClientTable.paginate(query, options);
 };
-const FindSpecificClient = async (query) => {
+const FindSpecificClientFromClient = async (query) => {
   const client = await ClientTable.findOne(query);
+  return client;
+};
+const FindSpecificClientFromAdmin = async (query) => {
+  const client = await AdminTable.findOne(query);
   return client;
 };
 const UpdateClientBalance = async (query, options) => {
@@ -108,60 +113,153 @@ const add_client_by_client = async(req,res,next) =>{
 }
 
 //find all client
-let all_client = async (req, res, next) => {
-  try {
+// let all_client = async (req, res, next) => {
+//   try {
 
     
-      //const query = {};
-      console.log("req.body",req.body);
-      //console.log("validatedBody.value",validatedBody.value);
-      const all_client = await FindAllClient(req.body)
-        .then((result) => {
-          console.log("all client",result.docs);
-          const obj = JSON.parse(JSON.stringify(result));
-          console.log("obj",obj);
-          for(let i of obj.docs){
-            if(i.parent_client_id){
-              i.upper_level= "client";
-            }
-            else{
-              i.upper_level= "superadmin";
+//       //const query = {};
+//       console.log("req.query",req.query);
+//       //console.log("validatedBody.value",validatedBody.value);
+//       const all_client = await FindAllClient(req.query)
+//         .then((result) => {
+//           console.log("all client",result.docs);
+//           const obj = JSON.parse(JSON.stringify(result));
+//           console.log("obj",obj);
+          
+//           for(let i of obj.docs){
+//             var find_parent = {};
+//             if(i.parent_client_id){
+            
+//               query = {_id : i.parent_client_id}
+//               console.log("query",query);
+//               (async () => {
+                
+//                  await FindSpecificClientFromAdmin(query)
+                 
+//                   .then((client)=>{
+//                     console.log("clienttt",client);
+//                     console.log("insidethen",i);
+//                   //find_parent = client;
+//                   //const upper = JSON.parse(JSON.stringify(client));
+//                   i.upper_level= client.admin_name;
+//                   console.log("i.upper_level",i.upper_level);
+//                   console.log("ix",i);
+//                   //let  find_parent = Object.assign(find_parent, i);
+                      
+//                      return result
+//                   //console.log("find_parent vvv ",find_parent);
 
-            }
-            i.upper_level= "client";
+//                   })
+                  
+//                   .catch((e)=>{console.log("error",e)});
+                    
+//                   //return i;
+                  
+                  
+//                    //console.log("find_parent",find_parent);
+//                  //return find_parent;
+//                 //console.log("ix",i);
+//               })();
+              
+//              // console.log("find_parent",find_parent);
+//               //i.upper_level= "client";
+//             }
+//             //console.log("find_parent",result);
             
+//             console.log("ixoutside async",i);
+//             i.balance = 0;
+//             i.currency = "KRW";
+//             i.slno = obj.docs.indexOf(i)+1;
+//             delete i.contact;
+//             delete i.email;
+//             delete i.password;
+//             delete i.status;
+//             delete i.environment;
+//             delete i.created_by;
+//             delete i.updated_by;
+//             delete i.updated_at;
+//             delete i.__v;
             
-            i.balance = 0;
-            i.currency = "KRW";
-            i.slno = obj.docs.indexOf(i)+1;
-            delete i.contact;
-            delete i.email;
-            delete i.password;
-            delete i.status;
-            delete i.environment;
-            delete i.created_by;
-            delete i.updated_by;
-            delete i.updated_at;
-            delete i.__v;
-            
-            console.log(i);
-          }
-          res.status(200).send({
-            result: obj,
-            mesage: "all_client list",
-          });
-        })
-        .catch((err) => {
-          res.status(404).send({
-            err: err.message,
-          });
-        });
+//             console.log("iiiii",i);
+//           }
+//           res.status(200).send({
+//             result: obj,
+//             mesage: "all_client list",
+//           });
+//         })
+//         .catch((err) => {
+//           res.status(404).send({
+//             err: err.message,
+//           });
+//         });
         
     
-  } catch (e) {
-    next(e);
+//   } catch (e) {
+//     next(e);
+//   }
+// };
+let all_client = async (req, res, next) => {
+  try {
+    console.log("req.query", req.query);
+    const result = await FindAllClient(req.query);
+
+    const allClients = [];
+   
+    for ( let client of result.docs) {
+      try {
+         client = JSON.parse(JSON.stringify(client))
+        if (client.parent_client_id) {
+          const query = { _id: client.parent_client_id };
+          const parentClient = await FindSpecificClientFromAdmin(query);
+          console.log("parentClient", parentClient); // Add this line for debugging
+          client.upper_level = parentClient.admin_name || "superadmin";
+          client.parentClient = parentClient; // Include parentClient information
+        } else {
+          client.upper_level = "client";
+        }
+
+        // Set these properties to maintain in the response
+        client.balance = 0;
+        client.currency = "KRW";
+        client.slno = result.docs.indexOf(client) + 1;
+
+        // Remove these properties from the client object
+        delete client.contact;
+        delete client.email;
+        delete client.password;
+        delete client.status;
+        delete client.environment;
+        delete client.created_by;
+        delete client.updated_by;
+        delete client.updated_at;
+        delete client.__v;
+        delete client.parentClient;
+
+        allClients.push(client);
+      } catch (error) {
+        console.error("Error processing client:", error);
+        // Handle errors for individual clients here
+      }
+    }
+
+    res.status(200).send({
+      result: {
+        docs: allClients,
+        total: result.total,
+        limit: result.limit,
+        page: result.page,
+        pages: result.pages,
+      },
+      message: "all_client list",
+    });
+  } catch (error) {
+    console.error("Error in all_client API:", error);
+    res.status(500).send({
+      error: error.message,
+    });
   }
 };
+
 
 let log_in = async (req, res, next) => {
   try {
