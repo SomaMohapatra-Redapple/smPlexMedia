@@ -94,7 +94,7 @@ let getGameUrl = async (req, res) => {
         let gameId = bodyData.game;
         let providerId = appConfig.provider_id;
         let language = (bodyData.lang) ? bodyData.lang.toLowerCase() : 'en';
-        let currency = bodyData.currency
+        let currency = bodyData.currency.toUpperCase();
         let returnUrl = (bodyData.return_url) ? bodyData.return_url : '';
 
         if (mode != 'real') {
@@ -145,8 +145,15 @@ let getGameUrl = async (req, res) => {
             }
         }
 
-        // get provider account details
+        if ((game_details.category_id != 1)) {
+            let Status = 'Game not found!';
+            code = 4009;
+            return await invalidError(code, Status);
+        }
+
+        // get provider account status 
         let getProviderAccount = await commonController.checkProviderAccountLink(account_id, providerId); //get provider id first
+        // if error
         if (getProviderAccount.error) {
             return {
                 status: false,
@@ -155,9 +162,9 @@ let getGameUrl = async (req, res) => {
             }
         }
 
-        // checking that is user currency same as provider accounts currency
-        let providerAccount = getProviderAccount.data;
-        if (providerAccount.currency.includes(currency) === false) {
+        // get provider account details
+        let providerTechnicals = await commonController.getProviderAccountTechnicals(providerId, getProviderAccount.data);
+        if (checker.isEmpty(providerTechnicals) || providerTechnicals.error) {
             return {
                 status: false,
                 code: 120,
@@ -165,9 +172,9 @@ let getGameUrl = async (req, res) => {
             }
         }
 
-        // get provider account details
-        let providerTechnicals = await commonController.getProviderAccountTechnicals(provider_id, providerAccount._id);
-        if (checker.isEmpty(providerTechnicals) || providerTechnicals.error) {
+        // checking that is user currency same as provider accounts currency
+        let providerAccount = providerTechnicals.data;
+        if (providerAccount.currency.includes(currency) === false) {
             return {
                 status: false,
                 code: 120,
@@ -179,7 +186,7 @@ let getGameUrl = async (req, res) => {
         // let session = check.createMd5hash(gameId + timeLib.currentTimeStamp());
         // token = game_details.PlayerToken;
         // let currency = user_details.currency;
-        let gmCode = game_details.game_code;
+        let gmCode = gamedtls.game_code;
         let terminateparams = {
             usercode: userCode,
             client_id: client_id,
@@ -188,15 +195,15 @@ let getGameUrl = async (req, res) => {
             field_keys: {}
         };
 
-        let domain = providerTechnicals.api_url;
+        let domain = providerAccount.technical_details.api_url;
         let symbol = gmCode;
         let technology = 'H5';
         let platform = 'WEB';
         let country = 'USA';
         let cashierUrl = returnUrl;
         let lobbyUrl = returnUrl;
-        let secureLogin = user;
-        let key = providerTechnicals.key;
+        let secureLogin = user._id;
+        let key = providerAccount.technical_details.key;
 
         let posturl = domain + 'game/url';
         let urlparam = {
@@ -293,24 +300,24 @@ let authenticate = async (req, res) => {
 
             return payLoad;
         } else {
-            // let config = {
-            //     method: 'post',
-            //     url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     data: {
-            //         user_id: userdtls.account_user_id
-            //     }
-            // };
+            let config = {
+                method: 'post',
+                url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                data: {
+                    user_id: userdtls.account_user_id
+                }
+            };
 
-            // let response = await axios(config);
-            let postData = {
-                user_id: userdtls.account_user_id
-            }
+            let response = await axios(config);
+            // let postData = {
+            //     user_id: userdtls.account_user_id
+            // }
 
-            let response = await commonController.postDataFromAPI(acountDetails.service_endpoint, req.params.function, postData);
-            console.log(response);
+            // let response = await commonController.postDataFromAPI(acountDetails.service_endpoint, req.params.function, postData);
+            // console.log(response);
 
             // checking the response has any error or not
             if (response.data.err == true) {
@@ -405,6 +412,13 @@ let balance = async (req, res) => {
         };
 
         let response = await axios(config);
+
+        // let postData = {
+        //     "user_id": "1234567890"
+        // }
+
+        // let response = await commonController.postDataFromAPI(acountDetails.service_endpoint, req.params.function, postData);
+        // console.log(response);
 
         // checking the response has any error or not
         if (response.data.err == true) {
@@ -540,6 +554,19 @@ let bet = async (req, res) => {
             }
         };
         let response = await axios(config);
+
+        // let postData = {
+        //     "user_id": "fgfdg",
+        //     "txn_id": "12345",
+        //     "round_id": "12345",
+        //     "game_id": "12345",
+        //     "category_id": "12345",
+        //     "bet_amount": "120",
+        //     "bonus": "10"
+        // }
+
+        // let response = await commonController.postDataFromAPI(acountDetails.service_endpoint, req.params.function, postData);
+        // console.log(response);
 
         // checking the response has any error or not
         if (response.data.err == true) {

@@ -21,22 +21,63 @@ const serverLib = require('../libs/serverLib');
 const redisLib = require('../libs/redisLib');
 
 const setProviderInRedis = async () => {
-    let { redisClient } = require('../../www/db/db');
-    try {
-        let provider_id = appConfig.provider_id;
+    let provider_id = appConfig.provider_id;
+    let providerdtls = await ProviderModel.aggregate(
+        [
+            {
+                $match: {
+                    "_id": new mongoose.Types.ObjectId(provider_id)
+                }
+            },
+            {
+                $lookup: {
+                    from: "provider_accounts",
+                    localField: "_id",
+                    foreignField: "provider_id",
+                    as: "accounts"
+                }
+            }
+        ]
+    );
+    if (providerdtls.length < 1 || providerdtls[0].accounts.length < 1)
+        return false;
+    else {
 
+        providerdtls = providerdtls[0];
 
-        let providerdtls = await ProviderModel.findById(provider_id);
-        if (checkLib.isEmpty(providerdtls))
-            return false;
-        else {
-            await redisClient.set('provider_pp', JSON.stringify(providerdtls));
-            return true;
+        let dataToSave = {
+            id: providerdtls._id,
+            name: providerdtls.game_provider_name,
+            is_subprovider: providerdtls.is_subprovider,
         }
-    } catch (error) {
-        console.log("redis data storing erroe ===> ", error.message);
-    }
 
+        providerdtls.accounts.forEach(element => {
+            if (element.is_default) {
+                dataToSave[`account-default`] = {
+                    name: element.provider_account_name,
+                    technical_details: element.technical_details,
+                    is_default: element.is_default,
+                    currency: element.currency,
+                    game_category: element.game_category,
+                }
+            }
+            else {
+                dataToSave[`account-${element._id}`] = {
+                    name: element.provider_account_name,
+                    technical_details: element.technical_details,
+                    is_default: element.is_default,
+                    currency: element.currency,
+                    game_category: element.game_category,
+                }
+            }
+        })
+
+        let added = await redisLib.add(`provider-${appConfig.provider_id}`, dataToSave);
+        if (added)
+            return true;
+        else
+            return false;
+    }
 }
 
 const postDataFromAPI = async (apiUrl, endpoint, bodyData) => {
@@ -47,10 +88,11 @@ const postDataFromAPI = async (apiUrl, endpoint, bodyData) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            data: bodyData
+            data: JSON.parse(JSON.stringify(bodyData))
         };
+        console.log(bodyData)
         const data = await serverLib.server.getData(url, requestOptions);
-        console.log('API Response:', data);
+        // console.log('API Response:', data);
         return data;
     } catch (error) {
         console.error('Error:', error);
@@ -139,7 +181,7 @@ const checkUserOrRegister = async (account_user_id, account_id, currency, langua
             }
         } else {
             return {
-                error: true,
+                error: false,
                 data: plyr_details
             }
         }
@@ -160,11 +202,28 @@ const checkUserOrRegister = async (account_user_id, account_id, currency, langua
  * @returns object
  * 
  */
-const getProviderAccountTechnicals = async (provider_id, provider_account_id) => {
+const getProviderAccountTechnicals = async (provider_account_id) => {
     try {
-        let providerId = `provider-${provider_id}`;
+        let providerId = `provider-${appConfig.provider_id}`;
         let providerAccountsData = await redisLib.get(providerId);
         let accountsData = JSON.parse(providerAccountsData);
+
+        if(accountsData.error){
+            return{
+                error : true
+            }
+        }
+
+        // if the provider_account null we send the default provider account
+        if (provider_account_id == null) {
+            let payLoad = {
+                error: false,
+                data: accountsData[`account-default`]
+            }
+            return payLoad;
+        }
+
+        // if the provider_account_id has any value
         if (accountsData.hasOwnProperty(`account-${provider_account_id}`)) {
             let payLoad = {
                 error: false,
@@ -250,44 +309,24 @@ const getGameDetailsByGameId = async (game_id) => {
  * 
  */
 const checkProviderAccountLink = async (account_id, provider_id) => {
-    let providerAccount = await ClientProviderAccountMappingModel.aggregate([
-        {
-            $match: {
-                account_id: account_id,
-                provider_id: provider_id
-            }
-        },
-        {
-            $lookup: {
-                from: "provider_accounts",
-                localField: "provider_account_id",
-                foreignField: "_id",
-                as: "accountdtls"
-            }
-        },
-        {
-            $unwind: "$accountdtls"
-        }
-    ]);
-    if (checkLib.isEmpty(providerAccount)) {
-        let defaultAccount = await ProviderAccountModel.findOne({ provider_id: provider_id, is_default: true }).lean();
-        if (checkLib.isEmpty(defaultAccount)) {
+    try {
+        let providerAccount = await ClientProviderAccountMappingModel.findOne({ account_id: account_id, provider_id: provider_id }).lean();
+        if (checker.isEmpty(providerAccount)) {
             return {
-                error: true,
-                message: "Account not linked with any provider account"
+                error: false,
+                data: null
             }
         }
         else {
             return {
                 error: false,
-                data: defaultAccount
+                data: providerAccount.provider_account_id
             }
         }
-    }
-    else {
+    } catch (error) {
         return {
-            error: false,
-            data: providerAccount.accountdtls
+            error: true,
+            message: error.message
         }
     }
 }

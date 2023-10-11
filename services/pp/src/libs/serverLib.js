@@ -13,31 +13,46 @@ class Server {
 
     //##########################################################################
 
-    getData(url, options) {
-        return new Promise((resolve, reject) => {
-            const request = http.request(url, options, (response) => {
-                let data = '';
+    // getData(url, options) {
+    //     return new Promise((resolve, reject) => {
+    //         // let opt = JSON.stringify(options);
+    //         const request = http.request(url, options, (response) => {
+    //             let data = '';
 
-                response.on('data', (chunk) => {
-                    data += chunk;
-                });
+    //             response.on('data', (chunk) => {
+    //                 data += chunk;
+    //             });
 
-                response.on('end', () => {
-                    try {
-                        const parsedData = JSON.parse(data);
-                        resolve(parsedData);
-                    } catch (error) {
-                        reject(error);
-                    }
-                });
-            });
+    //             response.on('end', () => {
+    //                 try {
+    //                     const parsedData = JSON.parse(data);
+    //                     resolve(parsedData);
+    //                 } catch (error) {
+    //                     reject(error);
+    //                 }
+    //             });
+    //         });
 
-            request.on('error', (error) => {
-                reject(error);
-            });
+    //         request.on('error', (error) => {
+                
+    //             reject(error);
+    //         });
 
-            request.end();
-        });
+    //         request.end();
+    //     });
+    // };
+
+    async getData(url, options) {
+        try {
+            let response = await fetch(url, options);
+            if (response.status == 200) {
+                return response.json();
+            } else {
+                console.log("test")
+            }
+        } catch (err) {
+            console.log("getData Error log: ", err);
+        }
     };
     async TokenAuthentication(_token) {
         try {
