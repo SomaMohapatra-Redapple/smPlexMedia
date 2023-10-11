@@ -3,7 +3,7 @@
  * @author Rajdeep Adhikary
  * @purpose Boongo provider integration and game launch related works
  * @createdDate Sep 26 2023
- * @lastUpdated Oct 04 2023
+ * @lastUpdated Oct 11 2023
  * @lastUpdatedBy Rajdeep Adhikary
  */
 
@@ -243,7 +243,7 @@ const transaction = async(data) => {
         let playerToken = data.token.split("-ucd-");
         let usercode = playerToken[1];
         const userdtls = await commonController.checkUsercodeExists(usercode);
-        let provider_id = "65142a47b0aef485da243a29";
+        let provider_id = appConfig.provider_id;
         let transaction_type = amount = '';
         let transaction_id = data.uid;
         // check if bet is allowed
@@ -502,7 +502,7 @@ const rollback = async(data) => {
         let playerToken = data.token.split("-ucd-");
         let usercode = playerToken[1];
         const userdtls = await commonController.checkUsercodeExists(usercode);
-        let provider_id = "65142a47b0aef485da243a29";
+        let provider_id = appConfig.provider_id;
         let transaction_type = 'CREDIT';
         let transaction_id = data.uid;
         let gamedtls = await commonController.getGameDetailsByGameCode(data.game_id, provider_id);
@@ -650,8 +650,8 @@ const getGameUrl = async(data) => {
 
         if(await commonController.isAccountExists(account_id) === false){
             return {
-                code: 1001,                                 // Invalid Account Id
-                message: "INVALID_ACCOUNT_ID",
+                code: 1001,                                         // Invalid Account Id
+                message: "INVALID_ACCOUNT",
                 data: {}
             }
         }
@@ -659,15 +659,15 @@ const getGameUrl = async(data) => {
         let betStatus = await commonController.isBetEnabled(account_id, provider_id);
         if(betStatus.rejectionStatus === true){
             return {
-        code: 1002,                                         // Provider and client not mapped
-                message: "PROVIDER_NOT_MAPPED",
+                code: 1002,                                         // Provider and client not mapped
+                message: "PROVIDER_DENIED",
                 data: {}
             }
         }
 
         if(betStatus.maintenance_mode_status === 'Y'){
             return {
-                code: 1003,                                 // client maintainance mode on
+                code: 1003,                                         // client maintainance mode on
                 message: "MAINTENANCE_MODE_ON",
                 data: {}
             }
@@ -676,7 +676,7 @@ const getGameUrl = async(data) => {
         const isUser = await commonController.checkUserExistsOrRegister(userCode, account_id, currency, language);
         if(isUser.error){
             return {
-                code: 1004,                                 // Invalid user or unable to save user
+                code: 1004,                                         // Invalid user or unable to save user
                 message: "FATAL_ERROR",
                 data: {}
             }
@@ -687,7 +687,7 @@ const getGameUrl = async(data) => {
 
         if(checker.isEmpty(gamedtls)){
             return {
-                code: 1005,                                 //invalid game id
+                code: 1005,                                         //invalid game id
                 message: "GAME_NOT_FOUND",
                 data: {}
             }
@@ -697,7 +697,7 @@ const getGameUrl = async(data) => {
 
         if(getProviderAccount.error){
             return {
-                code: 1004,                                 // account id not mapped with any provider account & unable to retrieve default provider account
+                code: 1004,                                         // account id not mapped with any provider account & unable to retrieve default provider account
                 message: "FATAL_ERROR",
                 data: {}
             }
@@ -709,7 +709,7 @@ const getGameUrl = async(data) => {
         
         if(providerTechnicals.error === true){
             return {
-                code: 1004,                                  // unable to get provider account details from redis
+                code: 1004,                                         // unable to get provider account details from redis
                 message: "FATAL_ERROR",
                 data: {}
             }
@@ -719,7 +719,7 @@ const getGameUrl = async(data) => {
 
         if(providerTechnicals.currency.includes(currency) === false){
             return {
-                code: 1006,                                    // currency not supported by provider
+                code: 1006,                                         // currency not supported by provider
                 message: "INVALID_CURRENCY",
                 data: {}
             }
@@ -757,7 +757,7 @@ const getGameUrl = async(data) => {
             code: 1000,                                    // currency not supported by provider
             message: "SUCCESS",
             data: {
-                return_url: finalLaunchUrl
+                game_url: finalLaunchUrl
             }
         }
     } catch (error) {
