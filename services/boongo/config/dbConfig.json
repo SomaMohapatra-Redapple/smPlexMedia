@@ -10,7 +10,7 @@
             "charset": "utf8mb4_unicode_ci"
         },
         "redis": {
-            "url": ""
+            "url": "redis://18.162.166.6:6379"
         }
     },
     "stg": {
