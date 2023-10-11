@@ -22,6 +22,7 @@ let checkLib = require('../libs/checkLib');
 let timeLib = require('../libs/timeLib');
 let commonController = require('../controller/commonController');
 let walletController = require('../controller/walletController');
+let serverLib = require('../libs/serverLib');
 
 
 /**
@@ -300,34 +301,40 @@ let authenticate = async (req, res) => {
 
             return payLoad;
         } else {
-            let config = {
-                method: 'post',
-                url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                data: {
-                    user_id: userdtls.account_user_id
-                }
-            };
+            // let config = {
+            //     method: 'post',
+            //     url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     },
+            //     data: {
+            //         user_id: userdtls.account_user_id
+            //     }
+            // };
 
-            let response = await axios(config);
-            // let postData = {
-            //     user_id: userdtls.account_user_id
-            // }
+            // let response = await axios(config);
 
-            // let response = await commonController.postDataFromAPI(acountDetails.service_endpoint, req.params.function, postData);
-            // console.log(response);
+            let postData = {
+                user_id: userdtls.account_user_id
+            }
+            let response = await serverLib.server.postData(acountDetails.service_endpoint, req.params.function, postData);
+            // console.log(response.response.ok)
 
             // checking the response has any error or not
-            if (response.data.err == true) {
+            if (response.error == true) {
                 code = 120;
                 Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
                 return await invalidError(code, Status);
             }
-
+            let responseObj = await response.response.json();
+            if (responseObj.err == true) {
+                code = 120;
+                Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+                return await invalidError(code, Status);
+            }
+            let responseData = responseObj.data;
             let function_name = "authenticate";
-            let responseData = response.data;
+            // let responseData = await response.response.json();
             let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
             /* checking the client data format has any error or not */
@@ -400,24 +407,10 @@ let balance = async (req, res) => {
             return payLoad;
         }
 
-        let config = {
-            method: 'post',
-            url: `${acountDetails.service_endpoint}/callback?function=balance`,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            data: {
-                "user_id": "1234567890"
-            }
-        };
-
-        let response = await axios(config);
-
-        // let postData = {
-        //     "user_id": "1234567890"
-        // }
-
-        // let response = await commonController.postDataFromAPI(acountDetails.service_endpoint, req.params.function, postData);
+        let postData = {
+            "user_id": "1234567890"
+        }
+        let response = await serverLib.server.postData(acountDetails.service_endpoint, req.params.function, postData);
         // console.log(response);
 
         // checking the response has any error or not
@@ -428,7 +421,7 @@ let balance = async (req, res) => {
         }
 
         let function_name = 'balance';
-        let responseData = response.data.data;
+        let responseData = response.data;
         let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
         // checking the data format has any error or not
@@ -537,36 +530,17 @@ let bet = async (req, res) => {
             return payLoad;
         }
 
-        let config = {
-            method: 'post',
-            url: `${acountDetails.service_endpoint}/callback?function=bet`,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            data: {
-                "user_id": "fgfdg",
-                "txn_id": "12345",
-                "round_id": "12345",
-                "game_id": "12345",
-                "category_id": "12345",
-                "bet_amount": "120",
-                "bonus": "10"
-            }
-        };
-        let response = await axios(config);
+        let postData = {
+            "user_id": "fgfdg",
+            "txn_id": "12345",
+            "round_id": "12345",
+            "game_id": "12345",
+            "category_id": "12345",
+            "bet_amount": "120",
+            "bonus": "10"
+        }
 
-        // let postData = {
-        //     "user_id": "fgfdg",
-        //     "txn_id": "12345",
-        //     "round_id": "12345",
-        //     "game_id": "12345",
-        //     "category_id": "12345",
-        //     "bet_amount": "120",
-        //     "bonus": "10"
-        // }
-
-        // let response = await commonController.postDataFromAPI(acountDetails.service_endpoint, req.params.function, postData);
-        // console.log(response);
+        let response = await serverLib.server.postData(acountDetails.service_endpoint, req.params.function, postData);
 
         // checking the response has any error or not
         if (response.data.err == true) {
@@ -745,23 +719,16 @@ let result = async (req, res) => {
             return payLoad;
         }
 
-        let config = {
-            method: 'post',
-            url: `${acountDetails.service_endpoint}/callback?function=win`,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            data: {
-                "user_id": "fgfdg",
-                "txn_id": "12345",
-                "round_id": "12345",
-                "game_id": "12345",
-                "category_id": "12345",
-                "win_amount": "120",
-                "bonus": "10"
-            }
-        };
-        let response = await axios(config);
+        let postData = {
+            "user_id": "fgfdg",
+            "txn_id": "12345",
+            "round_id": "12345",
+            "game_id": "12345",
+            "category_id": "12345",
+            "win_amount": "120",
+            "bonus": "10"
+        }
+        let response = await serverLib.server.postData(acountDetails.service_endpoint, req.params.function, postData);
 
         // checking the response has any error or not
         if (response.data.err == true) {
@@ -921,19 +888,14 @@ let refund = async (req, res) => {
             return payLoad;
         }
 
-        let config = {
-            method: 'post',
-            url: `${acountDetails.service_endpoint}/callback?function=refund`,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            data: {
-                "txn_id": `${reference_id}`,
-            }
-        };
-        let response = await axios(config);
+        postData = {
+            "txn_id": `${reference_id}`,
+        }
+
+        let response = await serverLib.server.postData(acountDetails.service_endpoint, req.params.function, postData);
+
         let function_name = "refund";
-        let responseData = response.data.data;
+        let responseData = response.data;
         let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
         /* checking the client data format has any error or not */

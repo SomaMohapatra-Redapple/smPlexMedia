@@ -88,7 +88,7 @@ const postDataFromAPI = async (apiUrl, endpoint, bodyData) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            data: JSON.parse(JSON.stringify(bodyData))
+            body:  bodyData // (JSON.stringify(bodyData))
         };
         console.log(bodyData)
         const data = await serverLib.server.getData(url, requestOptions);
