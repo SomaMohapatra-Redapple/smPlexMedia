@@ -22,8 +22,8 @@ const showAllClientValidateSchema = Joi.object({
       .min(10)
       .max(13)
       .pattern(/^[0-9]+$/),
-    page: Joi.string(),
-    limit: Joi.string(),
+    page: Joi.number(),
+    limit: Joi.number(),
   });
 
 const addClientValidationSchema = Joi.object({
