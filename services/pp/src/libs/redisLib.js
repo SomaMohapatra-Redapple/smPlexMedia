@@ -14,16 +14,13 @@ class RedisCache {
 
             redis_client.on('error', (err) => {
                 console.log("REDIS Error " + err)
+                return false;
             });
 
-            return {
-                error: false
-            }
+            return true;
         } catch (error) {
             console.log('connect ' + error.message);
-            return {
-                error: true
-            }
+            return false;
         }
     }
 
