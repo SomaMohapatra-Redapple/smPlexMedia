@@ -1,19 +1,16 @@
 {
     "dev": {
-        "mongo": {
-            "uri": "mongodb://root:root@localhost:27017/?authMechanism=DEFAULT"
+        "username": "root",
+        "password": "kzwjjQd7T#9Pc35*",
+        "database": "sm_plex_media",
+        "host": "18.162.166.6",
+        "port": "3000",
+        "dialect": "mongo",
+        "dialectOptions": {
+            "charset": "utf8mb4_unicode_ci"
         },
         "redis": {
-            "url": ""
-        },
-        "mysql": {
-            "username": "",
-            "password": "",
-            "database": "",
-            "host": "",
-            "port": "",
-            "dialect": "",
-            "datetime": ""
+            "url": "redis://18.162.166.6:6379"
         }
     },
     "stg": {
