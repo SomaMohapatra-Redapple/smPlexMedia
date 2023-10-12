@@ -17,6 +17,7 @@ const checker = require('../libs/checkLib');
 const time = require('../libs/timeLib');
 const redis = require('../libs/redisLib');
 const appConfig = require('../../config/appConfig');
+const apiLib = require('../libs/apiLib');
 
 /**
  * 
@@ -86,24 +87,23 @@ const login = async(data) => {
             }
         }
         else{
-            // let config = {
-            //     method: 'post',
-            //     url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     data: {
-            //         user_id : userdtls.account_user_id                       // YMDJD12
-            //     }
-            // };
-    
-            // let response = await axios(config);
 
             let dataToSend = {
                 user_id : userdtls.account_user_id                       // YMDJD12
             }
 
-            let response = await commonController.post(acountDetails.service_endpoint, 'authenticate', dataToSend);
+            let response = await apiLib.server.postData(acountDetails.service_endpoint, 'authenticate', dataToSend);
+            response = await response.response.json();
+            
+            if(response.err === true){
+                return {
+                    "uid": data.uid,            
+                    "error": {
+                        "code": "FATAL_ERROR"  
+                    }
+                }
+            }
+
             let validation = await clientValidator.validateResponse(response.data, 'login');
 
     
@@ -173,26 +173,21 @@ const getbalance = async(data) => {
         }
         else{
 
-            // let config = {
-            //     method: 'post',
-            //     url: `${acountDetails.service_endpoint}/callback?function=balance`,
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     data: {
-            //         user_id : 'yudn2mak3lsmj0kgkdmd91'
-            //     }
-            // };
-
             let dataToSend = {
                 user_id : 'yudn2mak3lsmj0kgkdmd91'
             }
 
-            // let response = await axios(config);
-            let response = await commonController.post(acountDetails.service_endpoint, 'balance', dataToSend);
-            // console.log(response)
-            // const walletEndTime = new Date();
-            // const walletTimeDifference = walletEndTime - walletStartTime;
+            let response = await apiLib.server.postData(acountDetails.service_endpoint, 'balance', dataToSend);
+            response = await response.response.json();
+            
+            if(response.err === true){
+                return {
+                    "uid": data.uid,            
+                    "error": {
+                        "code": "FATAL_ERROR"  
+                    }
+                }
+            }
 
             let version = await commonController.getVersion();
 
@@ -288,18 +283,17 @@ const transaction = async(data) => {
             }
             else{
 
-                // let config = {
-                //     method: 'post',
-                //     url: `${acountDetails.service_endpoint}/callback?function=bet`,
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //     },
-                //     data: dataToSend
-                // };
-
-                // let response = await axios(config);
-
-                let response = await commonController.post(acountDetails.service_endpoint, 'bet', dataToSend);
+                let response = await apiLib.server.postData(acountDetails.service_endpoint, 'bet', dataToSend);
+                response = await response.response.json();
+                
+                if(response.err === true){
+                    return {
+                        "uid": data.uid,            
+                        "error": {
+                            "code": "FATAL_ERROR"  
+                        }
+                    }
+                }
 
                 let validation = await clientValidator.validateResponse(response.data, 'bet');
 
@@ -345,7 +339,7 @@ const transaction = async(data) => {
                             return {
                                 uid: data.uid,
                                 balance: {
-                                    value: (response.data.data.available_balance).toFixed(2),
+                                    value: (response.data.available_balance).toFixed(2),
                                     version: await commonController.getVersion(),
                                     code: 3
                                 }
@@ -403,7 +397,17 @@ const transaction = async(data) => {
             }
             else{
 
-                let response = await commonController.post(acountDetails.service_endpoint, 'win', dataToSend);
+                let response = await apiLib.server.postData(acountDetails.service_endpoint, 'win', dataToSend);
+                response = await response.response.json();
+                
+                if(response.err === true){
+                    return {
+                        "uid": data.uid,            
+                        "error": {
+                            "code": "FATAL_ERROR"  
+                        }
+                    }
+                }
 
                 let validation = await clientValidator.validateResponse(response.data, 'win');
 
@@ -449,7 +453,7 @@ const transaction = async(data) => {
                             return {
                                 uid: data.uid,
                                 balance: {
-                                    value: (response.data.data.available_balance).toFixed(2),
+                                    value: (response.data.available_balance).toFixed(2),
                                     version: await commonController.getVersion(),
                                     code: 3
                                 }
@@ -538,18 +542,18 @@ const rollback = async(data) => {
                     txn_id : referenced_transaction_id
                 }
 
-                // let config = {
-                //     method: 'post',
-                //     url: `${acountDetails.service_endpoint}/callback?function=refund`,
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //     },
-                //     data: dataToSend
-                // };
-
-                // let response = await axios(config);
-
-                let response = await commonController.post(acountDetails.service_endpoint, 'rollback', dataToSend);
+                let response = await apiLib.server.postData(acountDetails.service_endpoint, 'rollback', dataToSend);
+                response = await response.response.json();
+                // console.log(response);
+                
+                if(response.err === true){
+                    return {
+                        "uid": data.uid,            
+                        "error": {
+                            "code": "FATAL_ERROR"  
+                        }
+                    }
+                }
 
                 let validation = await clientValidator.validateResponse(response.data, 'rollback');
 

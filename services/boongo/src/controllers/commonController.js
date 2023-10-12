@@ -17,7 +17,7 @@ const ProviderModel = mongoose.model('Provider');
 const checker = require('../libs/checkLib');
 const redis = require('../libs/redisLib');
 const appConfig = require('../../config/appConfig');
-const apiLib = require('../libs/apiLib');
+// const apiLib = require('../libs/apiLib');
 const time = require('../libs/timeLib');
 const AccountsModel = mongoose.model('Accounts');
 const ClientproviderAccountMappingModel = mongoose.model('Client_provider_account_mapping');
@@ -194,29 +194,6 @@ const setProviderInRedis = async () => {
 }
 
 
-const post = async (apiUrl, endpoint, bodyData) => {
-    try {
-        let url = `${apiUrl}/callback?function=${endpoint}`;
-        let requestOptions = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            data: bodyData
-        };
-        const data = await apiLib.server.getData(url, requestOptions);
-        console.log('API Response:', data);
-        return data;
-    } catch (error) {
-        console.error('Error:', error);
-        let data = {
-            err: true
-        }
-        return data;
-    }
-}
-
-
 const checkUserExistsOrRegister = async (account_user_id,account_id,currency,language)=>{
 
     try {
@@ -364,7 +341,6 @@ module.exports = {
     getVersion : getVersion,
     isTransactionValid: isTransactionValid,
     setProviderInRedis: setProviderInRedis,
-    post: post,
     checkUserExistsOrRegister: checkUserExistsOrRegister,
     isAccountExists: isAccountExists,
     checkProviderAccountLink: checkProviderAccountLink,

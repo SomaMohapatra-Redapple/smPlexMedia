@@ -123,37 +123,22 @@ let boongoReqValidator = async (req, res, next) => {
 
     try {
         let value = {};
-        switch (req.params.function) {
-
-            case "callback":
-
-                switch (req.body.name) {
-                    case "login":
-                        value = await boongoLoginValidateSchema.validate(req.body);
-                        break;
-                    case "transaction":
-                        value = await boongoTransactionValidateSchema.validate(req.body);
-                        break;
-                    case "rollback":
-                        value = await boongoRollbackValidateSchema.validate(req.body);
-                        break;
-                    case "getbalance":
-                        value = await boongoGetBalanceValidateSchema.validate(req.body);
-                        break;
-                    case "logout":
-                        value = await boongoReqValidateSchema.validate(req.body);
-                        break;
-                    default:
-                        value.error = true;
-                        break;
-                }
+        switch (req.body.name) {
+            case "login":
+                value = await boongoLoginValidateSchema.validate(req.body);
                 break;
-
-            case "getGameUrl":
-                console.log('====>>', req);
-                value = await getGameUrlValidateSchema.validate(req.body);
+            case "transaction":
+                value = await boongoTransactionValidateSchema.validate(req.body);
                 break;
-
+            case "rollback":
+                value = await boongoRollbackValidateSchema.validate(req.body);
+                break;
+            case "getbalance":
+                value = await boongoGetBalanceValidateSchema.validate(req.body);
+                break;
+            case "logout":
+                value = await boongoReqValidateSchema.validate(req.body);
+                break;
             default:
                 value.error = true;
                 break;
