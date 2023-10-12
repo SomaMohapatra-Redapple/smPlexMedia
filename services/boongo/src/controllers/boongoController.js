@@ -82,7 +82,7 @@ const login = async(data) => {
             return {
                 "uid": data.uid,            
                 "error": {
-                    "code": "FATAL_ERROR"  
+                    "code": "INVALID_TOKEN"  
                 }
             }
         }
@@ -99,7 +99,7 @@ const login = async(data) => {
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "INVALID_TOKEN"  
                     }
                 }
             }
@@ -131,7 +131,7 @@ const login = async(data) => {
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "INVALID_TOKEN"  
                     }
                 }
             }
@@ -141,7 +141,7 @@ const login = async(data) => {
         return {
             uid: data.uid,
             error: {
-              code: 'FATAL_ERROR'
+              code: 'INVALID_TOKEN'
             }
           }
     }
@@ -167,7 +167,7 @@ const getbalance = async(data) => {
             return {
                 "uid": data.uid,            
                 "error": {
-                    "code": "FATAL_ERROR"  
+                    "code": "INVALID_TOKEN"  
                 }
             }
         }
@@ -184,7 +184,7 @@ const getbalance = async(data) => {
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "INVALID_TOKEN"  
                     }
                 }
             }
@@ -208,7 +208,7 @@ const getbalance = async(data) => {
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "INVALID_TOKEN"  
                     }
                 }
             }
@@ -218,7 +218,7 @@ const getbalance = async(data) => {
         return {
             "uid": data.uid,            
             "error": {
-                "code": "FATAL_ERROR"  
+                "code": "INVALID_TOKEN"  
             }
         }
     }
@@ -277,7 +277,7 @@ const transaction = async(data) => {
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "INVALID_TOKEN"  
                     }
                 }
             }
@@ -290,7 +290,7 @@ const transaction = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"  
+                            "code": "INVALID_TOKEN"  
                         }
                     }
                 }
@@ -301,7 +301,7 @@ const transaction = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"  
+                            "code": "INVALID_TOKEN"  
                         }
                     }
                 }
@@ -339,9 +339,9 @@ const transaction = async(data) => {
                             return {
                                 uid: data.uid,
                                 balance: {
-                                    value: (response.data.available_balance).toFixed(2),
+                                    value: (response.data.available_balance).toFixed(2).toString(),
                                     version: await commonController.getVersion(),
-                                    code: 3
+                                    
                                 }
                             }
                         case 'BALANCE_EXCEED':
@@ -353,16 +353,18 @@ const transaction = async(data) => {
                             }
                         case 'ALREADY_PROCESSED':
                             return {
-                                "uid": data.uid,            
-                                "error": {
-                                    "code": "FUNDS_EXCEED"  
+                                uid: data.uid,
+                                balance: {
+                                    value: (response.data.available_balance).toFixed(2).toString(),
+                                    version: await commonController.getVersion(),
+                                    
                                 }
                             }
                         default:
                             return {
                                 "uid": data.uid,            
                                 "error": {
-                                    "code": "FATAL_ERROR"  
+                                    "code": "INVALID_TOKEN"  
                                 }
                             }
                     }
@@ -391,7 +393,7 @@ const transaction = async(data) => {
                 returnData =  {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "INVALID_TOKEN"  
                     }
                 }
             }
@@ -404,7 +406,7 @@ const transaction = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"  
+                            "code": "INVALID_TOKEN"  
                         }
                     }
                 }
@@ -415,7 +417,7 @@ const transaction = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"  
+                            "code": "INVALID_TOKEN"  
                         }
                     }
                 }
@@ -453,23 +455,25 @@ const transaction = async(data) => {
                             return {
                                 uid: data.uid,
                                 balance: {
-                                    value: (response.data.available_balance).toFixed(2),
+                                    value: (response.data.available_balance).toFixed(2).toString(),
                                     version: await commonController.getVersion(),
-                                    code: 3
+                                    
                                 }
                             }
                         case 'ALREADY_PROCESSED':
                             return {
-                                "uid": data.uid,            
-                                "error": {
-                                    "code": "FATAL_ERROR"  
+                                uid: data.uid,
+                                balance: {
+                                    value: (response.data.available_balance).toFixed(2).toString(),
+                                    version: await commonController.getVersion(),
+                                    
                                 }
                             }
                         default:
                             return {
                                 "uid": data.uid,            
                                 "error": {
-                                    "code": "FATAL_ERROR"  
+                                    "code": "INVALID_TOKEN"  
                                 }
                             }
                     }
@@ -483,7 +487,7 @@ const transaction = async(data) => {
         return {
             "uid": data.uid,            
             "error": {
-                "code": "FATAL_ERROR"  
+                "code": "INVALID_TOKEN"  
             }
         }
     }
@@ -520,7 +524,7 @@ const rollback = async(data) => {
             return {
                 "uid": data.uid,            
                 "error": {
-                    "code": "FATAL_ERROR"  
+                    "code": "INVALID_TOKEN"  
                 }
             }    
         }
@@ -532,7 +536,7 @@ const rollback = async(data) => {
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "INVALID_TOKEN"  
                     }
                 }
             }
@@ -550,7 +554,7 @@ const rollback = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"  
+                            "code": "INVALID_TOKEN"  
                         }
                     }
                 }
@@ -561,7 +565,7 @@ const rollback = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"  
+                            "code": "INVALID_TOKEN"  
                         }
                     }
                 }
@@ -599,9 +603,8 @@ const rollback = async(data) => {
                         return {
                             uid: data.uid,
                             balance: {
-                                value: (response.data.available_balance).toFixed(2),
+                                value: (response.data.available_balance).toFixed(2).toString(),
                                 version: await commonController.getVersion(),
-                                code: 3
                             }
                         }
                     }
@@ -609,7 +612,7 @@ const rollback = async(data) => {
                         return {
                             "uid": data.uid,            
                             "error": {
-                                "code": "FATAL_ERROR"  
+                                "code": "INVALID_TOKEN"  
                             }
                         }
                     }
@@ -624,7 +627,7 @@ const rollback = async(data) => {
         return {
             "uid": data.uid,            
             "error": {
-                "code": "FATAL_ERROR"  
+                "code": "INVALID_TOKEN"  
             }
         }
     }

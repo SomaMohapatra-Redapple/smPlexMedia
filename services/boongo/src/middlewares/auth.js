@@ -23,7 +23,7 @@ let isAuthorized = async (req, res, next) => {
           code: 'INVALID_TOKEN'
         }
       }
-      res.status(403)
+      res.status(200)
       res.send(apiResponse)
     }
     let playerToken = tokenStr.split("-ucd-");
@@ -41,7 +41,7 @@ let isAuthorized = async (req, res, next) => {
           code: 'INVALID_TOKEN'
         }
       }
-      res.status(403)
+      res.status(200)
       res.send(apiResponse)
     }
   }catch(err){
