@@ -18,6 +18,7 @@ const time = require('../libs/timeLib');
 const redis = require('../libs/redisLib');
 const appConfig = require('../../config/appConfig');
 const apiLib = require('../libs/apiLib');
+const apiLib = require('../libs/apiLib');
 
 /**
  * 
@@ -92,26 +93,14 @@ const login = async(data) => {
                 user_id : userdtls.account_user_id                       // YMDJD12
             }
 
-            // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'authenticate', dataToSend);
-            // response = await response.response.json();
-
-            let config = {
-                method: "POST",
-                url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
-                headers:{
-                    'Content-Type': 'application/json',
-                },
-                data: dataToSend
-            }
-            let response = await axios(config);
-            console.log( response);
-            response = response.data;
+            let response = await apiLib.server.postData(acountDetails.service_endpoint, 'authenticate', dataToSend);
+            response = await response.response.json();
             
             if(response.err === true){
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "INVALID_TOKEN"  
+                        "code": "FATAL_ERROR"  
                     }
                 }
             }
@@ -189,26 +178,14 @@ const getbalance = async(data) => {
                 user_id : 'yudn2mak3lsmj0kgkdmd91'
             }
 
-            // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'balance', dataToSend);
-            // response = await response.response.json();
-
-            let config = {
-                method: "POST",
-                url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
-                headers:{
-                    'Content-Type': 'application/json',
-                },
-                data: dataToSend
-            }
-            let response = await axios(config);
-            console.log( response);
-            response = response.data;
+            let response = await apiLib.server.postData(acountDetails.service_endpoint, 'balance', dataToSend);
+            response = await response.response.json();
             
             if(response.err === true){
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "INVALID_TOKEN"  
+                        "code": "FATAL_ERROR"  
                     }
                 }
             }
@@ -314,7 +291,7 @@ const transaction = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "INVALID_TOKEN"  
+                            "code": "FATAL_ERROR"  
                         }
                     }
                 }
@@ -363,7 +340,7 @@ const transaction = async(data) => {
                             return {
                                 uid: data.uid,
                                 balance: {
-                                    value: (response.data.available_balance).toFixed(2).toString(),
+                                    value: (response.data.available_balance).toFixed(2),
                                     version: await commonController.getVersion(),
                                     
                                 }
@@ -430,7 +407,7 @@ const transaction = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "INVALID_TOKEN"  
+                            "code": "FATAL_ERROR"  
                         }
                     }
                 }
@@ -479,7 +456,7 @@ const transaction = async(data) => {
                             return {
                                 uid: data.uid,
                                 balance: {
-                                    value: (response.data.available_balance).toFixed(2).toString(),
+                                    value: (response.data.available_balance).toFixed(2),
                                     version: await commonController.getVersion(),
                                     
                                 }
@@ -570,7 +547,7 @@ const rollback = async(data) => {
                     txn_id : referenced_transaction_id
                 }
 
-                let response = await apiLib.server.postData(acountDetails.service_endpoint, 'refund', dataToSend);
+                let response = await apiLib.server.postData(acountDetails.service_endpoint, 'rollback', dataToSend);
                 response = await response.response.json();
                 // console.log(response);
                 
@@ -578,7 +555,7 @@ const rollback = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "INVALID_TOKEN"  
+                            "code": "FATAL_ERROR"  
                         }
                     }
                 }
