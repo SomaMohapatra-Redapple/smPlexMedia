@@ -1,4 +1,4 @@
-class Server {
+module.exports = class Server {
     /**
      * Create class instance and fill params from URL or fill it with default values if URL not contain needed data.
      * @constructs
@@ -44,9 +44,21 @@ class Server {
             }
         }
     };
+    
+    async call(url, config) {
+        try {
+            const data = await this.getData(url, config);
+            return data;
+        } catch (error) {
+            console.error(' server lib Error: ', error);
+            return {
+                error: true
+            }
+        }
+    };
 };
-let server = new Server();
+// let server = new Server();
 
-module.exports = {
-    server: server
-};
+// module.exports = {
+//     server: server
+// };

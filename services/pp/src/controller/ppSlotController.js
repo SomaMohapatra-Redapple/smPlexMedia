@@ -23,6 +23,8 @@ let timeLib = require('../libs/timeLib');
 let commonController = require('../controller/commonController');
 let walletController = require('../controller/walletController');
 let serverLib = require('../libs/serverLib');
+let httpBuildQuery = require('http-build-query');
+let apiService = appConfig.apiService;
 
 
 /**
@@ -100,17 +102,18 @@ let getGameUrl = async (req, res) => {
 
         if (mode != 'real') {
             return {
-                status: false,
-                code: 120,
+                code: 1002,
+                message: "PROVIDER_DENIED",
                 data: {}
             }
         }
 
+        let accountDetails = await commonController.isAccountExists(accountID)
         // ** Checking account Exist or not
-        if (await commonController.isAccountExists(accountID) === false) {
+        if (accountDetails.error == true) {
             return {
-                status: false,
-                code: 120,
+                code: 1001,
+                message: "INVALID_ACCOUNT",
                 data: {}
             }
         }
@@ -119,8 +122,8 @@ let getGameUrl = async (req, res) => {
         let isBetEnable = await walletController.betControlStatus(accountID, providerId);
         if ((isBetEnable.rejectionStatus == true) || (isBetEnable.maintenance_mode_status == 'Y')) {
             return {
-                status: false,
-                code: 120,
+                code: 1003,
+                message: "MAINTENANCE_MODE_ON",
                 data: {}
             }
         }
@@ -129,8 +132,8 @@ let getGameUrl = async (req, res) => {
         const isUser = await commonController.checkUserOrRegister(accountUserCode, accountID, currency, language);
         if (isUser.error) {
             return {
-                status: false,
-                code: 120,
+                code: 1004,
+                message: "FATAL_ERROR",
                 data: {}
             }
         }
@@ -140,16 +143,18 @@ let getGameUrl = async (req, res) => {
         let gamedtls = await commonController.getGameDetailsByGameId(gameId);
         if (checker.isEmpty(gamedtls)) {
             return {
-                status: false,
-                code: 120,
+                code: 1005,
+                message: "GAME_NOT_FOUND",
                 data: {}
             }
         }
 
-        if ((game_details.category_id != 1)) {
-            let Status = 'Game not found!';
-            code = 4009;
-            return await invalidError(code, Status);
+        if ((gamedtls.categorydtls.category != 'Slots')) {
+            return {
+                code: 1005,
+                message: "GAME_NOT_FOUND",
+                data: {}
+            }
         }
 
         // get provider account status 
@@ -157,8 +162,8 @@ let getGameUrl = async (req, res) => {
         // if error
         if (getProviderAccount.error) {
             return {
-                status: false,
-                code: 120,
+                code: 1002,
+                message: "PROVIDER_DENIED",
                 data: {}
             }
         }
@@ -167,8 +172,8 @@ let getGameUrl = async (req, res) => {
         let providerTechnicals = await commonController.getProviderAccountTechnicals(providerId, getProviderAccount.data);
         if (checker.isEmpty(providerTechnicals) || providerTechnicals.error) {
             return {
-                status: false,
-                code: 120,
+                code: 1002,
+                message: "PROVIDER_DENIED",
                 data: {}
             }
         }
@@ -177,8 +182,8 @@ let getGameUrl = async (req, res) => {
         let providerAccount = providerTechnicals.data;
         if (providerAccount.currency.includes(currency) === false) {
             return {
-                status: false,
-                code: 120,
+                code: 1006,
+                message: "INVALID_CURRENCY",
                 data: {}
             }
         }
@@ -218,22 +223,28 @@ let getGameUrl = async (req, res) => {
             stylename: secureLogin,
             symbol: symbol,
             technology: technology,
-            token: token
+            token: `session-${user._id}`
         }
 
         let bodyparam = httpBuildQuery(urlparam);
 
         let finalstring = decodeURIComponent(bodyparam) + key;
-        let hashval = check.createMd5hash(finalstring);
+        let hashval = checkLib.createMd5hash(finalstring);
 
         console.log("finalstring ==", finalstring)
 
-        const headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        };
-        const response = await axios.post(posturl, (bodyparam + '&hash=' + hashval), {
-            headers: headers
-        });
+        // const headers = {
+        //     'Content-Type': 'application/x-www-form-urlencoded'
+        // };
+        // const response = await axios.post(posturl, (bodyparam + '&hash=' + hashval), {
+        //     headers: headers
+        // });
+        const config = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+
+        }
+        const response = await apiService.call(posturl, config);
 
         const returnDataArr = response.data;
 
@@ -317,7 +328,7 @@ let authenticate = async (req, res) => {
             let postData = {
                 user_id: userdtls.account_user_id
             }
-            let response = await serverLib.server.postData(acountDetails.service_endpoint, req.params.function, postData);
+            let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
             // console.log(response.response.ok)
 
             // checking the response has any error or not
@@ -410,18 +421,23 @@ let balance = async (req, res) => {
         let postData = {
             "user_id": "1234567890"
         }
-        let response = await serverLib.server.postData(acountDetails.service_endpoint, req.params.function, postData);
+        let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
         // console.log(response);
 
         // checking the response has any error or not
-        if (response.data.err == true) {
+        if (response.error == true) {
             code = 120;
             Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
             return await invalidError(code, Status);
         }
-
+        let responseObj = await response.response.json();
+        if (responseObj.err == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseData = responseObj.data;
         let function_name = 'balance';
-        let responseData = response.data;
         let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
         // checking the data format has any error or not
@@ -540,20 +556,22 @@ let bet = async (req, res) => {
             "bonus": "10"
         }
 
-        let response = await serverLib.server.postData(acountDetails.service_endpoint, req.params.function, postData);
+        let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
 
         // checking the response has any error or not
-        if (response.data.err == true) {
-            payLoad = {
-                error: 3,
-                description: "Bet is not allowed. Should be returned in any case when the player is notallowed to play a specific game. For example, because of special bonus."
-            }
-
-            return payLoad;
+        if (response.error == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
         }
-
+        let responseObj = await response.response.json();
+        if (responseObj.err == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseData = responseObj.data;
         let function_name = "bet";
-        let responseData = response.data.data;
         let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
         /* checking the client data format has any error or not */
@@ -728,19 +746,22 @@ let result = async (req, res) => {
             "win_amount": "120",
             "bonus": "10"
         }
-        let response = await serverLib.server.postData(acountDetails.service_endpoint, req.params.function, postData);
+        let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
 
         // checking the response has any error or not
-        if (response.data.err == true) {
-            payLoad = {
-                error: 120,
-                description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
-            }
-            return payLoad;
+        if (response.error == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
         }
-
+        let responseObj = await response.response.json();
+        if (responseObj.err == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseData = responseObj.data;
         let function_name = "bet";
-        let responseData = response.data.data;
         let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
         /* checking the client data format has any error or not */
@@ -892,10 +913,21 @@ let refund = async (req, res) => {
             "txn_id": `${reference_id}`,
         }
 
-        let response = await serverLib.server.postData(acountDetails.service_endpoint, req.params.function, postData);
-
+        let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
+        // checking the response has any error or not
+        if (response.error == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseObj = await response.response.json();
+        if (responseObj.err == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseData = responseObj.data;
         let function_name = "refund";
-        let responseData = response.data;
         let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
         /* checking the client data format has any error or not */

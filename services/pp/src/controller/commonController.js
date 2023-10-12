@@ -17,7 +17,6 @@ const ProviderAccountModel = mongoose.model('provider_account');
 const GameModel = mongoose.model('Game');
 const appConfig = require('../../config/appConfig');
 const checkLib = require('../libs/checkLib');
-const serverLib = require('../libs/serverLib');
 const redisLib = require('../libs/redisLib');
 
 const setProviderInRedis = async () => {
@@ -88,7 +87,7 @@ const postDataFromAPI = async (apiUrl, endpoint, bodyData) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body:  bodyData // (JSON.stringify(bodyData))
+            body: bodyData // (JSON.stringify(bodyData))
         };
         console.log(bodyData)
         const data = await serverLib.server.getData(url, requestOptions);
@@ -208,9 +207,9 @@ const getProviderAccountTechnicals = async (provider_account_id) => {
         let providerAccountsData = await redisLib.get(providerId);
         let accountsData = JSON.parse(providerAccountsData);
 
-        if(accountsData.error){
-            return{
-                error : true
+        if (accountsData.error) {
+            return {
+                error: true
             }
         }
 
@@ -255,11 +254,23 @@ const getProviderAccountTechnicals = async (provider_account_id) => {
  * 
  */
 const isAccountExists = async (account_id) => {
-    let accountdtls = await AccountsModel.findOneById(account_id).lean();
-    if (checkLib.isEmpty(accountdtls))
-        return false;
-    else
-        return true;
+    try {
+        let accountdtls = await AccountsModel.findOneById(account_id).lean();
+        if (checkLib.isEmpty(accountdtls))
+            return {
+                error: false,
+                data: accountdtls
+            }
+        else
+            return {
+                error: true
+            }
+    } catch (error) {
+        return {
+            error: true
+        }
+    }
+
 }
 
 /**
