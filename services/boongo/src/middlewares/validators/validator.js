@@ -1,4 +1,12 @@
-const { string } = require('joi');
+/**
+ * 
+ * @author Rajdeep Adhikary
+ * @purpose Boongo client provider api validation
+ * @createdDate Sep 26 2023
+ * @lastUpdated Sep 26 2023
+ * @lastUpdatedBy Rajdeep Adhikary
+ */
+
 
 const Joi = require('joi').extend(require('@joi/date'));
 
@@ -6,64 +14,131 @@ const Joi = require('joi').extend(require('@joi/date'));
 const boongoGetBalanceValidateSchema = Joi.object({
     name: Joi.string().required(),
     uid: Joi.string().required(),
-    timestamp: Joi.date().iso(),
     session: Joi.string().required(),
     token: Joi.string().required(),
     game_id: Joi.string().required(),
+    game_name: Joi.string().required(),
+    provider_id: Joi.string().required(),
+    provider_name: Joi.string().required(),
+    c_at: Joi.date().iso().required(),
+    sent_at: Joi.date().iso().required(),
     args: Joi.object({
         player: Joi.object({
             id: Joi.string().required(),
+            brand: Joi.string().required(),
+            mode: Joi.string().required(),
+            is_test: Joi.boolean().required(),
             currency: Joi.string().required()
-        }).unknown(),
+        }),
         tag : Joi.string().allow('')
     })
-}).unknown();
+});
 
 const boongoLoginValidateSchema = Joi.object({
     name: Joi.string().required(),
     uid: Joi.string().required(),
-    timestamp: Joi.date().iso(),
     session: Joi.string().required(),
     token: Joi.string().required(),
     game_id: Joi.string().required(),
-}).unknown();
+    game_name: Joi.string().required(),
+    provider_id: Joi.string().required(),
+    provider_name: Joi.string().required(),
+    c_at: Joi.date().iso().required(),
+    sent_at: Joi.date().iso().required(),
+    args: Joi.object({
+        platform: Joi.string().required()
+    })
+});
 
+const boongoTransactionValidateSchema = Joi.object({
+    name: Joi.string().required(),
+    uid: Joi.string().required(),
+    session: Joi.string().required(),
+    token: Joi.string().required(),
+    game_id: Joi.string().required(),
+    game_name: Joi.string().required(),
+    provider_id: Joi.string().required(),
+    provider_name: Joi.string().required(),
+    c_at: Joi.date().iso().required(),
+    sent_at: Joi.date().iso().required(),
+    args: Joi.object({
+        bet: Joi.string().required().allow(null),
+        win: Joi.string().required().allow(null),
+        round_started: Joi.boolean().required(),
+        round_finished: Joi.boolean().required(),
+        round_id: Joi.number().required(),
+        player: Joi.object({
+            id: Joi.string().required(),
+            brand: Joi.string().required(),
+            mode: Joi.string().required(),
+            is_test: Joi.boolean().required(),
+            currency: Joi.string().required()
+        }),
+        bonus: Joi.string().required().allow(null),
+        tag: Joi.string().required().allow('')
+    })
+});
+
+const boongoRollbackValidateSchema = Joi.object({
+    name: Joi.string().required(),
+    uid: Joi.string().required(),
+    session: Joi.string().required(),
+    token: Joi.string().required(),
+    game_id: Joi.string().required(),
+    game_name: Joi.string().required(),
+    provider_id: Joi.string().required(),
+    provider_name: Joi.string().required(),
+    c_at: Joi.date().iso().required(),
+    sent_at: Joi.date().iso().required(),
+    args: Joi.object({
+        transaction_uid: Joi.string().required(),
+        bet: Joi.string().required().allow(null),
+        win: Joi.string().required().allow(null),
+        round_started: Joi.boolean().required(),
+        round_finished: Joi.boolean().required(),
+        round_id: Joi.number().required(),
+        player: Joi.object({
+            id: Joi.string().required(),
+            brand: Joi.string(),
+            mode: Joi.string().required(),
+            is_test: Joi.boolean().required(),
+            currency: Joi.string().required()
+        }),
+        bonus: Joi.string().required().allow(null),
+        tag: Joi.string().required().allow('')
+    })
+});
+
+
+/**
+ * 
+ * @author Rajdeep Adhikary
+ * @function boongoReqValidator
+ * @param {*} req, res, next
+ * @returns res/next
+ * 
+ */
 
 let boongoReqValidator = async (req, res, next) => {
 
     try {
         let value = {};
-        switch (req.params.function) {
-
-            case "callback":
-
-                switch (req.body.name) {
-                    case "login":
-                        value = await boongoLoginValidateSchema.validate(req.body);
-                        break;
-                    case "transaction":
-                        value = await boongoReqBetValidateSchema.validate(req.body);
-                        break;
-                    case "rollback":
-                        value = await boongoReqWinValidateSchema.validate(req.body);
-                        break;
-                    case "getbalance":
-                        value = await boongoGetBalanceValidateSchema.validate(req.body);
-                        break;
-                    case "logout":
-                        value = await boongoReqValidateSchema.validate(req.body);
-                        break;
-                    default:
-                        value.error = true;
-                        break;
-                }
+        switch (req.body.name) {
+            case "login":
+                value = await boongoLoginValidateSchema.validate(req.body);
                 break;
-
-            case "getGameUrl":
-                console.log('====>>', req);
-                value = await getGameUrlValidateSchema.validate(req.body);
+            case "transaction":
+                value = await boongoTransactionValidateSchema.validate(req.body);
                 break;
-
+            case "rollback":
+                value = await boongoRollbackValidateSchema.validate(req.body);
+                break;
+            case "getbalance":
+                value = await boongoGetBalanceValidateSchema.validate(req.body);
+                break;
+            case "logout":
+                value = await boongoReqValidateSchema.validate(req.body);
+                break;
             default:
                 value.error = true;
                 break;

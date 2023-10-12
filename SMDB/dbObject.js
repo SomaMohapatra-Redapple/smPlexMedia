@@ -59,6 +59,11 @@ let smObj = {
             required: true,
             default: 'N',
         },
+        account_type: {
+            type: String,
+            required: true,
+            default: 'Seamless',
+        },
         created_at: {
             type: Date,
             default: ""
@@ -236,8 +241,7 @@ let smObj = {
         },
         account_user_id: {
             type: String,
-            required: true,
-            isObjectId: true
+            required : true
         },
         username: {
             type: String,
