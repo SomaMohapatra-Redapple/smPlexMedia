@@ -2,6 +2,7 @@
 let dataAPI;
 const mode = process.env.NODE_ENV;
 const server = require('../../../api-server/www/rest/server');
+const appConfig = require('../../config/appConfig');
 
 /**
  * Proceed with Multiple databases connection from ENV
@@ -14,42 +15,15 @@ const server = require('../../../api-server/www/rest/server');
 
 const startDB = (app, db_type) => {
   switch (db_type) {
-    case "mysql":
-      console.log(`Environment : ${process.env.NODE_ENV} Database : ${process.env.DATABASE_TYPE}`);
-      //Import the sequelize module
-
-      const dbConfig = require("../../config/dbConfig.json")[mode];
-      dataAPI = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, dbConfig);
-      try {
-        dataAPI.authenticate()
-          .then(() => {
-            console.log(`Database Connection open Success : ${JSON.stringify(dbConfig.host)}`);
-            const redis_client = redis.createClient({
-              url: appConfig.redis_url
-            });
-
-            redis_client.on('error', (err) => {
-              console.log("Error " + err)
-            });
-            server.startServer(app);
-            module.exports.dataAPI = dataAPI;
-            module.exports.redis_client = redis_client;
-
-          });
-      } catch (err) {
-        console.log(`Database Connection Open Error : ${err}`);
-      }
-
-      break;
     case "mongo":
       // console.log(`Environment : ${process.env.NODE_ENV} Database : ${process.env.DATABASE_TYPE}`);
       try {
         /**
          * database connection settings
          */
-        const dbConfig = require("../../config/dbConfig.json")[process.env.NODE_ENV][process.env.DATABASE_TYPE];
+        const dbConfig = require('../../config/dbConfig.json')[process.env.NODE_ENV][process.env.DATABASE_TYPE];
         const mongoose = require('mongoose');
-        mongoose.connect(dbConfig.uri, { useNewUrlParser: true });
+        mongoose.connect(appConfig.db.uri, { useNewUrlParser: true });
         //mongoose.set('debug', true);
 
         mongoose.connection.on('error', function (err) {

@@ -10,8 +10,12 @@ appConfig.eventEmitter = eventEmitter;
 appConfig.allowedCorsOrigin = "*";
 appConfig.apiVersion = '/api/v1';
 appConfig.socketNameSpace = 'wsio';
-appConfig.sessionExpTime = (120 * 120);
+appConfig.sessionExpTime = (3600 * 2);
+appConfig.redis_url = dbConfig.redis.url;
 
 appConfig.MSG_1000 ='Oops! Something went wrong...';
+appConfig.db = {
+    uri: `mongodb://${dbConfig.username}:${encodeURIComponent(dbConfig.password)}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}?authSource=admin`
+};
 
 module.exports = appConfig;
