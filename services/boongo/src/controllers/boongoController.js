@@ -547,7 +547,7 @@ const rollback = async(data) => {
                     txn_id : referenced_transaction_id
                 }
 
-                let response = await apiLib.server.postData(acountDetails.service_endpoint, 'rollback', dataToSend);
+                let response = await apiLib.server.postData(acountDetails.service_endpoint, 'refund', dataToSend);
                 response = await response.response.json();
                 // console.log(response);
                 
