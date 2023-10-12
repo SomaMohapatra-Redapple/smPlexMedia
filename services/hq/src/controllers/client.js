@@ -4,9 +4,9 @@ const apiError = require("../libs/apiError");
 const responseMessage = require("../libs/responseMessage");
 // const client = require("../services/client");
 // const { AddClient, FindAllClient, FindSpecificClient } = client;
-const mongoose = require('mongoose');
-const ClientTable = mongoose.model('Client');
-const AdminTable = mongoose.model('SuperAdmin');
+const mongoose = require("mongoose");
+const ClientTable = mongoose.model("Client");
+const AdminTable = mongoose.model("SuperAdmin");
 
 const AddClient = async (query) => {
   console.log("query", query);
@@ -16,8 +16,8 @@ const AddClient = async (query) => {
   return client;
 };
 const FindAllClient = async (validatedBody) => {
-  console.log("validated body",validatedBody);
-  
+  console.log("validated body", validatedBody);
+
   const { e_mail, client_name, parent_client_id, contact, page, limit } =
     validatedBody;
   let query = {};
@@ -67,21 +67,21 @@ let add_client = async (req, res, next) => {
     req.body.created_by = req.user.id;
     const query = req.body;
     req.body.parent_client_id = req.user.id;
-    req.body.client_name = req.body.firstname+" "+req.body.lastname;
+    req.body.client_name = req.body.firstname + " " + req.body.lastname;
     query.created_at = timeLIb.now();
     query.updated_at = timeLIb.now();
-    const requester = req.connection.remoteAddress.slice(0,9);
+    const requester = req.connection.remoteAddress.slice(0, 9);
     const added_client = await AddClient(query)
       .then((result) => {
-        (async()=>{
+        (async () => {
           const all_client = await FindAllClient(req.query);
-          console.log("all_client",all_client);
+          console.log("all_client", all_client);
         })();
-        
+
         res.status(200).send({
           message: "client created",
           result: result,
-          requester : requester
+          requester: requester,
         });
       })
       .catch((err) => {
@@ -89,7 +89,6 @@ let add_client = async (req, res, next) => {
           err: err.message,
         });
       });
-    
   } catch (e) {
     console.log("error", e);
     return next(e);
@@ -97,8 +96,8 @@ let add_client = async (req, res, next) => {
 };
 
 //add client by client
-const add_client_by_client = async(req,res,next) =>{
-  try{
+const add_client_by_client = async (req, res, next) => {
+  try {
     req.body.created_by = req.user.id;
     const query = req.body;
     const added_client = await AddClient(query)
@@ -114,18 +113,15 @@ const add_client_by_client = async(req,res,next) =>{
         });
       });
     console.log("added_client.error", added_client);
-
+  } catch (e) {
+    console.log("error", e);
   }
-  catch(e){
-    console.log("error",e);
-  }
-}
+};
 
 //find all client
 // let all_client = async (req, res, next) => {
 //   try {
 
-    
 //       //const query = {};
 //       console.log("req.query",req.query);
 //       //console.log("validatedBody.value",validatedBody.value);
@@ -134,17 +130,17 @@ const add_client_by_client = async(req,res,next) =>{
 //           console.log("all client",result.docs);
 //           const obj = JSON.parse(JSON.stringify(result));
 //           console.log("obj",obj);
-          
+
 //           for(let i of obj.docs){
 //             var find_parent = {};
 //             if(i.parent_client_id){
-            
+
 //               query = {_id : i.parent_client_id}
 //               console.log("query",query);
 //               (async () => {
-                
+
 //                  await FindSpecificClientFromAdmin(query)
-                 
+
 //                   .then((client)=>{
 //                     console.log("clienttt",client);
 //                     console.log("insidethen",i);
@@ -154,27 +150,26 @@ const add_client_by_client = async(req,res,next) =>{
 //                   console.log("i.upper_level",i.upper_level);
 //                   console.log("ix",i);
 //                   //let  find_parent = Object.assign(find_parent, i);
-                      
+
 //                      return result
 //                   //console.log("find_parent vvv ",find_parent);
 
 //                   })
-                  
+
 //                   .catch((e)=>{console.log("error",e)});
-                    
+
 //                   //return i;
-                  
-                  
+
 //                    //console.log("find_parent",find_parent);
 //                  //return find_parent;
 //                 //console.log("ix",i);
 //               })();
-              
+
 //              // console.log("find_parent",find_parent);
 //               //i.upper_level= "client";
 //             }
 //             //console.log("find_parent",result);
-            
+
 //             console.log("ixoutside async",i);
 //             i.balance = 0;
 //             i.currency = "KRW";
@@ -188,7 +183,7 @@ const add_client_by_client = async(req,res,next) =>{
 //             delete i.updated_by;
 //             delete i.updated_at;
 //             delete i.__v;
-            
+
 //             console.log("iiiii",i);
 //           }
 //           res.status(200).send({
@@ -201,8 +196,7 @@ const add_client_by_client = async(req,res,next) =>{
 //             err: err.message,
 //           });
 //         });
-        
-    
+
 //   } catch (e) {
 //     next(e);
 //   }
@@ -211,26 +205,21 @@ let all_client = async (req, res, next) => {
   try {
     console.log("req.query", req.query);
     const result = await FindAllClient(req.query);
-    console.log("result",result);
+    console.log("result", result);
     const allClients = [];
-   
-    for ( let client of result.docs) {
-      try {
-         client = JSON.parse(JSON.stringify(client))
-          //console.log("cliennnn",client);
-          const query = { _id: client.parent_client_id };
-          const parentClient = await FindSpecificClientFromClient(query);
-          console.log("parentClient", parentClient); // Add this line for debugging
-          if(parentClient.client_name){
-            client.upper_level = parentClient.client_name ;
-          }
-          else{
-            client.upper_level = "superadmin" ;
 
-          }
-          //client.upper_level = parentClient.client_name || "superadmin";
-          //client.parentClient = parentClient; // Include parentClient information
-        
+    for (let client of result.docs) {
+      try {
+        client = JSON.parse(JSON.stringify(client));
+
+        const query = { _id: client.parent_client_id };
+        const parentClient = await FindSpecificClientFromClient(query);
+
+        if (parentClient) {
+          client.upper_level = parentClient.client_name;
+        } else {
+          client.upper_level = "superadmin";
+        }
 
         // Set these properties to maintain in the response
         client.balance = 0;
@@ -249,14 +238,14 @@ let all_client = async (req, res, next) => {
         delete client.__v;
         delete client.parentClient;
 
-        console.log("cliennnn",client);
+        console.log("cliennnn", client);
         allClients.push(client);
       } catch (error) {
         console.error("Error processing client:", error);
         // Handle errors for individual clients here
       }
     }
-    console.log("all clients",allClients);
+    console.log("all clients", allClients);
     res.status(200).send({
       result: {
         docs: allClients,
@@ -275,7 +264,6 @@ let all_client = async (req, res, next) => {
   }
 };
 
-
 //log_in API for client
 
 let log_in = async (req, res, next) => {
@@ -288,7 +276,7 @@ let log_in = async (req, res, next) => {
     };
     const client = await FindSpecificClient(query);
     console.log("client", client);
-    if(client){
+    if (client) {
       if (client.username == username && client.password == password) {
         token = jwt.sign(
           { id: client.id, email: client.username },
@@ -304,14 +292,11 @@ let log_in = async (req, res, next) => {
           message: "error in log in",
         });
       }
-
-    }
-    else{
+    } else {
       res.status(400).send({
-        message : "there is no such client in client table"
-      })
+        message: "there is no such client in client table",
+      });
     }
-
   } catch (e) {
     console.log("error", e);
   }
@@ -321,5 +306,5 @@ module.exports = {
   add_client: add_client,
   all_client: all_client,
   log_in: log_in,
-  add_client_by_client :add_client_by_client
+  add_client_by_client: add_client_by_client,
 };
