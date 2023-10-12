@@ -41,6 +41,10 @@ const FindAllClient = async (validatedBody) => {
   };
   return await ClientTable.paginate(query, options);
 };
+const FindSpecificClient = async (query) => {
+  const client = await ClientTable.findOne(query);
+  return client;
+};
 const FindSpecificClientFromClient = async (query) => {
   const client = await ClientTable.findOne(query);
   return client;
@@ -69,6 +73,11 @@ let add_client = async (req, res, next) => {
     const requester = req.connection.remoteAddress.slice(0,9);
     const added_client = await AddClient(query)
       .then((result) => {
+        (async()=>{
+          const all_client = await FindAllClient(req.query);
+          console.log("all_client",all_client);
+        })();
+        
         res.status(200).send({
           message: "client created",
           result: result,
@@ -202,21 +211,26 @@ let all_client = async (req, res, next) => {
   try {
     console.log("req.query", req.query);
     const result = await FindAllClient(req.query);
-
+    console.log("result",result);
     const allClients = [];
    
     for ( let client of result.docs) {
       try {
          client = JSON.parse(JSON.stringify(client))
-        if (client.parent_client_id) {
+          //console.log("cliennnn",client);
           const query = { _id: client.parent_client_id };
-          const parentClient = await FindSpecificClientFromAdmin(query);
+          const parentClient = await FindSpecificClientFromClient(query);
           console.log("parentClient", parentClient); // Add this line for debugging
-          client.upper_level = parentClient.admin_name || "superadmin";
-          client.parentClient = parentClient; // Include parentClient information
-        } else {
-          client.upper_level = "client";
-        }
+          if(parentClient.client_name){
+            client.upper_level = parentClient.client_name ;
+          }
+          else{
+            client.upper_level = "superadmin" ;
+
+          }
+          //client.upper_level = parentClient.client_name || "superadmin";
+          //client.parentClient = parentClient; // Include parentClient information
+        
 
         // Set these properties to maintain in the response
         client.balance = 0;
@@ -235,13 +249,14 @@ let all_client = async (req, res, next) => {
         delete client.__v;
         delete client.parentClient;
 
+        console.log("cliennnn",client);
         allClients.push(client);
       } catch (error) {
         console.error("Error processing client:", error);
         // Handle errors for individual clients here
       }
     }
-
+    console.log("all clients",allClients);
     res.status(200).send({
       result: {
         docs: allClients,
@@ -261,20 +276,22 @@ let all_client = async (req, res, next) => {
 };
 
 
+//log_in API for client
+
 let log_in = async (req, res, next) => {
   try {
-    const { user_name, password } = req.body;
-    console.log("user_name", user_name);
+    const { username, password } = req.body;
+    console.log("username", username);
     console.log("password", password);
     const query = {
-      user_name: user_name,
+      username: username,
     };
     const client = await FindSpecificClient(query);
     console.log("client", client);
     if(client){
-      if (client.user_name == user_name && client.password == password) {
+      if (client.username == username && client.password == password) {
         token = jwt.sign(
-          { id: client.id, email: client.user_name },
+          { id: client.id, email: client.username },
           process.env.ENC_KEY,
           { expiresIn: process.env.JWT_TOKEN_EXPIRE_TIME }
         );
