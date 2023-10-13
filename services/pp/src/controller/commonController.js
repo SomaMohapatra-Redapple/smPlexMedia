@@ -204,8 +204,7 @@ const checkUserOrRegister = async (account_user_id, account_id, currency, langua
 const getProviderAccountTechnicals = async (provider_account_id) => {
     try {
         let providerId = `provider-${appConfig.provider_id}`;
-        let providerAccountsData = await redisLib.get(providerId);
-        let accountsData = JSON.parse(providerAccountsData);
+        let accountsData = await redisLib.get(providerId);
 
         if (accountsData.error) {
             return {
@@ -217,7 +216,7 @@ const getProviderAccountTechnicals = async (provider_account_id) => {
         if (provider_account_id == null) {
             let payLoad = {
                 error: false,
-                data: accountsData[`account-default`]
+                data: accountsData.data[`account-default`]
             }
             return payLoad;
         }
@@ -226,13 +225,13 @@ const getProviderAccountTechnicals = async (provider_account_id) => {
         if (accountsData.hasOwnProperty(`account-${provider_account_id}`)) {
             let payLoad = {
                 error: false,
-                data: accountsData[`account-${provider_account_id}`]
+                data: accountsData.data[`account-${provider_account_id}`]
             }
             return payLoad;
         } else {
             let payLoad = {
                 error: false,
-                data: accountsData[`account-default`]
+                data: accountsData.data[`account-default`]
             }
             return payLoad;
         }
@@ -255,16 +254,18 @@ const getProviderAccountTechnicals = async (provider_account_id) => {
  */
 const isAccountExists = async (account_id) => {
     try {
-        let accountdtls = await AccountsModel.findOneById(account_id).lean();
-        if (checkLib.isEmpty(accountdtls))
+        let accountdtls = await AccountsModel.findOne({ _id: account_id }).lean();
+        if (checkLib.isEmpty(accountdtls) == false) {
             return {
                 error: false,
                 data: accountdtls
             }
-        else
+        } else {
             return {
                 error: true
             }
+        }
+
     } catch (error) {
         return {
             error: true
@@ -322,7 +323,7 @@ const getGameDetailsByGameId = async (game_id) => {
 const checkProviderAccountLink = async (account_id, provider_id) => {
     try {
         let providerAccount = await ClientProviderAccountMappingModel.findOne({ account_id: account_id, provider_id: provider_id }).lean();
-        if (checker.isEmpty(providerAccount)) {
+        if (checkLib.isEmpty(providerAccount)) {
             return {
                 error: false,
                 data: null
@@ -342,6 +343,30 @@ const checkProviderAccountLink = async (account_id, provider_id) => {
     }
 }
 
+let isHashvalid = async (parameter, client_id) => {
+
+    let reqhash = '';
+    let requestsend = {};
+    let setdata = {};
+    if (parameter.hasOwnProperty('hash')) {
+        reqhash = parameter.hash;
+        delete parameter.hash;
+    }
+
+    parameter = check.removeEmpty(parameter); // removing blank values
+
+    parameter = check.sortObj(parameter); // sorting object
+    let finalstring = httpBuildQuery(parameter) + setdata.key; //converting json to string
+    let md5hash = check.createMd5hash(finalstring);
+
+    if (md5hash != reqhash) {
+        let errmsg = "Invalid hash code. Should be returned in the response on any request sent by Pragmatic Play if the hash code validation is failed.";
+        requestsend = await invalidError(5, errmsg);
+    }
+
+    return requestsend;
+}
+
 module.exports = {
     setProviderInRedis: setProviderInRedis,
     checkUsercodeExists: checkUsercodeExists,
@@ -351,5 +376,6 @@ module.exports = {
     getProviderAccountTechnicals: getProviderAccountTechnicals,
     isAccountExists: isAccountExists,
     getGameDetailsByGameId: getGameDetailsByGameId,
-    checkProviderAccountLink: checkProviderAccountLink
+    checkProviderAccountLink: checkProviderAccountLink,
+    isHashvalid: isHashvalid
 }

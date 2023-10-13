@@ -22,9 +22,9 @@ let checkLib = require('../libs/checkLib');
 let timeLib = require('../libs/timeLib');
 let commonController = require('../controller/commonController');
 let walletController = require('../controller/walletController');
-let serverLib = require('../libs/serverLib');
 let httpBuildQuery = require('http-build-query');
 let apiService = appConfig.apiService;
+let redisLib = require('../libs/redisLib');
 
 
 /**
@@ -41,7 +41,7 @@ let handler = async (req, res) => {
         let apiResponse;
         switch (req.params.function) {
             case "getGameUrl":
-                response = await getGameUrl();
+                response = await getGameUrl(req, res);
                 break;
             case "authenticate":
                 response = await authenticate(req, res);
@@ -89,12 +89,12 @@ let handler = async (req, res) => {
 let getGameUrl = async (req, res) => {
     try {
         let resultarr = '';
-        let bodyData = data.data;
+        let bodyData = req.body;
         let mode = bodyData.mode.toLowerCase();
         let accountUserCode = bodyData.usercode;
         let token = bodyData.token;
-        const accountID = data.data.account_id;
-        let gameId = bodyData.game;
+        const accountID = bodyData.account_id;
+        let gameId = bodyData.game_id;
         let providerId = appConfig.provider_id;
         let language = (bodyData.lang) ? bodyData.lang.toLowerCase() : 'en';
         let currency = bodyData.currency.toUpperCase();
@@ -141,7 +141,7 @@ let getGameUrl = async (req, res) => {
 
         // get game details 
         let gamedtls = await commonController.getGameDetailsByGameId(gameId);
-        if (checker.isEmpty(gamedtls)) {
+        if (checkLib.isEmpty(gamedtls)) {
             return {
                 code: 1005,
                 message: "GAME_NOT_FOUND",
@@ -158,7 +158,7 @@ let getGameUrl = async (req, res) => {
         }
 
         // get provider account status 
-        let getProviderAccount = await commonController.checkProviderAccountLink(account_id, providerId); //get provider id first
+        let getProviderAccount = await commonController.checkProviderAccountLink(accountID, providerId); //get provider id first
         // if error
         if (getProviderAccount.error) {
             return {
@@ -170,7 +170,7 @@ let getGameUrl = async (req, res) => {
 
         // get provider account details
         let providerTechnicals = await commonController.getProviderAccountTechnicals(providerId, getProviderAccount.data);
-        if (checker.isEmpty(providerTechnicals) || providerTechnicals.error) {
+        if (checkLib.isEmpty(providerTechnicals) || providerTechnicals.error) {
             return {
                 code: 1002,
                 message: "PROVIDER_DENIED",
@@ -188,20 +188,24 @@ let getGameUrl = async (req, res) => {
             }
         }
 
+        await redisLib.addWithTtl(`user-${user._id}-game-${gameId}`, token, appConfig.sessionExpTime);
+
+        let newToken = `${token}-ucd-${user._id}`;
+
         let gameCategory = "SLOT";
         // let session = check.createMd5hash(gameId + timeLib.currentTimeStamp());
         // token = game_details.PlayerToken;
         // let currency = user_details.currency;
         let gmCode = gamedtls.game_code;
-        let terminateparams = {
-            usercode: userCode,
-            client_id: client_id,
-            currency: currency,
-            game_category: '',
-            field_keys: {}
-        };
+        // let terminateparams = {
+        //     usercode: userCode,
+        //     client_id: client_id,
+        //     currency: currency,
+        //     game_category: '',
+        //     field_keys: {}
+        // };
 
-        let domain = providerAccount.technical_details.api_url;
+        let domain = providerAccount.technical_details.game_launch_url;
         let symbol = gmCode;
         let technology = 'H5';
         let platform = 'WEB';
@@ -209,9 +213,9 @@ let getGameUrl = async (req, res) => {
         let cashierUrl = returnUrl;
         let lobbyUrl = returnUrl;
         let secureLogin = user._id;
-        let key = providerAccount.technical_details.key;
+        let key = providerAccount.technical_details.secret_key;
+        let posturl = domain;
 
-        let posturl = domain + 'game/url';
         let urlparam = {
             cashierUrl: cashierUrl,
             country: country,
@@ -223,7 +227,7 @@ let getGameUrl = async (req, res) => {
             stylename: secureLogin,
             symbol: symbol,
             technology: technology,
-            token: `session-${user._id}`
+            token: newToken
         }
 
         let bodyparam = httpBuildQuery(urlparam);
@@ -233,20 +237,24 @@ let getGameUrl = async (req, res) => {
 
         console.log("finalstring ==", finalstring)
 
-        // const headers = {
-        //     'Content-Type': 'application/x-www-form-urlencoded'
-        // };
-        // const response = await axios.post(posturl, (bodyparam + '&hash=' + hashval), {
-        //     headers: headers
-        // });
-        const config = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-
-        }
-        const response = await apiService.call(posturl, config);
-
+        const headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        };
+        const response = await axios.post(posturl, (bodyparam + '&hash=' + hashval), {
+            headers: headers
+        });
         const returnDataArr = response.data;
+
+        // let param = bodyparam + '&hash=' + hashval;
+        // const config = {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        //     params: param
+
+        // }
+        // console.log(config)
+        // const response = await apiService.call(posturl, config);
+        // let responseObj = await response.response.json();
 
         if (returnDataArr && returnDataArr.error == '0') {
 
@@ -274,6 +282,11 @@ let getGameUrl = async (req, res) => {
 
     } catch (error) {
         console.log(error.message);
+        return {
+            code: 1004,
+            message: "FATAL_ERROR",
+            data: {}
+        }
     }
 }
 
@@ -1053,38 +1066,6 @@ let isTokenvalid = async (tokenStr) => {
             error: 4,
             description: 'Player authentication failed due to invalid, not found or expired token'
         }
-    }
-
-    return requestsend;
-}
-
-let isHashvalid = async (parameter, client_id) => {
-
-    let reqhash = '';
-    let requestsend = {};
-    let setdata = {};
-    if (parameter.hasOwnProperty('hash')) {
-        reqhash = parameter.hash;
-        delete parameter.hash;
-    }
-
-
-    let provider_params = await commonController.get_provider_params(client_id, this.provider_id, {}, 'SM', 'SLOT');
-    provider_params.forEach(element => {
-        setdata[element.field_key] = element.field_value;
-    });
-
-    parameter = check.removeEmpty(parameter); // removing blank values
-
-    parameter = check.sortObj(parameter); // sorting object
-    let finalstring = httpBuildQuery(parameter) + setdata.key; //converting json to string
-    let md5hash = check.createMd5hash(finalstring);
-    console.log('createdmd5====>>', md5hash);
-    console.log('requestedmd5===>', reqhash);
-
-    if (md5hash != reqhash) {
-        let errmsg = "Invalid hash code. Should be returned in the response on any request sent by Pragmatic Play if the hash code validation is failed.";
-        requestsend = await invalidError(5, errmsg);
     }
 
     return requestsend;
