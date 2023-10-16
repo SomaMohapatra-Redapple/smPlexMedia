@@ -18,7 +18,6 @@ const time = require('../libs/timeLib');
 const redis = require('../libs/redisLib');
 const appConfig = require('../../config/appConfig');
 const apiLib = require('../libs/apiLib');
-const apiLib = require('../libs/apiLib');
 
 /**
  * 
