@@ -1,3 +1,4 @@
+let axios = require('axios');
 module.exports = class Server {
     /**
      * Create class instance and fill params from URL or fill it with default values if URL not contain needed data.
@@ -10,9 +11,24 @@ module.exports = class Server {
 
     //##########################################################################
 
+    // async getData(url, options) {
+    //     try {
+    //         let response = await fetch(url, options);
+    //         return {
+    //             response: response,
+    //             error: false
+    //         }
+    //     } catch (err) {
+    //         console.log(" serverLib getData Error log: ", err);
+    //         return {
+    //             error: true
+    //         }
+    //     }
+    // };
+
     async getData(url, options) {
         try {
-            let response = await fetch(url, options);
+            let response = await axios(url, options);
             return {
                 response: response,
                 error: false
@@ -33,7 +49,7 @@ module.exports = class Server {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(bodyData)
+                data: JSON.stringify(bodyData)
             };
             const data = await this.getData(url, requestOptions);
             return data;
@@ -44,7 +60,7 @@ module.exports = class Server {
             }
         }
     };
-    
+
     async call(url, config) {
         try {
             const data = await this.getData(url, config);

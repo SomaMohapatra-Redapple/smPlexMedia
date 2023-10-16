@@ -207,12 +207,12 @@ let getGameUrl = async (req, res) => {
 
         let domain = providerAccount.technical_details.game_launch_url;
         let symbol = gmCode;
-        let technology = 'H5';
-        let platform = 'WEB';
-        let country = 'USA';
-        let cashierUrl = returnUrl;
-        let lobbyUrl = returnUrl;
-        let secureLogin = user._id;
+        let technology = providerAccount.technical_details.technology;
+        let platform = providerAccount.technical_details.technology;
+        let country = 'US';
+        let cashierUrl = encodeURI(returnUrl);
+        let lobbyUrl = encodeURI(returnUrl);
+        let secureLogin = providerAccount.technical_details.secureLogin;
         let key = providerAccount.technical_details.secret_key;
         let posturl = domain;
 
@@ -230,17 +230,30 @@ let getGameUrl = async (req, res) => {
             token: newToken
         }
 
-        let bodyparam = httpBuildQuery(urlparam);
+        function sortObj(obj) {
+            return Object.keys(obj).sort().reduce(function (result, key) {
+                result[key] = obj[key];
+                return result;
+            }, {});
+        }
+
+        let newObj = sortObj(urlparam);
+        console.log("newObj ===> ", newObj)
+
+        let bodyparam = httpBuildQuery(newObj);
 
         let finalstring = decodeURIComponent(bodyparam) + key;
         let hashval = checkLib.createMd5hash(finalstring);
+        let newParam = (bodyparam + '&hash=' + hashval)
 
-        console.log("finalstring ==", finalstring)
+        // console.log("finalstring ==> ", finalstring)
+        console.log("hash ===> ", hashval)
+        // console.log("newParam ===> ", newParam)
 
         const headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         };
-        const response = await axios.post(posturl, (bodyparam + '&hash=' + hashval), {
+        const response = await axios.post(posturl, newParam, {
             headers: headers
         });
         const returnDataArr = response.data;
@@ -324,67 +337,69 @@ let authenticate = async (req, res) => {
             }
 
             return payLoad;
-        } else {
-            // let config = {
-            //     method: 'post',
-            //     url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     data: {
-            //         user_id: userdtls.account_user_id
-            //     }
-            // };
+        }
+        
+        // let config = {
+        //     method: 'post',
+        //     url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     data: {
+        //         user_id: userdtls.account_user_id
+        //     }
+        // };
 
-            // let response = await axios(config);
+        // let response = await axios(config);
 
-            let postData = {
-                user_id: userdtls.account_user_id
-            }
-            let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
-            // console.log(response.response.ok)
+        let postData = {
+            user_id: userdtls.account_user_id
+        }
+        let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
+        // console.log(response.response.ok)
 
-            // checking the response has any error or not
-            if (response.error == true) {
-                code = 120;
-                Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
-                return await invalidError(code, Status);
-            }
-            let responseObj = await response.response.json();
-            if (responseObj.err == true) {
-                code = 120;
-                Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
-                return await invalidError(code, Status);
-            }
-            let responseData = responseObj.data;
-            let function_name = "authenticate";
-            // let responseData = await response.response.json();
-            let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
+        // checking the response has any error or not
+        if (response.error == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        // let responseObj = await response.response.json();
+        let responseObj = response.response.data;
+        if (responseObj.err == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseData = responseObj.data;
+        let function_name = "authenticate";
+        // let responseData = await response.response.json();
+        let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
-            /* checking the client data format has any error or not */
-            if (responseCheck.error == true) {
-                let payLoad = {
-                    "error": 120,
-                    "description": "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
-                }
-                return payLoad;
-            }
-
+        /* checking the client data format has any error or not */
+        if (responseCheck.error == true) {
             let payLoad = {
-                status: 200,
-                userId: usercode,
-                currency: userdtls.currency_code,
-                cash: responseData.amount,
-                bonus: 0,
-                token: tokenStr,
-                country: responseData.country,
-                jurisdiction: responseData.jurisdiction,
-                error: 0,
-                description: "Success"
+                "error": 120,
+                "description": "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
             }
-
             return payLoad;
         }
+
+        let payLoad = {
+            status: 200,
+            userId: usercode,
+            currency: userdtls.currency_code,
+            cash: parseFloat(responseData.amount).toFixed(2),
+            bonus: parseFloat(200).toFixed(2),
+            token: tokenStr,
+            country: responseData.country,
+            jurisdiction: responseData.jurisdiction,
+            error: 0,
+            description: "Success"
+        }
+
+        return payLoad;
+
     } catch (error) {
         console.log(error.message);
         const payLoad = {
@@ -432,7 +447,7 @@ let balance = async (req, res) => {
         }
 
         let postData = {
-            "user_id": "1234567890"
+            "user_id": account_user_id
         }
         let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
         // console.log(response);
@@ -443,7 +458,9 @@ let balance = async (req, res) => {
             Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
             return await invalidError(code, Status);
         }
-        let responseObj = await response.response.json();
+        // let responseObj = await response.response.json();
+        let responseObj = response.response.data;
+        
         if (responseObj.err == true) {
             code = 120;
             Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
@@ -463,8 +480,8 @@ let balance = async (req, res) => {
         }
         let payLoad = {
             "currency": responseData.currency,
-            "cash": responseData.amount,
-            "bonus": responseData.bonus,
+            "cash": parseFloat(responseData.amount).toFixed(2),
+            "bonus": parseFloat(200).toFixed(2),
             "error": 0,
             "description": "sucess"
         }
