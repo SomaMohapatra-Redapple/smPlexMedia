@@ -17,6 +17,7 @@ const showAllClientValidateSchema = Joi.object({
     parent_client_id: Joi.string(),
     e_mail: Joi.string().email(),
     client_name: Joi.string(),
+    role : Joi.string(),
     user_name: Joi.string(),
     contact: Joi.string()
       .min(10)
