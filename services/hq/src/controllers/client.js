@@ -299,7 +299,23 @@ let all_client = async (req, res, next) => {
     // const query_to_find_logged_in_client = { _id: req.user.id };
     // const find_one = await FindSpecificClient(query_to_find_logged_in_client);
     // console.log("find_one",find_one);
-    if(agg[0].role){
+    let upper_level;
+
+    for(find_logged_in_member of agg){
+      if(find_logged_in_member._id==req.user.id){
+        console.log("agg",agg);
+        console.log("find_logged_in_member._id",find_logged_in_member._id);
+        upper_level = find_logged_in_member.role ;
+
+      }
+      else if(find_logged_in_member.client_id == req.user.id){
+        upper_level = find_logged_in_member.client_name ;
+        console.log("upper_level",upper_level);
+      }
+
+    }
+
+    if(upper_level == "admin" || upper_level == "superadmin"){
       const query_for_all_client_by_admin_or_super_admin = { parent_client_id: req.user.id };
       const all_client = await FindAllClient(query_for_all_client_by_admin_or_super_admin);
     let each_client = JSON.parse(JSON.stringify(all_client));
@@ -325,7 +341,7 @@ let all_client = async (req, res, next) => {
       delete client.updated_by;
       delete client.updated_at;
       delete client.__v;
-      client.upper_level = agg[0].role;
+      client.upper_level = upper_level;
       client.slno = all_client.docs.indexOf(client) + 1;
       client.balance = 0;
       client.currency = "KRW";
@@ -333,19 +349,23 @@ let all_client = async (req, res, next) => {
     }
     res.status(200).send({
       result: each_client,
+      agg : agg,
       message: "all_client list"
     });
 
     }
-    else{
+    else {
     // const query = { parent_client_id: req.query.parent_client_id };
     // const nested_clients = await FindAllClient(query);
     // console.log("nested_clients", nested_clients);
     // res.status(200).send({
     //   result: nested_clients,
     // });
+    const query_for_logged_in_client = { client_id : req.user.id };
     const query_for_nested_client = { parent_client_id: req.user.id };
     const all_client = await FindAllClient(query_for_nested_client);
+    const find_logged_in_client = await FindSpecificClient(query_for_logged_in_client);
+    console.log("find_logged_in_client",find_logged_in_client);
     let each_client = JSON.parse(JSON.stringify(all_client));
     for (let client of each_client.docs) {
       delete client.contact;
@@ -357,7 +377,7 @@ let all_client = async (req, res, next) => {
       delete client.updated_by;
       delete client.updated_at;
       delete client.__v;
-      client.upper_level = find_one.client_name;
+      client.upper_level = upper_level;
       client.slno = all_client.docs.indexOf(client) + 1;
       client.balance = 0;
       client.currency = "KRW";
@@ -365,6 +385,7 @@ let all_client = async (req, res, next) => {
     }
     res.status(200).send({
       result: each_client,
+      agg : agg,
       message: "all_client list",
     });
 
