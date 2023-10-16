@@ -14,3 +14,5 @@ module.exports.setRouter = (app) => {
    //app.post(`${baseUrl}/add_client_by_client`,auth.isAuthorized,validation.addClient,clientController.add_client_by_client);
    //app.post(`${baseUrl}/add_client_by_client`,auth.isAuthorized,validation.addClient,clientController.add_client_by_client);
 };
+
+
