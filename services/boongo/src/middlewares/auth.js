@@ -24,25 +24,28 @@ let isAuthorized = async (req, res, next) => {
         }
       }
       res.status(200)
-      res.send(apiResponse)
-    }
-    let playerToken = tokenStr.split("-ucd-");
-    let usercode = playerToken[1];
-    const userdtls = await controller.checkUsercodeExists(usercode);
-
-    if (userdtls) {
-      next();
-    }
-    else{
-      console.log('no user token');
-      let apiResponse = {
-        uid: uid,
-        error: {
-          code: 'INVALID_TOKEN'
-        }
-      }
       res.status(200)
       res.send(apiResponse)
+    }
+    else{
+      let playerToken = tokenStr.split("-ucd-");
+      let usercode = playerToken[1];
+      const userdtls = await controller.checkUsercodeExists(usercode);
+
+      if (userdtls) {
+        next();
+      }
+      else{
+        console.log('no user token');
+        let apiResponse = {
+          uid: uid,
+          error: {
+            code: 'INVALID_TOKEN'
+          }
+        }
+        res.status(200)
+        res.send(apiResponse)
+      }
     }
   }catch(err){
     console.log(err.message);

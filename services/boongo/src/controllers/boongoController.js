@@ -92,8 +92,20 @@ const login = async(data) => {
                 user_id : userdtls.account_user_id                       // YMDJD12
             }
 
-            let response = await apiLib.server.postData(acountDetails.service_endpoint, 'authenticate', dataToSend);
-            response = await response.response.json();
+            // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'authenticate', dataToSend);
+            // response = await response.response.json();
+
+            let config = {
+                method: "POST",
+                url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
+                headers:{
+                    'Content-Type': 'application/json',
+                },
+                data: dataToSend
+            }
+            let response = await axios(config);
+            console.log( response);
+            response = response.data;
             
             if(response.err === true){
                 return {
@@ -121,7 +133,7 @@ const login = async(data) => {
                         is_test: false,
                     },
                     balance: {
-                        value: parseFloat(user_balance).toFixed(2),
+                        value: parseFloat(user_balance).toFixed(2).toString(),
                         version: version
                     },
                     tag: ''
@@ -177,8 +189,20 @@ const getbalance = async(data) => {
                 user_id : 'yudn2mak3lsmj0kgkdmd91'
             }
 
-            let response = await apiLib.server.postData(acountDetails.service_endpoint, 'balance', dataToSend);
-            response = await response.response.json();
+            // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'balance', dataToSend);
+            // response = await response.response.json();
+
+            let config = {
+                method: "POST",
+                url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
+                headers:{
+                    'Content-Type': 'application/json',
+                },
+                data: dataToSend
+            }
+            let response = await axios(config);
+            console.log( response);
+            response = response.data;
             
             if(response.err === true){
                 return {
