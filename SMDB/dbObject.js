@@ -625,15 +625,15 @@ let smObj = {
         },
         user_id: {
             type: String,
-            isObjectId: true
+            required: true,
         },
         game_id: {
             type: String,
-            isObjectId: true
+            required: true,
         },
         provider_id: {
             type: String,
-            isObjectId: true
+            required: true,
         },
         provider_transaction_id: {
             type: String,
@@ -641,7 +641,7 @@ let smObj = {
         },
         game_category_id: {
             type: String,
-            isObjectId: true
+            required: true,
         },
         round_id: {
             type: String,
