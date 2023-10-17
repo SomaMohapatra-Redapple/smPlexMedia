@@ -1,25 +1,33 @@
 
 const Joi = require('joi').extend(require('@joi/date'));
 
-
-const clientGetBalanceValidateSchema = Joi.object({
-    cash: Joi.number().required().allow(0),
+const mgReqValidateSchema = Joi.object({
+    amount: Joi.number().required()
 }).unknown();
+const clientGetBalanceValidateSchema = Joi.object({
+    amount: Joi.number().required().allow(0),
+}).unknown();
+const mgReqTransValidateSchema = Joi.object({
+    txn_id: Joi.string().required(),
+    available_balance:Joi.number().required(),
+    operator_transaction_id: Joi.string().required(),
+    //round_id: Joi.string().required(),
+}).unknown();
+
+
+
 
 let clientResponseValidator = async (data, function_name) => {
 
     try {
-        console.log(data);
         let value = {};
         switch (function_name) {
-            case "login":
-                value = await mgReqValidateSchema.validate(data);
+            case "authenticate":
+                //console.log("i'm in validator section",data.data);
+                value = await mgReqValidateSchema.validate(data.data);
                 break;
             case "transaction":
-                value = await mgReqBetValidateSchema.validate(data);
-                break;
-            case "rollback":
-                value = await mgReqWinValidateSchema.validate(data);
+                value = await mgReqTransValidateSchema.validate(data);
                 break;
             case "balance":
                 value = await clientGetBalanceValidateSchema.validate(data);

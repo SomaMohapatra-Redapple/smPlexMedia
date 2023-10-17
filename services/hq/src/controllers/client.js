@@ -56,7 +56,7 @@ const FindSpecificClientFromClient = async (query) => {
   const client = await ClientTable.findOne(query);
   return client;
 };
-const FindSpecificClientFromAdmin = async (query) => {
+const FindSpecificAdminFromAdmin = async (query) => {
   const client = await AdminTable.findOne(query);
   return client;
 };
@@ -69,6 +69,9 @@ const UpdateClientBalance = async (query, options) => {
 //add client by super admin
 let add_client = async (req, res, next) => {
   try {
+
+
+    
     console.log("req.headers.token", req.headers.token);
     console.log("req.body.value", req.body);
     req.body.created_by = req.user.id;
@@ -126,114 +129,421 @@ const add_client_by_client = async (req, res, next) => {
 };
 
 //find all client
-// let all_client = async (req, res, next) => {
+
+
+// const all_client = async (req, res, next) => {
 //   try {
+//     let allClient;
+//     let query;
 
-//       //const query = {};
-//       console.log("req.query",req.query);
-//       //console.log("validatedBody.value",validatedBody.value);
-//       const all_client = await FindAllClient(req.query)
-//         .then((result) => {
-//           console.log("all client",result.docs);
-//           const obj = JSON.parse(JSON.stringify(result));
-//           console.log("obj",obj);
+//     if (!req.body.parent_client_id) {
+//       query = { parent_client_id: req.user.id };
+//     } else {
+//       query = { parent_client_id: req.body.parent_client_id };
+//     }
 
-//           for(let i of obj.docs){
-//             var find_parent = {};
-//             if(i.parent_client_id){
+//     allClient = await FindAllClient(query);
+//     allClient = JSON.parse(JSON.stringify(allClient));
 
-//               query = {_id : i.parent_client_id}
-//               console.log("query",query);
-//               (async () => {
+//     if (allClient.docs.length > 0) {
+//       let upper_level = "admin";
 
-//                  await FindSpecificClientFromAdmin(query)
-
-//                   .then((client)=>{
-//                     console.log("clienttt",client);
-//                     console.log("insidethen",i);
-//                   //find_parent = client;
-//                   //const upper = JSON.parse(JSON.stringify(client));
-//                   i.upper_level= client.admin_name;
-//                   console.log("i.upper_level",i.upper_level);
-//                   console.log("ix",i);
-//                   //let  find_parent = Object.assign(find_parent, i);
-
-//                      return result
-//                   //console.log("find_parent vvv ",find_parent);
-
-//                   })
-
-//                   .catch((e)=>{console.log("error",e)});
-
-//                   //return i;
-
-//                    //console.log("find_parent",find_parent);
-//                  //return find_parent;
-//                 //console.log("ix",i);
-//               })();
-
-//              // console.log("find_parent",find_parent);
-//               //i.upper_level= "client";
-//             }
-//             //console.log("find_parent",result);
-
-//             console.log("ixoutside async",i);
-//             i.balance = 0;
-//             i.currency = "KRW";
-//             i.slno = obj.docs.indexOf(i)+1;
-//             delete i.contact;
-//             delete i.email;
-//             delete i.password;
-//             delete i.status;
-//             delete i.environment;
-//             delete i.created_by;
-//             delete i.updated_by;
-//             delete i.updated_at;
-//             delete i.__v;
-
-//             console.log("iiiii",i);
-//           }
-//           res.status(200).send({
-//             result: obj,
-//             mesage: "all_client list",
-//           });
-//         })
-//         .catch((err) => {
-//           res.status(404).send({
-//             err: err.message,
-//           });
+//       if (req.body.parent_client_id) {
+//         const client_detail = await FindSpecificClientFromClient({
+//           _id: req.body.parent_client_id,
 //         });
+//         upper_level = client_detail.client_name;
+//       }
 
-//   } catch (e) {
-//     next(e);
-//   }
-// };
-// let all_client = async (req, res, next) => {
-//   try {
-//     console.log("req.query", req.query);
-//     const result = await FindAllClient(req.query);
-//     console.log("result", result);
-//     const allClients = [];
+//       for (let client of allClient.docs) {
+//         const fieldsToDelete = [
+//           "contact",
+//           "email",
+//           "password",
+//           "status",
+//           "environment",
+//           "created_by",
+//           "updated_by",
+//           "updated_at",
+//           "__v",
+//         ];
 
-//     for (let client of result.docs) {
-//       try {
-//         client = JSON.parse(JSON.stringify(client));
+//         for (const field of fieldsToDelete) {
+//           delete client[field];
 
-//         const query = { _id: client.parent_client_id };
-//         const parentClient = await FindSpecificClientFromClient(query);
 
-//         if (parentClient) {
-//           client.upper_level = parentClient.client_name;
-//         } else {
-//           client.upper_level = "superadmin";
+// let all_client = async (req,res,next) => {
+//   try{
+//     let allClient;
+//     if(!req.body.parent_client_id)
+//     {
+//       const query_for_all_client_of_logged_in = {parent_client_id : req.user.id}
+//       allClient = await FindAllClient(query_for_all_client_of_logged_in);
+//       allClient = JSON.parse(JSON.stringify(allClient));
+//       let length = allClient.docs.length;
+//       if(length>0){
+//           for (let client of allClient.docs) {
+//           delete client.contact;
+//           delete client.email;
+//           delete client.password;
+//           delete client.status;
+//           delete client.environment;
+//           delete client.created_by;
+//           delete client.updated_by;
+//           delete client.updated_at;
+//           delete client.__v;
+//           client.upper_level = "admin";
+//           client.slno = allClient.docs.indexOf(client) + 1;
+//           client.balance = 0;
+//           client.currency = "KRW";
+//           //console.log("client", client);
 //         }
+  
+//         res.status(200).send({
+//           result : allClient,
+//           message : "all client found"
+//         })
 
-//         // Set these properties to maintain in the response
+//         client.upper_level = upper_level;
+//         client.slno = allClient.docs.indexOf(client) + 1;
 //         client.balance = 0;
 //         client.currency = "KRW";
-//         client.slno = result.docs.indexOf(client) + 1;
+//       }
 
-//         // Remove these properties from the client object
+//       res.status(200).send({
+//         result: allClient,
+//         message: "all client found",
+//       });
+//     } else {
+//       res.status(400).send({
+//         result: allClient,
+//         message: "no client found under this id",
+//       });
+//     }
+//   } catch (e) {
+//     console.log("error from all_client", e);
+//   }
+// };
+
+
+let all_client = async (req,res,next) => {
+  try{
+    let allClient;
+    if(!req.body.parent_client_id)
+    {
+      const query_for_all_client_of_logged_in = {parent_client_id : req.user.id}
+      allClient = await FindAllClient(query_for_all_client_of_logged_in);
+      allClient = JSON.parse(JSON.stringify(allClient));
+      let length = allClient.docs.length;
+      if(length>0){
+          for (let client of allClient.docs) {
+          delete client.contact;
+          delete client.email;
+          delete client.password;
+          delete client.status;
+          delete client.environment;
+          delete client.created_by;
+          delete client.updated_by;
+          delete client.updated_at;
+          delete client.__v;
+          client.upper_level = "admin";
+          client.slno = allClient.docs.indexOf(client) + 1;
+          client.balance = 0;
+          client.currency = "KRW";
+          //console.log("client", client);
+        }
+  
+        res.status(200).send({
+          result : allClient,
+          message : "all client found"
+        })
+
+      }
+      else{
+        res.status(400).send({
+          message:"no client under this id"
+        })
+      }
+    }
+    else if(req.body.parent_client_id){
+      const query_for_all_client_of_nested_client = {parent_client_id : req.body.parent_client_id}
+      allClient = await FindAllClient(query_for_all_client_of_nested_client);
+      allClient = JSON.parse(JSON.stringify(allClient));
+      console.log("allClient",allClient);
+      console.log("allClient.docs.length",allClient.docs.length);
+      let length = allClient.docs.length;
+      if(length > 0){
+        
+        const client_detail = await FindSpecificClientFromClient({_id : req.body.parent_client_id});
+        console.log("client detail",client_detail);
+        
+          for (let client of allClient.docs) {
+          delete client.contact;
+          delete client.email;
+          delete client.password;
+          delete client.status;
+          delete client.environment;
+          delete client.created_by;
+          delete client.updated_by;
+          delete client.updated_at;
+          delete client.__v;
+          client.upper_level = client_detail.client_name;
+          client.slno = allClient.docs.indexOf(client) + 1;
+          client.balance = 0;
+          client.currency = "KRW";
+          //console.log("client", client);
+        }
+        res.status(200).send({
+          result : allClient,
+          message : "all client found"
+        })
+
+      
+      
+
+    }
+    else{
+      res.status(200).send({
+        result : allClient,
+        message : "all client found"
+      })
+  
+    }
+
+  }
+  
+}
+catch(e){
+  console.log("error from all_client",e);
+}
+}
+
+// let all_client = async (req,res,next) =>{
+//   try{
+//     const agg = await AdminTable.aggregate([
+//       {
+//         $lookup: {
+//           from: "clients",
+//           localField: "_id",
+//           foreignField: "parent_client_id",
+//           as: "all",
+//         },
+//       },
+//       {
+//         $unwind: "$all", // Unwind the array created by $lookup
+//       },
+//       {
+//         $project: {
+//           username: "$username",
+//           role : "$role",
+//           client_id: "$all._id",
+//           client_name: "$all.username",
+//         },
+//       },
+//     ]);
+//       let upper_level;
+//       let role;
+//       for(find_logged_in_member of agg){
+//         console.log("req.user.id",req.user.id);
+//         console.log("req.body.parent_client_id",req.body.parent_client_id);
+//       if(find_logged_in_member._id==(req.user.id^req.body.parent_client_id)){
+//         console.log("agg",agg);
+//         console.log("find_logged_in_member._id",find_logged_in_member._id);
+//         upper_level = find_logged_in_member.role ;
+//         role = find_logged_in_member.role ;
+//         //console.log("upper_levell",upper_level);
+
+//       }
+//       else if(find_logged_in_member.client_id == (req.user.id ^ req.body.parent_client_id)){
+//         upper_level = find_logged_in_member.client_name ;
+//         role = "client";
+//         //console.log("upper_level",upper_level);
+//       }
+
+//     }
+//       console.log("upper_level",upper_level);
+//       if(req.body.role == "superadmin" ){
+//         console.log("agg",agg);
+//         console.log("find_logged_in_member._id",find_logged_in_member._id);
+//         //upper_level = find_logged_in_member.role ;
+//         const query_to_find_all_client = {parent_client_id : req.user.id }
+//         let all_client = await FindAllClient(query_to_find_all_client);
+//         if(all_client.docs.length>0){
+//           all_client = JSON.parse(JSON.stringify(all_client));
+  
+//          }
+        
+//         const query_to_find_specific_client = { _id : req.user.id} ;
+//         const find_parent = await FindSpecificAdminFromAdmin(query_to_find_specific_client);
+//         for (let client of all_client.docs) {
+//           delete client.contact;
+//           delete client.email;
+//           delete client.password;
+//           delete client.status;
+//           delete client.environment;
+//           delete client.created_by;
+//           delete client.updated_by;
+//           delete client.updated_at;
+//           delete client.__v;
+//           client.upper_level = upper_level;
+//           client.slno = all_client.docs.indexOf(client) + 1;
+//           client.balance = 0;
+//           client.currency = "KRW";
+//           //console.log("client", client);
+//         }
+  
+//         res.status(200).send({
+//           result : all_client
+//         })
+  
+
+//       }
+//       else if(role == "client" ){
+//         upper_level = find_logged_in_member.client_name ;
+        
+//         console.log("upper_level",upper_level);
+//         const query_to_find_all_client = {parent_client_id : req.body.parent_client_id }||{parent_client_id : req.user.id}
+      
+//         let all_client = await FindAllClient(query_to_find_all_client);
+//         all_client = JSON.parse(JSON.stringify(all_client));
+//         if(all_client.docs.length>0){
+//           all_client = JSON.parse(JSON.stringify(all_client));
+  
+//          }
+//         const query_to_find_specific_client = { _id : req.body.parent_client_id} ;
+//         const find_parent = await FindSpecificClient(query_to_find_specific_client);
+//         for (let client of all_client.docs) {
+//           delete client.contact;
+//           delete client.email;
+//           delete client.password;
+//           delete client.status;
+//           delete client.environment;
+//           delete client.created_by;
+//           delete client.updated_by;
+//           delete client.updated_at;
+//           delete client.__v;
+//           client.upper_level = upper_level;
+//           client.slno = all_client.docs.indexOf(client) + 1;
+//           client.balance = 0;
+//           client.currency = "KRW";
+//           //console.log("client", client);
+//         }
+  
+//         res.status(200).send({
+//           result : all_client
+//         })
+  
+//       }
+
+    
+
+    
+//   }
+//   catch(e){
+//     console.log("error from all_client api",e);
+//   }
+// }
+
+// let all_client = async (req, res, next) => {
+//   try {
+    
+//     // console.log("req.user.id", req.user);
+//     // const agg = await AdminTable.aggregate([
+//     //   {
+//     //     $lookup: {
+//     //       from: "clients",
+//     //       localField: "_id",
+//     //       foreignField: "parent_client_id",
+//     //       as: "all",
+//     //     },
+//     //   },
+//     //   {
+//     //     $unwind: "$all", // Unwind the array created by $lookup
+//     //   },
+//     //   {
+//     //     $project: {
+//     //       username: "$username",
+//     //       role : "$role",
+//     //       client_id: "$all._id",
+//     //       client_name: "$all.username",
+//     //     },
+//     //   },
+//     // ]);
+//     // const query_to_find_logged_in_client = { _id: req.user.id };
+//     // const find_one = await FindSpecificClient(query_to_find_logged_in_client);
+//     // console.log("find_one",find_one);
+//     let upper_level;
+
+//     for(find_logged_in_member of agg){
+//       if(find_logged_in_member._id==req.user.id){
+//         console.log("agg",agg);
+//         console.log("find_logged_in_member._id",find_logged_in_member._id);
+//         upper_level = find_logged_in_member.role ;
+
+//       }
+//       else if(find_logged_in_member.client_id == req.user.id || find_logged_in_member.client_id == req.body.client_id){
+//         upper_level = find_logged_in_member.client_name ;
+//         console.log("upper_level",upper_level);
+//       }
+
+//     }
+
+//     if(upper_level == "admin" || upper_level == "superadmin"){
+//       const query_for_all_client_by_admin_or_super_admin = { parent_client_id: req.user.id };
+//       const all_client = await FindAllClient(query_for_all_client_by_admin_or_super_admin);
+//     let each_client = JSON.parse(JSON.stringify(all_client));
+
+  
+
+//     //let upper_level;
+//     // for (let member of agg) {
+//     //   if (member._id == req.user.id) {
+//     //     upper_level = "superadmin";
+//     //   } else if (member.client_id == req.user.id) {
+//     //     upper_level = member.client_name;
+//     //   }
+//     // }
+
+//     for (let client of each_client.docs) {
+//       delete client.contact;
+//       delete client.email;
+//       delete client.password;
+//       delete client.status;
+//       delete client.environment;
+//       delete client.created_by;
+//       delete client.updated_by;
+//       delete client.updated_at;
+//       delete client.__v;
+//       client.upper_level = upper_level;
+//       client.slno = all_client.docs.indexOf(client) + 1;
+//       client.balance = 0;
+//       client.currency = "KRW";
+//       console.log("client", client);
+//     }
+//     res.status(200).send({
+//       result: each_client,
+//       message: "all_client list"
+//     });
+
+//     }
+//     else {
+//     // const query = { parent_client_id: req.query.parent_client_id };
+//     // const nested_clients = await FindAllClient(query);
+//     // console.log("nested_clients", nested_clients);
+//     // res.status(200).send({
+//     //   result: nested_clients,
+//     // });
+//     console.log("req.query.id",req.query.id);
+//     const query_for_logged_in_client = { client_id : req.body.client_id };
+//     const query_for_nested_client = { parent_client_id: req.body.parent_client_id };
+//     const all_client = await FindAllClient(query_for_nested_client);
+//     //if()
+//     //const find_logged_in_client = await FindSpecificClient(query_for_logged_in_client);
+//     //console.log("find_logged_in_client",find_logged_in_client)
+//     let each_client = JSON.parse(JSON.stringify(all_client));
+//     console.log("each_client",each_client);
+//     if(each_client.docs.length>0){
+//       for (let client of each_client.docs) {
 //         delete client.contact;
 //         delete client.email;
 //         delete client.password;
@@ -243,159 +553,34 @@ const add_client_by_client = async (req, res, next) => {
 //         delete client.updated_by;
 //         delete client.updated_at;
 //         delete client.__v;
-//         delete client.parentClient;
-
-//         console.log("cliennnn", client);
-//         allClients.push(client);
-//       } catch (error) {
-//         console.error("Error processing client:", error);
-//         // Handle errors for individual clients here
+//         client.upper_level = upper_level;
+//         client.slno = all_client.docs.indexOf(client) + 1;
+//         client.balance = 0;
+//         client.currency = "KRW";
+//         console.log("client", client);
 //       }
-//     }
-//     console.log("all clients", allClients);
-//     res.status(200).send({
-//       result: {
-//         docs: allClients,
-//         total: result.total,
-//         limit: result.limit,
-//         page: result.page,
-//         pages: result.pages,
-//       },
-//       message: "all_client list",
-//     });
-//   } catch (error) {
-//     console.error("Error in all_client API:", error);
-//     res.status(500).send({
-//       error: error.message,
-//     });
-//   }
-// };
-
-let all_client = async (req, res, next) => {
-  try {
-    
-    console.log("req.user.id", req.user);
-    const agg = await AdminTable.aggregate([
-      {
-        $lookup: {
-          from: "clients",
-          localField: "_id",
-          foreignField: "parent_client_id",
-          as: "all",
-        },
-      },
-      {
-        $unwind: "$all", // Unwind the array created by $lookup
-      },
-      {
-        $project: {
-          username: "$username",
-          role : "$role",
-          client_id: "$all._id",
-          client_name: "$all.username",
-        },
-      },
-    ]);
-    // const query_to_find_logged_in_client = { _id: req.user.id };
-    // const find_one = await FindSpecificClient(query_to_find_logged_in_client);
-    // console.log("find_one",find_one);
-    let upper_level;
-
-    for(find_logged_in_member of agg){
-      if(find_logged_in_member._id==req.user.id){
-        console.log("agg",agg);
-        console.log("find_logged_in_member._id",find_logged_in_member._id);
-        upper_level = find_logged_in_member.role ;
-
-      }
-      else if(find_logged_in_member.client_id == req.user.id){
-        upper_level = find_logged_in_member.client_name ;
-        console.log("upper_level",upper_level);
-      }
-
-    }
-
-    if(upper_level == "admin" || upper_level == "superadmin"){
-      const query_for_all_client_by_admin_or_super_admin = { parent_client_id: req.user.id };
-      const all_client = await FindAllClient(query_for_all_client_by_admin_or_super_admin);
-    let each_client = JSON.parse(JSON.stringify(all_client));
-
+//       res.status(200).send({
+//         result: each_client,
+//         message: "all_client list",
+//       });
   
 
-    //let upper_level;
-    // for (let member of agg) {
-    //   if (member._id == req.user.id) {
-    //     upper_level = "superadmin";
-    //   } else if (member.client_id == req.user.id) {
-    //     upper_level = member.client_name;
-    //   }
-    // }
+//     }
+//     else{
+//       res.status(400).send({
+        
+//         message: "there is no sub client for this parent",
+//       });
 
-    for (let client of each_client.docs) {
-      delete client.contact;
-      delete client.email;
-      delete client.password;
-      delete client.status;
-      delete client.environment;
-      delete client.created_by;
-      delete client.updated_by;
-      delete client.updated_at;
-      delete client.__v;
-      client.upper_level = upper_level;
-      client.slno = all_client.docs.indexOf(client) + 1;
-      client.balance = 0;
-      client.currency = "KRW";
-      console.log("client", client);
-    }
-    res.status(200).send({
-      result: each_client,
-      agg : agg,
-      message: "all_client list"
-    });
-
-    }
-    else {
-    // const query = { parent_client_id: req.query.parent_client_id };
-    // const nested_clients = await FindAllClient(query);
-    // console.log("nested_clients", nested_clients);
-    // res.status(200).send({
-    //   result: nested_clients,
-    // });
-    const query_for_logged_in_client = { client_id : req.user.id };
-    const query_for_nested_client = { parent_client_id: req.user.id };
-    const all_client = await FindAllClient(query_for_nested_client);
-    const find_logged_in_client = await FindSpecificClient(query_for_logged_in_client);
-    console.log("find_logged_in_client",find_logged_in_client);
-    let each_client = JSON.parse(JSON.stringify(all_client));
-    for (let client of each_client.docs) {
-      delete client.contact;
-      delete client.email;
-      delete client.password;
-      delete client.status;
-      delete client.environment;
-      delete client.created_by;
-      delete client.updated_by;
-      delete client.updated_at;
-      delete client.__v;
-      client.upper_level = upper_level;
-      client.slno = all_client.docs.indexOf(client) + 1;
-      client.balance = 0;
-      client.currency = "KRW";
-      console.log("client", client);
-    }
-    res.status(200).send({
-      result: each_client,
-      agg : agg,
-      message: "all_client list",
-    });
+//     }
 
 
-    }
+//     }
     
-  } catch (e) {
-    console.log("error from all client", e);
-  }
-};
+//   } catch (e) {
+//     console.log("error from all client", e);
+//   }
+// };
 
 //api for client
 let nested_client = async (req, res, next) => {

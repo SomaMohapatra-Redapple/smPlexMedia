@@ -32,6 +32,10 @@ let playerSchema = new Schema(smObj.Player);
 let providerSchema = new Schema(smObj.Provider);
 let superAdminSchema = new Schema(smObj.SuperAdmin);
 let transactionSchema = new Schema(smObj.Transaction);
+let clientProviderMappingSchema = new Schema(smObj.Client_provider_mapping);
+let clientGameMappingSchema = new Schema(smObj.Client_game_mapping);
+let clientProviderAccountMappingSchema = new Schema(smObj.Client_provider_account_mapping);
+let currencySchema = new Schema(smObj.Currency);
 
 mongoose.model('Accounts', accountSchema);
 mongoose.model('AccountsTechnicals', accountTechnicalsSchema);
@@ -42,3 +46,7 @@ mongoose.model('Player', playerSchema);
 mongoose.model('Provider', providerSchema);
 mongoose.model('SuperAdmin', superAdminSchema);
 mongoose.model('Transaction', transactionSchema);
+mongoose.model('Client_provider_mapping', clientProviderMappingSchema);
+mongoose.model('Client_game_mapping', clientGameMappingSchema);
+mongoose.model('Client_provider_account_mapping', clientProviderAccountMappingSchema);
+mongoose.model('Currency',currencySchema);
