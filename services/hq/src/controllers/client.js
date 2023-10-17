@@ -130,128 +130,285 @@ const add_client_by_client = async (req, res, next) => {
 
 //find all client
 
-let all_client = async (req,res,next) =>{
-  try{
-    const agg = await AdminTable.aggregate([
-      {
-        $lookup: {
-          from: "clients",
-          localField: "_id",
-          foreignField: "parent_client_id",
-          as: "all",
-        },
-      },
-      {
-        $unwind: "$all", // Unwind the array created by $lookup
-      },
-      {
-        $project: {
-          username: "$username",
-          role : "$role",
-          client_id: "$all._id",
-          client_name: "$all.username",
-        },
-      },
-    ]);
-      let upper_level;
-      let role;
-      for(find_logged_in_member of agg){
-      if(find_logged_in_member._id==req.user.id){
-        console.log("agg",agg);
-        console.log("find_logged_in_member._id",find_logged_in_member._id);
-        upper_level = find_logged_in_member.role ;
-        role = find_logged_in_member.role ;
-        console.log("upper_levell",upper_level);
+const all_client = async (req, res, next) => {
+  try {
+    let allClient;
+    let query;
 
-      }
-      else if(find_logged_in_member.client_id == req.user.id){
-        upper_level = find_logged_in_member.client_name ;
-        role = "client";
-        console.log("upper_level",upper_level);
-      }
-
+    if (!req.body.parent_client_id) {
+      query = { parent_client_id: req.user.id };
+    } else {
+      query = { parent_client_id: req.body.parent_client_id };
     }
-      if(req.body.role == "superadmin" ){
-        console.log("agg",agg);
-        console.log("find_logged_in_member._id",find_logged_in_member._id);
-        //upper_level = find_logged_in_member.role ;
-        const query_to_find_all_client = {parent_client_id : req.user.id }
-        let all_client = await FindAllClient(query_to_find_all_client);
-        if(all_client.docs.length>0){
-          all_client = JSON.parse(JSON.stringify(all_client));
-  
-         }
-        
-        const query_to_find_specific_client = { _id : req.user.id} ;
-        const find_parent = await FindSpecificAdminFromAdmin(query_to_find_specific_client);
-        for (let client of all_client.docs) {
-          delete client.contact;
-          delete client.email;
-          delete client.password;
-          delete client.status;
-          delete client.environment;
-          delete client.created_by;
-          delete client.updated_by;
-          delete client.updated_at;
-          delete client.__v;
-          client.upper_level = upper_level;
-          client.slno = all_client.docs.indexOf(client) + 1;
-          client.balance = 0;
-          client.currency = "KRW";
-          //console.log("client", client);
-        }
-  
-        res.status(200).send({
-          result : all_client
-        })
-  
 
+    allClient = await FindAllClient(query);
+    allClient = JSON.parse(JSON.stringify(allClient));
+
+    if (allClient.docs.length > 0) {
+      let upper_level = "admin";
+
+      if (req.body.parent_client_id) {
+        const client_detail = await FindSpecificClientFromClient({
+          _id: req.body.parent_client_id,
+        });
+        upper_level = client_detail.client_name;
       }
-      else if(role == "client" ){
-        upper_level = find_logged_in_member.client_name ;
+
+      for (let client of allClient.docs) {
+        const fieldsToDelete = [
+          "contact",
+          "email",
+          "password",
+          "status",
+          "environment",
+          "created_by",
+          "updated_by",
+          "updated_at",
+          "__v",
+        ];
+
+        for (const field of fieldsToDelete) {
+          delete client[field];
+        }
+
+        client.upper_level = upper_level;
+        client.slno = allClient.docs.indexOf(client) + 1;
+        client.balance = 0;
+        client.currency = "KRW";
+      }
+
+      res.status(200).send({
+        result: allClient,
+        message: "all client found",
+      });
+    } else {
+      res.status(400).send({
+        message: "no client found under this id",
+      });
+    }
+  } catch (e) {
+    console.log("error from all_client", e);
+  }
+};
+
+
+// let all_client = async (req,res,next) => {
+//   try{
+//     let allClient;
+//     if(!req.body.parent_client_id)
+//     {
+//       const query_for_all_client_of_logged_in = {parent_client_id : req.user.id}
+//       allClient = await FindAllClient(query_for_all_client_of_logged_in);
+//       allClient = JSON.parse(JSON.stringify(allClient));
+//       let length = allClient.docs.length;
+//       if(length>0){
+//           for (let client of allClient.docs) {
+//           delete client.contact;
+//           delete client.email;
+//           delete client.password;
+//           delete client.status;
+//           delete client.environment;
+//           delete client.created_by;
+//           delete client.updated_by;
+//           delete client.updated_at;
+//           delete client.__v;
+//           client.upper_level = "admin";
+//           client.slno = allClient.docs.indexOf(client) + 1;
+//           client.balance = 0;
+//           client.currency = "KRW";
+//           //console.log("client", client);
+//         }
+  
+//         res.status(200).send({
+//           result : allClient,
+//           message : "all client found"
+//         })
+
+//       }
+//       else{
+//         res.status(400).send({
+//           message:"no client under this id"
+//         })
+//       }
+//     }
+//     else if(req.body.parent_client_id){
+//       const query_for_all_client_of_nested_client = {parent_client_id : req.body.parent_client_id}
+//       allClient = await FindAllClient(query_for_all_client_of_nested_client);
+//       allClient = JSON.parse(JSON.stringify(allClient));
+//       console.log("allClient",allClient);
+//       console.log("allClient.docs.length",allClient.docs.length);
+//       let length = allClient.docs.length;
+//       if(length > 0){
         
-        console.log("upper_level",upper_level);
-        const query_to_find_all_client = {parent_client_id : req.body.parent_client_id }||{parent_client_id : req.user.id}
+//         const client_detail = await FindSpecificClientFromClient({_id : req.body.parent_client_id});
+//         console.log("client detail",client_detail);
+        
+//           for (let client of allClient.docs) {
+//           delete client.contact;
+//           delete client.email;
+//           delete client.password;
+//           delete client.status;
+//           delete client.environment;
+//           delete client.created_by;
+//           delete client.updated_by;
+//           delete client.updated_at;
+//           delete client.__v;
+//           client.upper_level = client_detail.client_name;
+//           client.slno = allClient.docs.indexOf(client) + 1;
+//           client.balance = 0;
+//           client.currency = "KRW";
+//           //console.log("client", client);
+//         }
+//         res.status(200).send({
+//           result : allClient,
+//           message : "all client found"
+//         })
+
       
-        let all_client = await FindAllClient(query_to_find_all_client);
-        all_client = JSON.parse(JSON.stringify(all_client));
-        if(all_client.docs.length>0){
-          all_client = JSON.parse(JSON.stringify(all_client));
+      
+
+//     }
+//     else{
+//       res.status(200).send({
+//         result : allClient,
+//         message : "all client found"
+//       })
   
-         }
-        const query_to_find_specific_client = { _id : req.body.parent_client_id} ;
-        const find_parent = await FindSpecificClient(query_to_find_specific_client);
-        for (let client of all_client.docs) {
-          delete client.contact;
-          delete client.email;
-          delete client.password;
-          delete client.status;
-          delete client.environment;
-          delete client.created_by;
-          delete client.updated_by;
-          delete client.updated_at;
-          delete client.__v;
-          client.upper_level = upper_level;
-          client.slno = all_client.docs.indexOf(client) + 1;
-          client.balance = 0;
-          client.currency = "KRW";
-          //console.log("client", client);
-        }
+//     }
+
+//   }
   
-        res.status(200).send({
-          result : all_client
-        })
+// }
+// catch(e){
+//   console.log("error from all_client",e);
+// }
+// }
+
+// let all_client = async (req,res,next) =>{
+//   try{
+//     const agg = await AdminTable.aggregate([
+//       {
+//         $lookup: {
+//           from: "clients",
+//           localField: "_id",
+//           foreignField: "parent_client_id",
+//           as: "all",
+//         },
+//       },
+//       {
+//         $unwind: "$all", // Unwind the array created by $lookup
+//       },
+//       {
+//         $project: {
+//           username: "$username",
+//           role : "$role",
+//           client_id: "$all._id",
+//           client_name: "$all.username",
+//         },
+//       },
+//     ]);
+//       let upper_level;
+//       let role;
+//       for(find_logged_in_member of agg){
+//         console.log("req.user.id",req.user.id);
+//         console.log("req.body.parent_client_id",req.body.parent_client_id);
+//       if(find_logged_in_member._id==(req.user.id^req.body.parent_client_id)){
+//         console.log("agg",agg);
+//         console.log("find_logged_in_member._id",find_logged_in_member._id);
+//         upper_level = find_logged_in_member.role ;
+//         role = find_logged_in_member.role ;
+//         //console.log("upper_levell",upper_level);
+
+//       }
+//       else if(find_logged_in_member.client_id == (req.user.id ^ req.body.parent_client_id)){
+//         upper_level = find_logged_in_member.client_name ;
+//         role = "client";
+//         //console.log("upper_level",upper_level);
+//       }
+
+//     }
+//       console.log("upper_level",upper_level);
+//       if(req.body.role == "superadmin" ){
+//         console.log("agg",agg);
+//         console.log("find_logged_in_member._id",find_logged_in_member._id);
+//         //upper_level = find_logged_in_member.role ;
+//         const query_to_find_all_client = {parent_client_id : req.user.id }
+//         let all_client = await FindAllClient(query_to_find_all_client);
+//         if(all_client.docs.length>0){
+//           all_client = JSON.parse(JSON.stringify(all_client));
   
-      }
+//          }
+        
+//         const query_to_find_specific_client = { _id : req.user.id} ;
+//         const find_parent = await FindSpecificAdminFromAdmin(query_to_find_specific_client);
+//         for (let client of all_client.docs) {
+//           delete client.contact;
+//           delete client.email;
+//           delete client.password;
+//           delete client.status;
+//           delete client.environment;
+//           delete client.created_by;
+//           delete client.updated_by;
+//           delete client.updated_at;
+//           delete client.__v;
+//           client.upper_level = upper_level;
+//           client.slno = all_client.docs.indexOf(client) + 1;
+//           client.balance = 0;
+//           client.currency = "KRW";
+//           //console.log("client", client);
+//         }
+  
+//         res.status(200).send({
+//           result : all_client
+//         })
+  
+
+//       }
+//       else if(role == "client" ){
+//         upper_level = find_logged_in_member.client_name ;
+        
+//         console.log("upper_level",upper_level);
+//         const query_to_find_all_client = {parent_client_id : req.body.parent_client_id }||{parent_client_id : req.user.id}
+      
+//         let all_client = await FindAllClient(query_to_find_all_client);
+//         all_client = JSON.parse(JSON.stringify(all_client));
+//         if(all_client.docs.length>0){
+//           all_client = JSON.parse(JSON.stringify(all_client));
+  
+//          }
+//         const query_to_find_specific_client = { _id : req.body.parent_client_id} ;
+//         const find_parent = await FindSpecificClient(query_to_find_specific_client);
+//         for (let client of all_client.docs) {
+//           delete client.contact;
+//           delete client.email;
+//           delete client.password;
+//           delete client.status;
+//           delete client.environment;
+//           delete client.created_by;
+//           delete client.updated_by;
+//           delete client.updated_at;
+//           delete client.__v;
+//           client.upper_level = upper_level;
+//           client.slno = all_client.docs.indexOf(client) + 1;
+//           client.balance = 0;
+//           client.currency = "KRW";
+//           //console.log("client", client);
+//         }
+  
+//         res.status(200).send({
+//           result : all_client
+//         })
+  
+//       }
 
     
 
     
-  }
-  catch(e){
-    console.log("error from all_client api",e);
-  }
-}
+//   }
+//   catch(e){
+//     console.log("error from all_client api",e);
+//   }
+// }
 
 // let all_client = async (req, res, next) => {
 //   try {
