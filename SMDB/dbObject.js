@@ -591,6 +591,14 @@ let smObj = {
             type: String,
             required: true,
         },
+        country_code: {
+            type: String,
+            required: true,
+        },
+        jurisdiction: {
+            type: String,
+            required: true,
+        },
         created_at: {
             type: Date,
             default: ""
