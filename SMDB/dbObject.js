@@ -5,6 +5,10 @@ let smObj = {
             ref: 'clients',
             isObjectId: true
         },
+        account_name: {
+            type: String,
+            required: true
+        },
         username: {
             type: String,
             default: ''
@@ -48,6 +52,11 @@ let smObj = {
         },
         service_endpoint: {
             type: String,
+            required: true,
+        },
+        environment: {
+            type: String,
+            default: "staging",
             required: true,
         },
         currency: {
