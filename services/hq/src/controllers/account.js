@@ -45,22 +45,36 @@ const add_account = async (req, res, next) => {
     query.created_at = timeLIb.now();
     query.updated_at = timeLIb.now();
     const added_account = await AddAccount(query)
-      .then((result) => {
+     
         res.status(200).send({
           message: "account created",
           result: result,
         });
-      })
-      .catch((err) => {
+      {
         res.status(400).send({
           err: err.message,
         });
-      });
-  } catch (e) {
-    console.log("error", e);
-    return next(e);
+     
+      const added_account_technicals = await AddAccountTechnicals(query);
+     
+        res.status(200).send({
+          message: "account created",
+          result: result,
+        });
+     
+     {
+        res.status(400).send({
+          err: err.message,
+        });
+     
   }
-};
+   
+}
+catch(e) {
+  console.log("error", e);
+  return next(e);
+}
+}
 
 const add_account_techicals = async (req, res, next) => {
   try {

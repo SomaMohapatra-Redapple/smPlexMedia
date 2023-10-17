@@ -130,6 +130,7 @@ const add_client_by_client = async (req, res, next) => {
 
 //find all client
 
+
 // const all_client = async (req, res, next) => {
 //   try {
 //     let allClient;
@@ -169,7 +170,39 @@ const add_client_by_client = async (req, res, next) => {
 
 //         for (const field of fieldsToDelete) {
 //           delete client[field];
+
+
+// let all_client = async (req,res,next) => {
+//   try{
+//     let allClient;
+//     if(!req.body.parent_client_id)
+//     {
+//       const query_for_all_client_of_logged_in = {parent_client_id : req.user.id}
+//       allClient = await FindAllClient(query_for_all_client_of_logged_in);
+//       allClient = JSON.parse(JSON.stringify(allClient));
+//       let length = allClient.docs.length;
+//       if(length>0){
+//           for (let client of allClient.docs) {
+//           delete client.contact;
+//           delete client.email;
+//           delete client.password;
+//           delete client.status;
+//           delete client.environment;
+//           delete client.created_by;
+//           delete client.updated_by;
+//           delete client.updated_at;
+//           delete client.__v;
+//           client.upper_level = "admin";
+//           client.slno = allClient.docs.indexOf(client) + 1;
+//           client.balance = 0;
+//           client.currency = "KRW";
+//           //console.log("client", client);
 //         }
+  
+//         res.status(200).send({
+//           result : allClient,
+//           message : "all client found"
+//         })
 
 //         client.upper_level = upper_level;
 //         client.slno = allClient.docs.indexOf(client) + 1;
