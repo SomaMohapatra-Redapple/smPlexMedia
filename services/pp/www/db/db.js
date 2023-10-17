@@ -4,6 +4,7 @@ let dataAPI;
 const redis = require('redis');
 const server = require('../rest/server');
 const appConfig = require('../../config/appConfig');
+const redisLib = require('../../src/libs/redisLib');
 let redisClient;
 
 /**
@@ -15,7 +16,7 @@ let redisClient;
  */
 
 
-const startDB = (app, db_type) => {
+const startDB = async (app, db_type) => {
   switch (db_type) {
     case "mysql":
       console.log(`Environment : ${process.env.NODE_ENV} Database : ${process.env.DATABASE_TYPE}`);
@@ -68,33 +69,24 @@ const startDB = (app, db_type) => {
         });
 
         // mongoose connection open handler
-        mongoose.connection.on('open', function (err) {
+        mongoose.connection.on('open', async function (err) {
           if (err) {
             console.log(`database error:${JSON.stringify(err)}`);
             process.exit(1);
           } else {
             console.log("mongo database connection open success");
-
-            redisClient = redis.createClient({
-                url:appConfig.redis_url
-            });
             
-            redisClient.connect();
-            redisClient.on('error', (err) => {
-                console.log("REDIS Error " + err)
-            });
-            console.log("redis database connection open success");
-            
-            module.exports.redisClient = redisClient;
+            let redisConnect = await redisLib.connect(appConfig.redis_url);
 
-            // pp 
-            const commonController = require('../../src/controller/commonController');
-            commonController.setProviderInRedis();
+            if (redisConnect == true) {
+              const commonController = require('../../src/controller/commonController');
+              commonController.setProviderInRedis();
 
-            /**
-             * Create HTTP server.
-             */
-            server.startServer(app);
+              /* Create HTTP server */
+              server.startServer(app);
+            } else {
+              console.log("server connection failed");
+            }
           }
         });
 

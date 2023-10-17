@@ -22,6 +22,9 @@ let checkLib = require('../libs/checkLib');
 let timeLib = require('../libs/timeLib');
 let commonController = require('../controller/commonController');
 let walletController = require('../controller/walletController');
+let httpBuildQuery = require('http-build-query');
+let apiService = appConfig.apiService;
+let redisLib = require('../libs/redisLib');
 
 
 /**
@@ -38,7 +41,7 @@ let handler = async (req, res) => {
         let apiResponse;
         switch (req.params.function) {
             case "getGameUrl":
-                response = await getGameUrl();
+                response = await getGameUrl(req, res);
                 break;
             case "authenticate":
                 response = await authenticate(req, res);
@@ -74,11 +77,229 @@ let handler = async (req, res) => {
     }
 }
 
+/**
+ * 
+ * @author Akash Paul
+ * @function handler
+ * @param {*} req res
+ * @returns res
+ * 
+ */
+// ** ** this API is called from user , to Pragmatic Play provider
 let getGameUrl = async (req, res) => {
     try {
-        
+        let resultarr = '';
+        let bodyData = req.body;
+        let mode = bodyData.mode.toLowerCase();
+        let accountUserCode = bodyData.usercode;
+        let token = bodyData.token;
+        const accountID = bodyData.account_id;
+        let gameId = bodyData.game_id;
+        let providerId = appConfig.provider_id;
+        let language = (bodyData.lang) ? bodyData.lang.toLowerCase() : 'en';
+        let currency = bodyData.currency.toUpperCase();
+        let returnUrl = (bodyData.return_url) ? bodyData.return_url : '';
+
+        if (mode != 'real') {
+            return {
+                code: 1002,
+                message: "PROVIDER_DENIED",
+                data: {}
+            }
+        }
+
+        let accountDetails = await commonController.isAccountExists(accountID)
+        // ** Checking account Exist or not
+        if (accountDetails.error == true) {
+            return {
+                code: 1001,
+                message: "INVALID_ACCOUNT",
+                data: {}
+            }
+        }
+
+        // ** Checking client is on maintanance
+        let isBetEnable = await walletController.betControlStatus(accountID, providerId);
+        if ((isBetEnable.rejectionStatus == true) || (isBetEnable.maintenance_mode_status == 'Y')) {
+            return {
+                code: 1003,
+                message: "MAINTENANCE_MODE_ON",
+                data: {}
+            }
+        }
+
+        //** registering or log IN the user
+        const isUser = await commonController.checkUserOrRegister(accountUserCode, accountID, currency, language);
+        if (isUser.error) {
+            return {
+                code: 1004,
+                message: "FATAL_ERROR",
+                data: {}
+            }
+        }
+        let user = isUser.data;
+
+        // get game details 
+        let gamedtls = await commonController.getGameDetailsByGameId(gameId);
+        if (checkLib.isEmpty(gamedtls)) {
+            return {
+                code: 1005,
+                message: "GAME_NOT_FOUND",
+                data: {}
+            }
+        }
+
+        if ((gamedtls.categorydtls.category != 'Slots')) {
+            return {
+                code: 1005,
+                message: "GAME_NOT_FOUND",
+                data: {}
+            }
+        }
+
+        // get provider account status 
+        let getProviderAccount = await commonController.checkProviderAccountLink(accountID, providerId); //get provider id first
+        // if error
+        if (getProviderAccount.error) {
+            return {
+                code: 1002,
+                message: "PROVIDER_DENIED",
+                data: {}
+            }
+        }
+
+        // get provider account details
+        let providerTechnicals = await commonController.getProviderAccountTechnicals(providerId, getProviderAccount.data);
+        if (checkLib.isEmpty(providerTechnicals) || providerTechnicals.error) {
+            return {
+                code: 1002,
+                message: "PROVIDER_DENIED",
+                data: {}
+            }
+        }
+
+        // checking that is user currency same as provider accounts currency
+        let providerAccount = providerTechnicals.data;
+        if (providerAccount.currency.includes(currency) === false) {
+            return {
+                code: 1006,
+                message: "INVALID_CURRENCY",
+                data: {}
+            }
+        }
+
+        await redisLib.addWithTtl(`user-${user._id}-game-${gameId}`, token, appConfig.sessionExpTime);
+
+        let newToken = `${token}-ucd-${user._id}`;
+
+        let gameCategory = "SLOT";
+        // let session = check.createMd5hash(gameId + timeLib.currentTimeStamp());
+        // token = game_details.PlayerToken;
+        // let currency = user_details.currency;
+        let gmCode = gamedtls.game_code;
+        // let terminateparams = {
+        //     usercode: userCode,
+        //     client_id: client_id,
+        //     currency: currency,
+        //     game_category: '',
+        //     field_keys: {}
+        // };
+
+        let domain = providerAccount.technical_details.game_launch_url;
+        let symbol = gmCode;
+        let technology = providerAccount.technical_details.technology;
+        let platform = providerAccount.technical_details.technology;
+        let country = 'US';
+        let cashierUrl = encodeURI(returnUrl);
+        let lobbyUrl = encodeURI(returnUrl);
+        let secureLogin = providerAccount.technical_details.secureLogin;
+        let key = providerAccount.technical_details.secret_key;
+        let posturl = domain;
+
+        let urlparam = {
+            cashierUrl: cashierUrl,
+            country: country,
+            currency: currency,
+            language: language,
+            lobbyUrl: lobbyUrl,
+            platform: platform,
+            secureLogin: secureLogin,
+            stylename: secureLogin,
+            symbol: symbol,
+            technology: technology,
+            token: newToken
+        }
+
+        function sortObj(obj) {
+            return Object.keys(obj).sort().reduce(function (result, key) {
+                result[key] = obj[key];
+                return result;
+            }, {});
+        }
+
+        let newObj = sortObj(urlparam);
+        console.log("newObj ===> ", newObj)
+
+        let bodyparam = httpBuildQuery(newObj);
+
+        let finalstring = decodeURIComponent(bodyparam) + key;
+        let hashval = checkLib.createMd5hash(finalstring);
+        let newParam = (bodyparam + '&hash=' + hashval)
+
+        // console.log("finalstring ==> ", finalstring)
+        console.log("hash ===> ", hashval)
+        // console.log("newParam ===> ", newParam)
+
+        const headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        };
+        const response = await axios.post(posturl, newParam, {
+            headers: headers
+        });
+        const returnDataArr = response.data;
+
+        // let param = bodyparam + '&hash=' + hashval;
+        // const config = {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        //     params: param
+
+        // }
+        // console.log(config)
+        // const response = await apiService.call(posturl, config);
+        // let responseObj = await response.response.json();
+
+        if (returnDataArr && returnDataArr.error == '0') {
+
+            const launchBaseUrl = returnDataArr.gameURL;
+
+            let finalLaunchUrl = launchBaseUrl;
+
+            //console.log(finalLaunchUrl);
+
+            return {
+                status: 0,
+                code: "success",
+                message: "Game URL has been generated!",
+                data: {
+                    return_url: finalLaunchUrl
+                }
+            }
+        } else {
+            return {
+                status: false,
+                code: 120,
+                data: {}
+            }
+        }
+
     } catch (error) {
         console.log(error.message);
+        return {
+            code: 1004,
+            message: "FATAL_ERROR",
+            data: {}
+        }
     }
 }
 
@@ -116,61 +337,69 @@ let authenticate = async (req, res) => {
             }
 
             return payLoad;
-        } else {
-            // let config = {
-            //     method: 'post',
-            //     url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     data: {
-            //         user_id: userdtls.account_user_id
-            //     }
-            // };
+        }
+        
+        // let config = {
+        //     method: 'post',
+        //     url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     data: {
+        //         user_id: userdtls.account_user_id
+        //     }
+        // };
 
-            // let response = await axios(config);
-            let postData = {
-                user_id: userdtls.account_user_id
-            }
+        // let response = await axios(config);
 
-            let response = await commonController.postDataFromAPI(acountDetails.service_endpoint, req.params.function, postData);
-            console.log(response);
+        let postData = {
+            user_id: userdtls.account_user_id
+        }
+        let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
+        // console.log(response.response.ok)
 
-            // checking the response has any error or not
-            if (response.data.err == true) {
-                code = 120;
-                Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
-                return await invalidError(code, Status);
-            }
+        // checking the response has any error or not
+        if (response.error == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        // let responseObj = await response.response.json();
+        let responseObj = response.response.data;
+        if (responseObj.err == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseData = responseObj.data;
+        let function_name = "authenticate";
+        // let responseData = await response.response.json();
+        let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
-            let function_name = "authenticate";
-            let responseData = response.data;
-            let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
-
-            /* checking the client data format has any error or not */
-            if (responseCheck.error == true) {
-                let payLoad = {
-                    "error": 120,
-                    "description": "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
-                }
-                return payLoad;
-            }
-
+        /* checking the client data format has any error or not */
+        if (responseCheck.error == true) {
             let payLoad = {
-                status: 200,
-                userId: usercode,
-                currency: userdtls.currency_code,
-                cash: responseData.amount,
-                bonus: 0,
-                token: tokenStr,
-                country: responseData.country,
-                jurisdiction: responseData.jurisdiction,
-                error: 0,
-                description: "Success"
+                "error": 120,
+                "description": "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
             }
-
             return payLoad;
         }
+
+        let payLoad = {
+            status: 200,
+            userId: usercode,
+            currency: userdtls.currency_code,
+            cash: parseFloat(responseData.amount).toFixed(2),
+            bonus: parseFloat(200).toFixed(2),
+            token: tokenStr,
+            country: responseData.country,
+            jurisdiction: responseData.jurisdiction,
+            error: 0,
+            description: "Success"
+        }
+
+        return payLoad;
+
     } catch (error) {
         console.log(error.message);
         const payLoad = {
@@ -217,28 +446,28 @@ let balance = async (req, res) => {
             return payLoad;
         }
 
-        let config = {
-            method: 'post',
-            url: `${acountDetails.service_endpoint}/callback?function=balance`,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            data: {
-                "user_id": "1234567890"
-            }
-        };
-
-        let response = await axios(config);
+        let postData = {
+            "user_id": account_user_id
+        }
+        let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
+        // console.log(response);
 
         // checking the response has any error or not
-        if (response.data.err == true) {
+        if (response.error == true) {
             code = 120;
             Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
             return await invalidError(code, Status);
         }
-
+        // let responseObj = await response.response.json();
+        let responseObj = response.response.data;
+        
+        if (responseObj.err == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseData = responseObj.data;
         let function_name = 'balance';
-        let responseData = response.data.data;
         let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
         // checking the data format has any error or not
@@ -251,8 +480,8 @@ let balance = async (req, res) => {
         }
         let payLoad = {
             "currency": responseData.currency,
-            "cash": responseData.amount,
-            "bonus": responseData.bonus,
+            "cash": parseFloat(responseData.amount).toFixed(2),
+            "bonus": parseFloat(200).toFixed(2),
             "error": 0,
             "description": "sucess"
         }
@@ -347,36 +576,32 @@ let bet = async (req, res) => {
             return payLoad;
         }
 
-        let config = {
-            method: 'post',
-            url: `${acountDetails.service_endpoint}/callback?function=bet`,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            data: {
-                "user_id": "fgfdg",
-                "txn_id": "12345",
-                "round_id": "12345",
-                "game_id": "12345",
-                "category_id": "12345",
-                "bet_amount": "120",
-                "bonus": "10"
-            }
-        };
-        let response = await axios(config);
-
-        // checking the response has any error or not
-        if (response.data.err == true) {
-            payLoad = {
-                error: 3,
-                description: "Bet is not allowed. Should be returned in any case when the player is notallowed to play a specific game. For example, because of special bonus."
-            }
-
-            return payLoad;
+        let postData = {
+            "user_id": "fgfdg",
+            "txn_id": "12345",
+            "round_id": "12345",
+            "game_id": "12345",
+            "category_id": "12345",
+            "bet_amount": "120",
+            "bonus": "10"
         }
 
+        let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
+
+        // checking the response has any error or not
+        if (response.error == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseObj = await response.response.json();
+        if (responseObj.err == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseData = responseObj.data;
         let function_name = "bet";
-        let responseData = response.data.data;
         let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
         /* checking the client data format has any error or not */
@@ -542,35 +767,31 @@ let result = async (req, res) => {
             return payLoad;
         }
 
-        let config = {
-            method: 'post',
-            url: `${acountDetails.service_endpoint}/callback?function=win`,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            data: {
-                "user_id": "fgfdg",
-                "txn_id": "12345",
-                "round_id": "12345",
-                "game_id": "12345",
-                "category_id": "12345",
-                "win_amount": "120",
-                "bonus": "10"
-            }
-        };
-        let response = await axios(config);
+        let postData = {
+            "user_id": "fgfdg",
+            "txn_id": "12345",
+            "round_id": "12345",
+            "game_id": "12345",
+            "category_id": "12345",
+            "win_amount": "120",
+            "bonus": "10"
+        }
+        let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
 
         // checking the response has any error or not
-        if (response.data.err == true) {
-            payLoad = {
-                error: 120,
-                description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
-            }
-            return payLoad;
+        if (response.error == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
         }
-
+        let responseObj = await response.response.json();
+        if (responseObj.err == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseData = responseObj.data;
         let function_name = "bet";
-        let responseData = response.data.data;
         let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
         /* checking the client data format has any error or not */
@@ -718,19 +939,25 @@ let refund = async (req, res) => {
             return payLoad;
         }
 
-        let config = {
-            method: 'post',
-            url: `${acountDetails.service_endpoint}/callback?function=refund`,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            data: {
-                "txn_id": `${reference_id}`,
-            }
-        };
-        let response = await axios(config);
+        postData = {
+            "txn_id": `${reference_id}`,
+        }
+
+        let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
+        // checking the response has any error or not
+        if (response.error == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseObj = await response.response.json();
+        if (responseObj.err == true) {
+            code = 120;
+            Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
+            return await invalidError(code, Status);
+        }
+        let responseData = responseObj.data;
         let function_name = "refund";
-        let responseData = response.data.data;
         let responseCheck = await ppClientSmValidator.ppSmValidator(function_name, responseData);
 
         /* checking the client data format has any error or not */
@@ -856,38 +1083,6 @@ let isTokenvalid = async (tokenStr) => {
             error: 4,
             description: 'Player authentication failed due to invalid, not found or expired token'
         }
-    }
-
-    return requestsend;
-}
-
-let isHashvalid = async (parameter, client_id) => {
-
-    let reqhash = '';
-    let requestsend = {};
-    let setdata = {};
-    if (parameter.hasOwnProperty('hash')) {
-        reqhash = parameter.hash;
-        delete parameter.hash;
-    }
-
-
-    let provider_params = await commonController.get_provider_params(client_id, this.provider_id, {}, 'SM', 'SLOT');
-    provider_params.forEach(element => {
-        setdata[element.field_key] = element.field_value;
-    });
-
-    parameter = check.removeEmpty(parameter); // removing blank values
-
-    parameter = check.sortObj(parameter); // sorting object
-    let finalstring = httpBuildQuery(parameter) + setdata.key; //converting json to string
-    let md5hash = check.createMd5hash(finalstring);
-    console.log('createdmd5====>>', md5hash);
-    console.log('requestedmd5===>', reqhash);
-
-    if (md5hash != reqhash) {
-        let errmsg = "Invalid hash code. Should be returned in the response on any request sent by Pragmatic Play if the hash code validation is failed.";
-        requestsend = await invalidError(5, errmsg);
     }
 
     return requestsend;

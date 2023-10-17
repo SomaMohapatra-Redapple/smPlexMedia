@@ -161,13 +161,15 @@ const reqPromowinValidateSchema = Joi.object({
 })
 
 const getGameUrlValidateSchema = Joi.object({
-    usercode: Joi.required(),
     mode: Joi.required(),
-    game: Joi.required(),
-    lang: Joi.required(),
+    usercode: Joi.required(),
     token: Joi.required(),
+    account_id : Joi.required(),
+    game_id: Joi.required(),
+    lang: Joi.required(),
+    currency: Joi.required(),
     return_url: Joi.required(),
-    game_code: Joi.string().allow("", null),
+    // game_code: Joi.string().allow("", null),
 })
 
 
