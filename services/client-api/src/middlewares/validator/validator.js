@@ -41,7 +41,7 @@ let apiValidator = async (req, res, next) => {
         let value = {};
         switch (req.query.function) {
             case "authenticate":
-                value = await reqAuthValidateSchema.validate();
+                value = await reqAuthValidateSchema.validate(req.body);
                 break;
             case "balance":
                 value = await userBalanceSchema.validate(req.body);

@@ -25,6 +25,7 @@
         "jsonwebtoken": "^9.0.2",
         "moment-timezone": "^0.5.43",
         "mongoose": "^7.5.1",
+        "redis": "^4.6.10",
         "shortid": "^2.2.16",
         "uuid": "^9.0.1"
     }

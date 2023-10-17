@@ -16,18 +16,6 @@ const mgAuthValidateSchema = Joi.object({
     token: Joi.string().required()
 }).unknown();
 
-const mgLoginValidateSchema = Joi.object({
-    name: Joi.string().required(),
-    uid: Joi.string().required(),
-    timestamp: Joi.date().iso(),
-    session: Joi.string().required(),
-    args: Joi.object({
-        token: Joi.string().required(),
-        game: Joi.string().required(),
-    })
-});
-
-
 const mgTransactionValidateSchema =  Joi.object({
     req_id: Joi.string().required(),
     timestamp: Joi.string().required(),
@@ -39,8 +27,20 @@ const mgTransactionValidateSchema =  Joi.object({
     tx_id: Joi.string().required(),
     item_id: Joi.number().integer().options({ convert: false }),
     round_id: Joi.string().required(),
-    amount: Joi.number().integer().options({ convert: false }),
+    amount: Joi.string().required(),
 }).unknown();
+
+
+const getGameUrlValidateSchema = Joi.object({
+    name: Joi.string().required(),
+    account_id: Joi.string().required(),
+    user_code: Joi.string().required(),
+    token: Joi.string().required(),
+    language: Joi.string().required(),
+    currency: Joi.string().required(),
+    game_code: Joi.string().required(),
+    return_url: Joi.string().required()   
+});
 
 let microgamingReqValidator = async (req, res, next) => {
 
@@ -51,10 +51,12 @@ let microgamingReqValidator = async (req, res, next) => {
             case "balance":
                 value = await mgGetBalanceValidateSchema.validate(req.body);
                 break;
-            case "auth":
+            case "authenticate":
                 value = await mgAuthValidateSchema.validate(req.body);
                 break;
-
+            case "transaction":
+                value = await mgTransactionValidateSchema.validate(req.body);
+                break;
             case "getGameUrl":
 
                 // value = await getGameUrlHeaderValidateSchema.validate(req.headers);
@@ -62,7 +64,7 @@ let microgamingReqValidator = async (req, res, next) => {
                 // if (value.hasOwnProperty('error')) {
                 //     break;
                 // }
-                console.log('====>>', req);
+                console.log('====>>', req.body);
                 value = await getGameUrlValidateSchema.validate(req.body);
                 break;
 

@@ -11,7 +11,6 @@ let isAuthorized = async (req, res, next) => {
     let tokenValidate = tokenStr.includes('-ucd-');
 
     if (tokenValidate == false) {
-      console.log('no -ucd- in token');
       let apiResponse = {
         //uid: uid,
         error: {
@@ -24,8 +23,7 @@ let isAuthorized = async (req, res, next) => {
     let playerToken = tokenStr.split("-ucd-");
     let usercode = playerToken[1];
     const userdtls = await controller.checkUsercodeExists(usercode);
-
-    if (userdtls) {
+    if (!check.isEmpty(userdtls)) {
       next();
     }
     else{

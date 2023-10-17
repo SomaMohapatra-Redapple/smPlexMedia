@@ -1,8 +1,6 @@
 let mongoose = require('mongoose');
-let ClientDbUserModel = mongoose.model('Client_db_users');
-let responseLib = require('../libs/responseLib');
-let timeLib = require('../libs/timeLib');
-let commonController = require('../controller/commonController');
+const responseLib = require('../libs/responseLib');
+let PlayerModel = mongoose.model('Player');
 
 let userBalance = async (req, res) => {
     try {
@@ -27,16 +25,16 @@ let userBalance = async (req, res) => {
     }
 }
 
-let authenticate = (req, res) => {
+let authenticate = async(req, res) => {
     try {
         // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
 
         let payLoad = {
             currency: "kwr",
             amount: +1000,
-            bonus: +100,
-            country: "GB",
-            jurisdiction: "UK"
+            bonus : +100,
+            country : "GB",
+            jurisdiction : "UK"
         }
 
         let apiResponse = responseLib.generate(false, "User Authenticated", payLoad);
@@ -194,8 +192,8 @@ const rollback = async (req, res) => {
             case 2:
                 payLoad = {
                     available_balance: +1000,
-                    txn_id: req.body.txn_id,
-                    operator_transaction_id: "123abcd85666",
+                    txn_id : req.body.txn_id,
+                    operator_transaction_id : "123abcd85666",
                     currency: "kwr",
                     bonus: +100,
                 }
