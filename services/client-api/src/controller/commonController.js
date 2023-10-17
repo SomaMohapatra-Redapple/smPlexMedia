@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 
 /**
  * 
  * @author Injamamul Hoque
+=======
+/**
+ * 
+ * @author Rajdeep Adhikary
+>>>>>>> 9557c544e54330cfffc82c4294dfd182f678cc36
  * @purpose Client API integration common functions
  * @createdDate Oct 17 2023
  * @lastUpdated Oct 17 2023
@@ -9,7 +15,11 @@
  */
 
 const mongoose = require('mongoose');
+<<<<<<< HEAD
 const checkLib = require('../libs/checkLib');
+=======
+const checker = require('../libs/checkLib');
+>>>>>>> 9557c544e54330cfffc82c4294dfd182f678cc36
 const appConfig = require('../../config/appConfig');
 // const apiLib = require('../libs/apiLib');
 // const time = require('../libs/timeLib');
@@ -17,9 +27,15 @@ const ClientDbUsersModel = mongoose.model('Client_db_users');
 
 /**
  * 
+<<<<<<< HEAD
  * @author Injamamul Hoque
  * @function getUser
   @param {} user_id
+=======
+ * @author Rajdeep Adhikary
+ * @function getUser
+ * @param {*} user_id
+>>>>>>> 9557c544e54330cfffc82c4294dfd182f678cc36
  * @returns userdtls/null
  * 
  */
@@ -34,6 +50,7 @@ const getUser = async (user_id) => {
     }
 }
 
+<<<<<<< HEAD
 const updateBalance = async (user_id, transaction_amount, transaction_type) => {
     try {
         let userData = await getUser(user_id);
@@ -61,4 +78,8 @@ const updateBalance = async (user_id, transaction_amount, transaction_type) => {
 module.exports = {
     getUser: getUser,
     updateBalance: updateBalance
+=======
+module.exports = {
+    getUser: getUser,
+>>>>>>> 9557c544e54330cfffc82c4294dfd182f678cc36
 }
