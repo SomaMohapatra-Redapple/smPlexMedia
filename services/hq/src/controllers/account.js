@@ -1,3 +1,4 @@
+const timeLIb = require("../libs/timeLib");
 const responseMessage = require("../libs/responseMessage");
 // const account = require("../services/account");
 // const { AddAccount, ShowAccount } = account;
@@ -41,6 +42,8 @@ const ShowAccount = async (validatedBody) => {
 const add_account = async (req, res, next) => {
   try {
     const query = req.body;
+    query.created_at = timeLIb.now();
+    query.updated_at = timeLIb.now();
     const added_account = await AddAccount(query)
       .then((result) => {
         res.status(200).send({
@@ -62,11 +65,14 @@ const add_account = async (req, res, next) => {
 const add_account_techicals = async (req, res, next) => {
   try {
     const query = req.body;
+    query.created_at = timeLIb.now();
+    query.updated_at = timeLIb.now();
     const added_account = await AddAccountTechnicals(query)
       .then((result) => {
         res.status(200).send({
-          message: "account created",
+          
           result: result,
+          message: "account created",
         });
       })
       .catch((err) => {
