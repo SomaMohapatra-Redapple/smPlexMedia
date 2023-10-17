@@ -9,6 +9,9 @@ const AccountTable = mongoose.model('Accounts');
 const AddAccount = async (query) => {
   return await AccountTable.create(query);
 };
+const AddAccountTechnicals = async (query) => {
+  return await AccountTable.create(query);
+};
 const ShowAccount = async (validatedBody) => {
   console.log("validated body",validatedBody);
   
@@ -33,11 +36,33 @@ const ShowAccount = async (validatedBody) => {
 //   //const {page,limit} = validatedBody;
 //   return await AccountTable.find(query);
 // };
+
 //add account
 const add_account = async (req, res, next) => {
   try {
     const query = req.body;
     const added_account = await AddAccount(query)
+      .then((result) => {
+        res.status(200).send({
+          message: "account created",
+          result: result,
+        });
+      })
+      .catch((err) => {
+        res.status(400).send({
+          err: err.message,
+        });
+      });
+  } catch (e) {
+    console.log("error", e);
+    return next(e);
+  }
+};
+
+const add_account_techicals = async (req, res, next) => {
+  try {
+    const query = req.body;
+    const added_account = await AddAccountTechnicals(query)
       .then((result) => {
         res.status(200).send({
           message: "account created",
@@ -80,4 +105,5 @@ const show_account = async (req, res, next) => {
 module.exports = {
   add_account: add_account,
   show_account: show_account,
+  add_account_techicals : add_account_techicals
 };
