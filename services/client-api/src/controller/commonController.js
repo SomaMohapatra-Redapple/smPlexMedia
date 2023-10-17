@@ -1,38 +1,99 @@
-/**
- * 
- * @author Rajdeep Adhikary
- * @purpose Client API integration common functions
- * @createdDate Oct 17 2023
- * @lastUpdated Oct 17 2023
- * @lastUpdatedBy Rajdeep Adhikary
- */
+let checkLib = require('../libs/checkLib');
+let mongoose = require('mongoose');
+let ClientDbUserModel = mongoose.model('Client_db_users');
+let ClientDbTransctionModel = mongoose.model('Client_db_transactions');
 
-const mongoose = require('mongoose');
-const checker = require('../libs/checkLib');
-const appConfig = require('../../config/appConfig');
-// const apiLib = require('../libs/apiLib');
-// const time = require('../libs/timeLib');
-const ClientDbUsersModel = mongoose.model('Client_db_users');
 
-/**
- * 
- * @author Rajdeep Adhikary
- * @function getUser
- * @param {*} user_id
- * @returns userdtls/null
- * 
- */
+let userDetails = async (userId) => {
+    try {
+        let userData = await ClientDbUserModel.findOne({ _id: userId }).lean();
+        if (checkLib.isEmpty(userData)) {
+            return {
+                error: true
+            }
+        } else {
+            return {
+                error: false,
+                data: userData
+            }
+        }
+    } catch (error) {
+        console.log("error  => ", error.message)
+        return {
+            error: true
+        }
+    }
+}
+
+const insertLog = async (data) => {
+    try {
+        let transactionData = new ClientDbTransctionModel(data);
+        let saveData = await transactionData.save();
+        // console.log(saveData);
+        if (saveData) {
+            let insertData = {
+                _id: saveData._id,
+                error: false
+            }
+            return insertData;
+        } else {
+            let insertData = {
+                error: true
+            }
+            return insertData;
+        }
+
+    } catch (e) {
+        console.log('error ==>', e);
+        return true;
+    }
+}
+
+const updateBalance = async (user_id, transaction_amount, transaction_type) => {
+    try {
+        let userData = await getUser(user_id);
+        if (!userData)
+            return { error: true };
+        let id = userData._id;
+        if (transaction_type == "CREDIT") {
+            userData.balance = parseFloat(userData.balance) + parseFloat(transaction_amount)
+        }
+        if (transaction_type == "DEBIT") {
+            userData.balance = parseFloat(userData.balance) - parseFloat(transaction_amount)
+        }
+        delete userData._id;
+        console.log(userData);
+        return await ClientDbUserModel.findOneAndUpdate({ _id: id }, userData, { new: true });
+
+    } catch (error) {
+        return {
+            error: true
+        }
+    }
+
+}
 
 const getUser = async (user_id) => {
-    let user = await ClientDbUsersModel.findById(user_id).lean();
-    if(!checker.isEmpty(user)){
+    let user = await ClientDbUserModel.findById(user_id).lean();
+    if (!checkLib.isEmpty(user)) {
         return user;
     }
-    else{
+    else {
         return false;
     }
 }
 
+const isTransactionProcessed = async (txn_id) => {
+    let transaction = await ClientDbTransctionModel.findOne({ provider_transaction_id: txn_id }).lean();
+    if (!checkLib.isEmpty(transaction)) {
+        return true;
+    } else {
+        return false;
+    }
+}
 module.exports = {
-    getUser: getUser,
+    userDetails: userDetails,
+    insertLog: insertLog,
+    updateBalance: updateBalance,
+    isTransactionProcessed: isTransactionProcessed
 }
