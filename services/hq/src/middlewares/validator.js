@@ -77,17 +77,26 @@ const addAdminValidationSchema = Joi.object({
 })
 
 const addAccountSchema = Joi.object({
-  //client_id: Joi.string().required(),
-  client_id: Joi.string().required(),
-  username: Joi.string().required(),
-  status: Joi.string().required(),
-  password: Joi.string()
-    .required()
-    .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
-
-  status: Joi.string().required()
+    client_id: Joi.string().required(),
+    account_name: Joi.string().required(),
+    operator_account_type:Joi.string().required(),
+    environment : Joi.string().required(),
+    currency:Joi.string().required(),
+    status: Joi.string().required(),
 });
 
+const addAccountTechnicalSchema = Joi.object({
+    //client_id: Joi.string().required(),
+    client_id: Joi.string().required(),
+    account_id: Joi.string().required(),
+    api_username: Joi.string().required(),
+    api_secret: Joi.string().required(),
+    service_endpoint: Joi.string().required(),
+    currency: Joi.string().required(),
+    is_maintenance_mode_on: Joi.string().required(),
+    account_type: Joi.string().required(),
+    
+  });
 const LoginValidateSchema = Joi.object({
     username: Joi.string()
         .required(),
@@ -336,6 +345,21 @@ let addAccountValidation = async(req, res, next) => {
     }
 }
 
+let addAccountTechnicalValidation = async(req, res, next) => {
+    try {
+        const value = await addAccountTechnicalSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
+
 let customRegisterValidate = async(req, res, next) => {
     try {
         const value = await customRegisterValidateSchema.validate(req.body);
@@ -510,6 +534,7 @@ module.exports = {
     showAllClient :showAllClient,
     adminRegisterValidate: adminRegisterValidate,
     addAccountValidation :addAccountValidation,
+    addAccountTechnicalValidation :addAccountTechnicalValidation,
     customRegisterValidate: customRegisterValidate,
     createQuestionValidate: createQuestionValidate,
     updateQuestionValidate: updateQuestionValidate,
