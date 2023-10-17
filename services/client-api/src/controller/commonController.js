@@ -1,60 +1,58 @@
-<<<<<<< HEAD
+let checkLib = require('../libs/checkLib');
+let mongoose = require('mongoose');
+let ClientDbUserModel = mongoose.model('Client_db_users');
+let ClientDbTransctionModel = mongoose.model('Client_db_transactions');
 
-/**
- * 
- * @author Injamamul Hoque
-=======
-/**
- * 
- * @author Rajdeep Adhikary
->>>>>>> 9557c544e54330cfffc82c4294dfd182f678cc36
- * @purpose Client API integration common functions
- * @createdDate Oct 17 2023
- * @lastUpdated Oct 17 2023
- * @lastUpdatedBy Rajdeep Adhikary
- */
 
-const mongoose = require('mongoose');
-<<<<<<< HEAD
-const checkLib = require('../libs/checkLib');
-=======
-const checker = require('../libs/checkLib');
->>>>>>> 9557c544e54330cfffc82c4294dfd182f678cc36
-const appConfig = require('../../config/appConfig');
-// const apiLib = require('../libs/apiLib');
-// const time = require('../libs/timeLib');
-const ClientDbUsersModel = mongoose.model('Client_db_users');
-
-/**
- * 
-<<<<<<< HEAD
- * @author Injamamul Hoque
- * @function getUser
-  @param {} user_id
-=======
- * @author Rajdeep Adhikary
- * @function getUser
- * @param {*} user_id
->>>>>>> 9557c544e54330cfffc82c4294dfd182f678cc36
- * @returns userdtls/null
- * 
- */
-
-const getUser = async (user_id) => {
-    let user = await ClientDbUsersModel.findById(user_id).lean();
-    if(!checker.isEmpty(user)){
-        return user;
-    }
-    else{
-        return false;
+let userDetails = async (userId) => {
+    try {
+        let userData = await ClientDbUserModel.findOne({ _id: userId }).lean();
+        if (checkLib.isEmpty(userData)) {
+            return {
+                error: true
+            }
+        } else {
+            return {
+                error: false,
+                data: userData
+            }
+        }
+    } catch (error) {
+        console.log("error  => ", error.message)
+        return {
+            error: true
+        }
     }
 }
 
-<<<<<<< HEAD
+const insertLog = async (data) => {
+    try {
+        let transactionData = new ClientDbTransctionModel(data);
+        let saveData = await transactionData.save();
+        // console.log(saveData);
+        if (saveData) {
+            let insertData = {
+                _id: saveData._id,
+                error: false
+            }
+            return insertData;
+        } else {
+            let insertData = {
+                error: true
+            }
+            return insertData;
+        }
+
+    } catch (e) {
+        console.log('error ==>', e);
+        return true;
+    }
+}
+
 const updateBalance = async (user_id, transaction_amount, transaction_type) => {
     try {
         let userData = await getUser(user_id);
-        if(!userData)
+        if (!userData)
             return { error: true };
         let id = userData._id;
         if (transaction_type == "CREDIT") {
@@ -65,8 +63,8 @@ const updateBalance = async (user_id, transaction_amount, transaction_type) => {
         }
         delete userData._id;
         console.log(userData);
-        return await ClientDbUserModel.findOneAndUpdate({_id: id}, userData, {new: true});
-        
+        return await ClientDbUserModel.findOneAndUpdate({ _id: id }, userData, { new: true });
+
     } catch (error) {
         return {
             error: true
@@ -75,11 +73,27 @@ const updateBalance = async (user_id, transaction_amount, transaction_type) => {
 
 }
 
+const getUser = async (user_id) => {
+    let user = await ClientDbUserModel.findById(user_id).lean();
+    if (!checkLib.isEmpty(user)) {
+        return user;
+    }
+    else {
+        return false;
+    }
+}
+
+const isTransactionProcessed = async (txn_id) => {
+    let transaction = await ClientDbTransctionModel.findOne({ provider_transaction_id: txn_id }).lean();
+    if (!checkLib.isEmpty(transaction)) {
+        return true;
+    } else {
+        return false;
+    }
+}
 module.exports = {
-    getUser: getUser,
-    updateBalance: updateBalance
-=======
-module.exports = {
-    getUser: getUser,
->>>>>>> 9557c544e54330cfffc82c4294dfd182f678cc36
+    userDetails: userDetails,
+    insertLog: insertLog,
+    updateBalance: updateBalance,
+    isTransactionProcessed: isTransactionProcessed
 }
