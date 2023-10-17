@@ -11,6 +11,8 @@ appConfig.allowedCorsOrigin = "*";
 appConfig.apiVersion = '/api/v1';
 appConfig.socketNameSpace = 'wsio';
 appConfig.sessionExpTime = (120 * 120);
+appConfig.provider_id = "65142a47b0aef485da243a28"; // provider id of gp
+appConfig.redis_url ='redis://18.162.166.6:6379';
 
 appConfig.MSG_1000 ='Oops! Something went wrong...';
 appConfig.db = {

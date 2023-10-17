@@ -12,6 +12,6 @@ const microgamingController = require('../controllers/microgamingController');
 module.exports.setRouter = (app) => {
 
   let baseUrl = `${appConfig.apiVersion}/microgaming`;
-  app.post(`${baseUrl}/:function`,auth.isAuthorized,validator.microgamingReqValidator,microgamingController.handler);
+  app.post(`${baseUrl}/:function`,validator.microgamingReqValidator,microgamingController.handler);
 };
 
