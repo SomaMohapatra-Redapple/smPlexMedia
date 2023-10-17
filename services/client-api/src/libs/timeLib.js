@@ -5,7 +5,8 @@ const timeZoneKst = process.env.TIME_ZONE_KST
 
 
 let now = () => {
-  return moment.utc().unix();
+  // return moment.utc().unix();
+  return moment.utc().format();
 }
 let utc = () => {
   return momenttz().tz(timeZone).utc().unix();
