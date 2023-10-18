@@ -338,7 +338,7 @@ let authenticate = async (req, res) => {
 
             return payLoad;
         }
-        
+
         // let config = {
         //     method: 'post',
         //     url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
@@ -460,7 +460,7 @@ let balance = async (req, res) => {
         }
         // let responseObj = await response.response.json();
         let responseObj = response.response.data;
-        
+
         if (responseObj.err == true) {
             code = 120;
             Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
@@ -480,8 +480,8 @@ let balance = async (req, res) => {
         }
         let payLoad = {
             "currency": responseData.currency,
-            "cash": parseFloat(responseData.amount).toFixed(2),
-            "bonus": parseFloat(200).toFixed(2),
+            "cash": parseFloat(responseData.amount),
+            "bonus": parseFloat(200),
             "error": 0,
             "description": "sucess"
         }
@@ -519,6 +519,7 @@ let bet = async (req, res) => {
         // const providerId = bodyData.providerId;
         const reference_id = bodyData.reference; // provider transction ID
         const roundId = bodyData.roundId; //provider Id of the round
+        let betAmount = bodyData.amount;
 
         // const tokenValid = await isTokenvalid(tokenStr);
         // if (check.checkObjectLen(tokenValid) > 0) {
@@ -577,13 +578,13 @@ let bet = async (req, res) => {
         }
 
         let postData = {
-            "user_id": "fgfdg",
-            "txn_id": "12345",
-            "round_id": "12345",
-            "game_id": "12345",
-            "category_id": "12345",
-            "bet_amount": "120",
-            "bonus": "10"
+            "user_id": account_user_id,
+            "game_id": gamecode,
+            "round_id": roundId,
+            "txn_id": reference_id,
+            "category_id": gameDetails.game_category_id,
+            "bet_amount": betAmount,
+            "bonus": ''
         }
 
         let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
@@ -594,7 +595,9 @@ let bet = async (req, res) => {
             Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
             return await invalidError(code, Status);
         }
-        let responseObj = await response.response.json();
+        // let responseObj = await response.response.json();
+        let responseObj = response.response.data;
+
         if (responseObj.err == true) {
             code = 120;
             Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
@@ -635,9 +638,10 @@ let bet = async (req, res) => {
                     transaction_amount: betamount,
                     transaction_type: "Debit",
                     action: "BET",
+                    available_balance: responseData.available_balance,
                     status: 0,
-                    created_at: timeLib.currentDateTime(),
-                    updated_at: timeLib.currentDateTime()
+                    created_at: timeLib.now(),
+                    updated_at: timeLib.now()
                 }
 
                 // log the data
@@ -653,6 +657,7 @@ let bet = async (req, res) => {
                         error: 0,
                         description: "Success"
                     }
+                    return payLoad;
                 } else {
                     payLoad = {
                         error: 120,
@@ -720,6 +725,8 @@ let result = async (req, res) => {
         let userdtls = await commonController.checkUsercodeExists(usercode);
         let account_user_id = userdtls.account_user_id;
         let account_id = userdtls.account_id;
+        let winAmount = bodyData.amount;
+
 
         // do the hash calculation here
 
@@ -768,15 +775,17 @@ let result = async (req, res) => {
         }
 
         let postData = {
-            "user_id": "fgfdg",
-            "txn_id": "12345",
-            "round_id": "12345",
-            "game_id": "12345",
-            "category_id": "12345",
-            "win_amount": "120",
-            "bonus": "10"
+            "user_id": account_user_id,
+            "game_id": gamecode,
+            "round_id": roundId,
+            "txn_id": reference_id,
+            "category_id": gameDetails.game_category_id,
+            "win_amount": winAmount,
+            "bonus": ''
         }
-        let response = await apiService.postData(acountDetails.service_endpoint, req.params.function, postData);
+
+
+        let response = await apiService.postData(acountDetails.service_endpoint, 'win', postData);
 
         // checking the response has any error or not
         if (response.error == true) {
@@ -784,7 +793,10 @@ let result = async (req, res) => {
             Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
             return await invalidError(code, Status);
         }
-        let responseObj = await response.response.json();
+        // let responseObj = await response.response.json();
+        let responseObj = response.response.data;
+
+
         if (responseObj.err == true) {
             code = 120;
             Status = "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request.";
@@ -824,9 +836,10 @@ let result = async (req, res) => {
                     transaction_amount: winamount,
                     transaction_type: "Credit",
                     action: "WIN",
+                    available_balance: responseData.available_balance,
                     status: 0,
-                    created_at: timeLib.currentDateTime(),
-                    updated_at: timeLib.currentDateTime()
+                    created_at: timeLib.now(),
+                    updated_at: timeLib.now()
                 }
 
                 // log the data
@@ -842,6 +855,7 @@ let result = async (req, res) => {
                         error: 0,
                         description: "Success"
                     }
+                    return payLoad;
                 } else {
                     payLoad = {
                         error: 120,
