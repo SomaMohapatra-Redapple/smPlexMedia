@@ -34,7 +34,7 @@ const clientBetValidateSchema = Joi.object({
     bonus: Joi.number(),
     round_id: Joi.string().required(),
     txn_id: Joi.string().required(),
-    operator_transaction_id: Joi.string().required().allow(null),
+    operator_transaction_id: Joi.string().required().allow(''),
 });
 
 const clientWinValidateSchema = Joi.object({
@@ -45,7 +45,7 @@ const clientWinValidateSchema = Joi.object({
     bonus: Joi.number(),
     round_id: Joi.string().required(),
     txn_id: Joi.string().required(),
-    operator_transaction_id: Joi.string().required().allow(null),
+    operator_transaction_id: Joi.string().required().allow(''),
 });
 
 
@@ -54,7 +54,7 @@ const clientRefundValidateSchema = Joi.object({
     currency: Joi.string().required(),
     bonus: Joi.number(),
     txn_id: Joi.string().required(),
-    operator_transaction_id: Joi.string().required().allow(null),
+    operator_transaction_id: Joi.string().required().allow(''),
 });
 
 /**
