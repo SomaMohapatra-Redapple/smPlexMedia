@@ -91,7 +91,7 @@ let bet = async (req, res) => {
             return res.status(200).send(apiResponse);
         }
 
-        if(await commonController.isTransactionProcessed(req.body.txn_id)){
+        if(await commonController.isTransactionProcessed(req.body.txn_id, 'DEBIT')){
             payLoad = {
                 transaction_status: false,
                 available_balance: parseFloat(userData.data.balance),
@@ -159,7 +159,7 @@ let win = async(req, res) => {
             return res.status(500).send(apiResponse);
         }
 
-        if(await commonController.isTransactionProcessed(req.body.txn_id)){
+        if(await commonController.isTransactionProcessed(req.body.txn_id, 'CREDIT')){
             payLoad = {
                 transaction_status: false,
                 available_balance: parseFloat(userData.data.balance),

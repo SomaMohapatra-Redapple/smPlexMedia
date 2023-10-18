@@ -83,8 +83,8 @@ const getUser = async (user_id) => {
     }
 }
 
-const isTransactionProcessed = async (txn_id) => {
-    let transaction = await ClientDbTransctionModel.findOne({ provider_transaction_id: txn_id }).lean();
+const isTransactionProcessed = async (txn_id, transaction_type) => {
+    let transaction = await ClientDbTransctionModel.findOne({ provider_transaction_id: txn_id, transaction_type : transaction_type }).lean();
     if (!checkLib.isEmpty(transaction)) {
         return true;
     } else {
