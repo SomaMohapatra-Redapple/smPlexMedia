@@ -265,7 +265,7 @@ const transaction = async(data) => {
         // check if bet is allowed
         let betStatus = await commonController.isBetEnabled(userdtls.account_id, provider_id);
         if(betStatus.rejectionStatus === true || betStatus.maintenance_mode_status === 'Y'){
-            return {
+            returnData =  {
                 "uid": data.uid,            
                 "error": {
                     "code": "SESSION_CLOSED"  
@@ -295,7 +295,7 @@ const transaction = async(data) => {
             let acountDetails = await AccountsTechnicalsModel.findOne({account_id: userdtls.account_id }).lean();
 
             if(checker.isEmpty(acountDetails)){
-                return {
+                returnData =  {
                     "uid": data.uid,            
                     "error": {
                         "code": "INVALID_TOKEN"  
@@ -320,7 +320,7 @@ const transaction = async(data) => {
                 response = response.data;
                 
                 if(response.err === true){
-                    return {
+                    returnData =  {
                         "uid": data.uid,            
                         "error": {
                             "code": "FATAL_ERROR"
@@ -331,7 +331,7 @@ const transaction = async(data) => {
                 let validation = await clientValidator.validateResponse(response.data, 'bet');
 
                 if(validation.error === true){
-                    return {
+                    returnData = {
                         "uid": data.uid,            
                         "error": {
                             "code": "INVALID_TOKEN"  
@@ -369,24 +369,25 @@ const transaction = async(data) => {
                             await commonController.insertLog(logData);
 
                             // set success response
-                            return {
+                            returnData = {
                                 uid: data.uid,
                                 balance: {
-                                    value: (response.data.available_balance).toFixed(2),
                                     value: (response.data.available_balance).toFixed(2),
                                     version: await commonController.getVersion(),
                                     
                                 }
                             }
+                            break;
                         case 'BALANCE_EXCEED':
-                            return {
+                            returnData = {
                                 "uid": data.uid,            
                                 "error": {
                                     "code": "FUNDS_EXCEED"  
                                 }
                             }
+                            break;
                         case 'ALREADY_PROCESSED':
-                            return {
+                            returnData = {
                                 uid: data.uid,
                                 balance: {
                                     value: (response.data.available_balance).toFixed(2).toString(),
@@ -394,13 +395,15 @@ const transaction = async(data) => {
                                     
                                 }
                             }
+                            break;
                         default:
-                            return {
+                            returnData = {
                                 "uid": data.uid,            
                                 "error": {
                                     "code": "INVALID_TOKEN"  
                                 }
                             }
+                            break;
                     }
                 }
             }
@@ -449,7 +452,7 @@ const transaction = async(data) => {
                 response = response.data;
                 
                 if(response.err === true){
-                    return {
+                    returnData = {
                         "uid": data.uid,            
                         "error": {
                             "code": "FATAL_ERROR" 
@@ -460,7 +463,7 @@ const transaction = async(data) => {
                 let validation = await clientValidator.validateResponse(response.data, 'win');
 
                 if(validation.error === true){
-                    return {
+                    returnData = {
                         "uid": data.uid,            
                         "error": {
                             "code": "INVALID_TOKEN"  
@@ -498,17 +501,17 @@ const transaction = async(data) => {
                             await commonController.insertLog(logData);
 
                             // set success response
-                            return {
+                            returnData = {
                                 uid: data.uid,
                                 balance: {
-                                    value: (response.data.available_balance).toFixed(2),
                                     value: (response.data.available_balance).toFixed(2),
                                     version: await commonController.getVersion(),
                                     
                                 }
                             }
+                            break;
                         case 'ALREADY_PROCESSED':
-                            return {
+                            returnData = {
                                 uid: data.uid,
                                 balance: {
                                     value: (response.data.available_balance).toFixed(2).toString(),
@@ -516,13 +519,15 @@ const transaction = async(data) => {
                                     
                                 }
                             }
+                            break;
                         default:
-                            return {
+                            returnData = {
                                 "uid": data.uid,            
                                 "error": {
                                     "code": "INVALID_TOKEN"  
                                 }
                             }
+                            break;
                     }
                 }
             }
