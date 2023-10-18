@@ -135,39 +135,64 @@ let bet = async (req, res) => {
     }
 }
 
-let win = (req, res) => {
+let win = async(req, res) => {
     try {
-        // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
+        // get user from db
+        let userData = await commonController.userDetails(req.body.user_id);
         let payLoad = {};
-        let rand = Math.floor(Math.random() * (2 - 1 + 1) + 1);
-        console.log(rand);
-        switch (rand) {
-            case 1:
-                payLoad = {
-                    transaction_status: true,
-                    available_balance: +1000,
-                    code: 'SUCCEED',
-                    currency: "kwr",
-                    bonus: +100,
-                    txn_id: req.body.txn_id,
-                    operator_transaction_id: "123abcd85666",
-                    round_id: req.body.round_id
-                }
-                break;
-            case 2:
-                payLoad = {
-                    transaction_status: false,
-                    available_balance: +1000,
-                    code: 'ALREADY_PROCESSED',
-                    currency: "kwr",
-                    bonus: +100,
-                    txn_id: req.body.txn_id,
-                    operator_transaction_id: "123abcd85666",
-                    round_id: req.body.round_id
-                }
-                break;
+
+        // if user doen't exist, return
+        if (userData.error == true) {
+            let apiResponse = responseLib.generate(true, "INVALID_USER", {});
+            return res.status(500).send(apiResponse);
         }
 
+        if(await commonController.isTransactionProcessed(req.body.txn_id)){
+            payLoad = {
+                transaction_status: false,
+                available_balance: parseFloat(userData.data.balance),
+                code: 'ALREADY_PROCESSED',
+                currency: userData.data.currency_code,
+                bonus: +100,
+                txn_id: req.body.txn_id,
+                operator_transaction_id: "",
+                round_id: req.body.round_id
+            }
+            let apiResponse = responseLib.generate(false, "ALREADY_PROCESSED", payLoad);
+            return res.status(200).send(apiResponse);
+        }
+                
+        await commonController.updateBalance(req.body.user_id, req.body.win_amount, "CREDIT");
+
+        let logData = {
+            session_id: "00000",
+            user_id: req.body.user_id,
+            game_id: req.body.game_id,
+            provider_id: "0123456789",
+            provider_transaction_id: req.body.txn_id,
+            game_category_id: req.body.category_id,
+            round_id: req.body.round_id,
+            transaction_amount: parseFloat(req.body.win_amount),
+            transaction_type: "CREDIT",
+            available_balance: parseFloat(userData.data.balance) + parseFloat(req.body.win_amount),
+            action: "WIN",
+            status: true,
+            created_at: timeLib.now(),
+            updated_at: timeLib.now()
+        }
+
+        // log the data
+        let inserData = await commonController.insertLog(logData);
+        payLoad = {
+            transaction_status: true,
+            available_balance: parseFloat(userData.data.balance) + parseFloat(req.body.win_amount),
+            code: 'SUCCEED',
+            currency: userData.data.currency_code,
+            bonus: parseFloat(100.125),
+            txn_id: req.body.txn_id,
+            operator_transaction_id: inserData._id,
+            round_id: req.body.round_id
+        }
 
         let apiResponse = responseLib.generate(false, "Win API", payLoad);
         res.status(200).send(apiResponse);
