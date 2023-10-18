@@ -32,17 +32,29 @@ let userBalance = async (req, res) => {
 let authenticate = async(req, res) => {
     try {
         // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
+        // get user from db
+        let userData = await commonController.userDetails(req.body.user_id);
+        let payLoad = {};
 
-        let payLoad = {
-            currency: "kwr",
-            amount: +1000,
-            bonus : +100,
-            country : "GB",
-            jurisdiction : "UK"
+        // if user doen't exist, return
+        if (userData.error == true) {
+            let apiResponse = responseLib.generate(true, "INVALID_USER", {});
+            return res.status(500).send(apiResponse);
+        }
+        else{
+            payLoad = {
+                currency: userData.data.currency_code,
+                amount: parseFloat(userData.data.balance),
+                bonus : 0,
+                country : userData.data.country_code,
+                jurisdiction : userData.data.jurisdiction
+            }
+
+            let apiResponse = responseLib.generate(false, "User Authenticated", payLoad);
+            res.status(200).send(apiResponse);
         }
 
-        let apiResponse = responseLib.generate(false, "User Authenticated", payLoad);
-        res.status(200).send(apiResponse);
+        
 
     } catch (error) {
         let apiResponse = responseLib.generate(true, error.message, {});
