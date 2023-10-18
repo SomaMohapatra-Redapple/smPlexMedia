@@ -357,6 +357,7 @@ const transaction = async(data) => {
                                 provider_transaction_id : transaction_id,
                                 round_id : roundId,
                                 operator_transaction_id : response.data.operator_transaction_id,
+                                available_balance : response.data.available_balance,
                                 transaction_amount : amount,
                                 transaction_type : transaction_type,
                                 action : 'BET',
@@ -489,6 +490,7 @@ const transaction = async(data) => {
                                 provider_transaction_id : transaction_id,
                                 round_id : roundId,
                                 operator_transaction_id : response.data.operator_transaction_id,
+                                available_balance : response.data.available_balance,
                                 transaction_amount : amount,
                                 transaction_type : transaction_type,
                                 action : 'WIN',
@@ -595,7 +597,8 @@ const rollback = async(data) => {
             else{
 
                 let dataToSend = {
-                    txn_id : referenced_transaction_id
+                    txn_id : referenced_transaction_id,
+                    user_id : userdtls.account_user_id
                 }
 
                 // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'refund', dataToSend);
@@ -653,6 +656,7 @@ const rollback = async(data) => {
                             round_id : roundId,
                             operator_transaction_id : operator_transaction_id,
                             transaction_amount : transactionValid.transaction_amount,
+                            available_balance : response.data.available_balance,
                             transaction_type : transaction_type,
                             action : 'ROLLBACK',
                             status : 0,
