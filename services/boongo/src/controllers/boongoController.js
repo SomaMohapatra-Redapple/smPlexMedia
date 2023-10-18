@@ -43,9 +43,6 @@ const handler  = async(req, res) => {
             case "rollback":
                 response = await rollback(req.body);
                 break;
-            case "getGameUrl":
-                response = await getGameUrl(req.body);
-                break;
             default:
                 response = {}
                 break;
@@ -111,7 +108,7 @@ const login = async(data) => {
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "FATAL_ERROR" 
                     }
                 }
             }
@@ -186,7 +183,7 @@ const getbalance = async(data) => {
         else{
 
             let dataToSend = {
-                user_id : 'yudn2mak3lsmj0kgkdmd91'
+                user_id : userdtls.account_user_id
             }
 
             // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'balance', dataToSend);
@@ -208,7 +205,7 @@ const getbalance = async(data) => {
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "FATAL_ERROR" 
                     }
                 }
             }
@@ -326,7 +323,7 @@ const transaction = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"  
+                            "code": "FATAL_ERROR"
                         }
                     }
                 }
@@ -375,6 +372,7 @@ const transaction = async(data) => {
                             return {
                                 uid: data.uid,
                                 balance: {
+                                    value: (response.data.available_balance).toFixed(2),
                                     value: (response.data.available_balance).toFixed(2),
                                     version: await commonController.getVersion(),
                                     
@@ -454,7 +452,7 @@ const transaction = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"  
+                            "code": "FATAL_ERROR" 
                         }
                     }
                 }
@@ -503,6 +501,7 @@ const transaction = async(data) => {
                             return {
                                 uid: data.uid,
                                 balance: {
+                                    value: (response.data.available_balance).toFixed(2),
                                     value: (response.data.available_balance).toFixed(2),
                                     version: await commonController.getVersion(),
                                     
@@ -614,7 +613,7 @@ const rollback = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"  
+                            "code": "FATAL_ERROR" 
                         }
                     }
                 }
@@ -702,72 +701,79 @@ const rollback = async(data) => {
  * 
  */
 
-const getGameUrl = async(data) => {
+const getGameUrl = async(req, res) => {
     try {
-        const userCode = data.user_code;
+        const data = req.body;
+        const userCode = data.usercode;
         const token = data.token;
         const language = data.language.toLowerCase();
         const gm_title = 'Boongo Game';
         const wl = "prod";
         const account_id = data.account_id;
         const currency = data.currency.toUpperCase();
-        const game_id = data.game_code;
+        const game_id = data.game_id;
 
         let provider_id = appConfig.provider_id;
 
         if(await commonController.isAccountExists(account_id) === false){
-            return {
+            res.status(200).send({
                 code: 1001,                                         // Invalid Account Id
                 message: "INVALID_ACCOUNT",
                 data: {}
-            }
+            })
+            return;
         }
 
         let betStatus = await commonController.isBetEnabled(account_id, provider_id);
         if(betStatus.rejectionStatus === true){
-            return {
+            res.status(200).send({
                 code: 1002,                                         // Provider and client not mapped
                 message: "PROVIDER_DENIED",
                 data: {}
-            }
+            })
+            return;
         }
 
         if(betStatus.maintenance_mode_status === 'Y'){
-            return {
+            res.status(200).send({
                 code: 1003,                                         // client maintainance mode on
                 message: "MAINTENANCE_MODE_ON",
                 data: {}
-            }
+            })
+            return;
         }
 
         const isUser = await commonController.checkUserExistsOrRegister(userCode, account_id, currency, language);
         if(isUser.error){
-            return {
+            res.status(200).send({
                 code: 1004,                                         // Invalid user or unable to save user
                 message: "FATAL_ERROR",
                 data: {}
-            }
+            })
+            return;
         }
         let user = isUser.data;
 
         let gamedtls = await commonController.getGameDetailsByGameId(game_id);
 
         if(checker.isEmpty(gamedtls)){
-            return {
+            res.status(200).send({
                 code: 1005,                                         //invalid game id
                 message: "GAME_NOT_FOUND",
                 data: {}
-            }
+            })
+            return;
         }
 
         let getProviderAccount = await commonController.checkProviderAccountLink(account_id, provider_id); //get provider id first
 
         if(getProviderAccount.error){
-            return {
+            res.status(200).send({
                 code: 1004,                                         // account id not mapped with any provider account & unable to retrieve default provider account
                 message: "FATAL_ERROR",
                 data: {}
-            }
+            })
+            return;
         }
 
         let providerAccountId = getProviderAccount.data;
@@ -775,21 +781,23 @@ const getGameUrl = async(data) => {
         let providerTechnicals = await commonController.getProviderAccountTechnicals(providerAccountId);
         
         if(providerTechnicals.error === true){
-            return {
+            res.status(200).send({
                 code: 1004,                                         // unable to get provider account details from redis
                 message: "FATAL_ERROR",
                 data: {}
-            }
+            })
+            return;
         }
 
         providerTechnicals = providerTechnicals.data;
 
         if(providerTechnicals.currency.includes(currency) === false){
-            return {
+            res.status(200).send({
                 code: 1006,                                         // currency not supported by provider
                 message: "INVALID_CURRENCY",
                 data: {}
-            }
+            })
+            return;
         }
 
         let game_url = providerTechnicals.technical_details.game_url;
@@ -806,10 +814,13 @@ const getGameUrl = async(data) => {
             "lang": language,
             "sound": "1",
             "ts": new Date().getTime(),
-            "title": gm_title,
-            "exit_url": data.return_url,
-            "cashier_url": data.return_url
+            "title": gm_title
         };
+
+        if((data.hasOwnProperty('return_url')) && (data.return_url !== null || data.return_url !== undefined)){
+            params.exit_url = data.return_url;
+            params.cashier_url = data.return_url;
+        }
 
         let query = "";
 
@@ -820,23 +831,26 @@ const getGameUrl = async(data) => {
 
         let finalLaunchUrl = game_url + "?" + query;
 
-        return {
+        res.status(200).send({
             code: 1000,                                    // currency not supported by provider
             message: "SUCCESS",
             data: {
                 game_url: finalLaunchUrl
             }
-        }
+        })
+        return;
     } catch (error) {
         console.log(error.message);
-        return {
+        res.status(500).send({
             code: 1004,                                  // unable to get provider account details from redis
             message: "FATAL_ERROR",
             data: {}
-        }
+        });
+        return;
     }
 }
 
 module.exports = {
     handler: handler ,
+    getGameUrl: getGameUrl,
 };

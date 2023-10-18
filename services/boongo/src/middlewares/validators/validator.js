@@ -109,6 +109,17 @@ const boongoRollbackValidateSchema = Joi.object({
     })
 });
 
+const getGameUrlValidateSchema = Joi.object({
+    mode: Joi.string().required(),
+    usercode: Joi.string().required(),
+    token: Joi.string().required(),
+    account_id : Joi.string().required(),
+    game_id: Joi.string().required(),
+    language: Joi.string().required(),
+    currency: Joi.string().required(),
+    return_url: Joi.string(),
+})
+
 
 /**
  * 
@@ -173,7 +184,41 @@ let boongoReqValidator = async (req, res, next) => {
     }
 }
 
+const getGameUrlValidate = async(req, res, next) => {
+    try{
+        let value = await getGameUrlValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            console.log('Err Value : ', value)
+            let apiResponse = {
+                uid: req.body.uid,
+                error: {
+                  code: 'FATAL_ERROR'
+                }
+              }
+            res.status(200)
+            res.send(apiResponse)
+
+        } else {
+            next();
+        }
+    } catch (err) {
+
+        console.log('Boongo validation catch error :', err.message);
+        let apiResponse = {
+            uid: req.body.uid,
+            error: {
+              code: 'FATAL_ERROR'
+            }
+          }
+        res.status(200)
+        res.send(apiResponse)
+    }
+}
+
+
+
 module.exports = {
-    boongoReqValidator: boongoReqValidator
+    boongoReqValidator: boongoReqValidator,
+    getGameUrlValidate: getGameUrlValidate
 }
 
