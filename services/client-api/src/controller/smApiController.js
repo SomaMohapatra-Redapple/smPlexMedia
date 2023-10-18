@@ -21,7 +21,7 @@ let userBalance = async (req, res) => {
             bonus: 1000.50
         }
 
-        let apiResponse = responseLib.generate(true, "User Details", payLoad);
+        let apiResponse = responseLib.generate(false, "User Details", payLoad);
         res.status(200).send(apiResponse);
     } catch (error) {
         let apiResponse = responseLib.generate(true, error.message, {});
