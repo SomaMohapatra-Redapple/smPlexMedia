@@ -218,14 +218,43 @@ let win = async(req, res) => {
 const rollback = async (req, res) => {
     try {
 
+        let payLoad = {};
+
         let trans_details = await clientTransactionModel.findOne({provider_transaction_id : req.body.txn_id});
 
-        let user_detials = await commonController.getUser(req.body.user_id)
+
+        let userData = await commonController.userDetails(req.body.user_id)
+
+
+        // if user does not exist
+        if (userData.error == true) {
+            let apiResponse = responseLib.generate(true, "INVALID_USER", {});
+            return res.status(500).send(apiResponse);
+        }
+
 
         if(!checkLib.isEmpty(trans_details)){
 
 
-            let new_trans_details = new clientTransactionModel({
+            if( await commonController.isTransactionProcessed(req.body.txn_id,"CREDIT")){
+
+                payLoad = {
+                    transaction_status: false,
+                    available_balance: parseFloat(userData.data.balance),
+                    code: 'ALREADY_PROCESSED',
+                    currency: userData.data.currency_code,
+                    bonus: +100,
+                    txn_id: req.body.txn_id,
+                    operator_transaction_id: "",
+                    round_id: req.body.round_id
+                }
+                let apiResponse = responseLib.generate(false, "ALREADY_PROCESSED", payLoad);
+                return res.status(200).send(apiResponse);
+            }
+
+            await commonController.updateBalance(req.body.user_id, req.body.refund_amount, "CREDIT");
+
+            let logData = {
                 session_id : trans_details.session_id,
                 user_id : trans_details.user_id,
                 game_id : trans_details.game_id,
@@ -233,27 +262,28 @@ const rollback = async (req, res) => {
                 provider_transaction_id : req.body.txn_id,
                 game_category_id : trans_details.game_category_id,
                 round_id : trans_details.round_id,
-                transaction_amount : req.body.amount,
+                transaction_amount : req.body.refund_amount,
                 transaction_type : "CREDIT",
-                available_balance : user_detials.balance + req.body.amount,
+                available_balance : parseFloat(userData.data.balance) + parseFloat(req.body.refund_amount),
                 action : 'REFUND',
-                status : trans_details.status
-            })
-
-            let transaction_log = await new_trans_details.save();
-
-            user_detials.balance = transaction_log.balance
-            
-            await user_detials.save();
-
-
-            let payLoad = {
-                available_balance : transaction_log.available_balance,
-                txn_id : req.body.txn_id,
-                operator_transaction_id: transaction_log._id,
-                currency : user_detials.currency,
-                bonus : +100
+                status : trans_details.status,
+                created_at:timeLib.now(),
+                updated_at:timeLib.now()
             }
+
+            let inserData= await commonController.insertLog(logData);
+
+            
+             payLoad = {
+            transaction_status: true,
+            available_balance: parseFloat(userData.data.balance) + parseFloat(req.body.refund_amount),
+            code: 'SUCCEED',
+            currency: userData.data.currency_code,
+            bonus: parseFloat(100.125),
+            txn_id: req.body.txn_id,
+            operator_transaction_id: inserData._id,
+            round_id: req.body.round_id
+        }
 
             let apiResponse = responseLib.generate(false, "Rollback", payLoad);
             res.status(200).send(apiResponse);
@@ -263,7 +293,7 @@ const rollback = async (req, res) => {
         }else{
 
             let payLoad = {
-                available_balance : user_detials.balance,
+                available_balance : userData.data.balance,
                 txn_id : req.body.txn_id,
                 operator_transaction_id: null,
                 currency : user_detials.currency,
@@ -275,33 +305,6 @@ const rollback = async (req, res) => {
 
 
         }
-        // let findUserBalance = PlayerModel.find({ user_id: `${req.body.user_id}` }).lean();
-        // let payLoad = {};
-        // let rand = Math.floor(Math.random() * (2 - 1 + 1) + 1);
-        // switch(rand){
-        //     case 1 :
-        //         payLoad = {
-        //             available_balance: +1000,
-        //             txn_id : req.body.txn_id,
-        //             operator_transaction_id : "123abcd85666",
-        //             currency: "kwr",
-        //             bonus : +100,
-        //         }
-        //         break;
-        //     case 2 :
-        //         payLoad = {
-        //             available_balance: +1000,
-        //             txn_id : req.body.txn_id,
-        //             operator_transaction_id : "123abcd85666",
-        //             currency: "kwr",
-        //             bonus : +100,
-        //         }
-        //         break;
-        // }
-        
-
-        // let apiResponse = responseLib.generate(false, "Rollback", payLoad);
-        // res.status(200).send(apiResponse);
 
     } catch (error) {
         let apiResponse = responseLib.generate(true, error.message, {});
