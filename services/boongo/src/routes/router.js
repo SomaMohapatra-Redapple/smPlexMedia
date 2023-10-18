@@ -12,7 +12,7 @@ module.exports.setRouter = (app) => {
 
   let baseUrl = `${appConfig.apiVersion}/boongo`;
 
-  app.post(`${baseUrl}/getgameurl`, validator.getGameUrlValidate, boongoController.getGameUrl);
+  app.post(`${baseUrl}/getgameurl`, validator.getGameValidator, boongoController.getGameUrl);
   app.post(`${baseUrl}`, auth.isAuthorized, validator.boongoReqValidator, boongoController.handler);
 };
 
