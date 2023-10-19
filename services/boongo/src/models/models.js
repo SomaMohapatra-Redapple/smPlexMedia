@@ -17,6 +17,9 @@ function modifyObjectForObjectId(obj) {
             obj[key].type = Schema.Types.ObjectId;
             delete obj[key].isObjectId;
         }
+        if(obj[key].type === Number){
+          obj[key].type = Schema.Types.Decimal128;
+        }
       }
     }
   }
@@ -37,6 +40,8 @@ let clientGameMappingSchema = new Schema(smObj.Client_game_mapping);
 let clientProviderAccountMappingSchema = new Schema(smObj.Client_provider_account_mapping);
 let currencySchema = new Schema(smObj.Currency);
 let providerAccountSchema = new Schema(smObj.Provider_account);
+let ClientDbUsers = new Schema(smObj.Client_db_users);
+let ClientDbTransactions = new Schema(smObj.Client_db_transactions);
 
 mongoose.model('Accounts', accountSchema);
 mongoose.model('AccountsTechnicals', accountTechnicalsSchema);
@@ -52,3 +57,5 @@ mongoose.model('Client_game_mapping', clientGameMappingSchema);
 mongoose.model('Client_provider_account_mapping', clientProviderAccountMappingSchema);
 mongoose.model('Currency',currencySchema);
 mongoose.model('Provider_account',providerAccountSchema);
+mongoose.model('Client_db_users',ClientDbUsers);
+mongoose.model('Client_db_transactions',ClientDbTransactions);
