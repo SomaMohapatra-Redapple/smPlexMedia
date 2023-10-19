@@ -60,18 +60,20 @@ const startDB = (app,db_type)=>{
                 /**
                  * database connection settings
                  */
-                mongoose.connect(appConfig.db.uri,{ useNewUrlParser: true});
-                //mongoose.set('debug', true);
-                
-                mongoose.connection.on('error', function (err) {
+
+               
+                // const mongoose = require("mongoose");
+                mongoose.connect(appConfig.db.uri, { useNewUrlParser: true });
+
+                mongoose.connection.on("error", function (err) {
                 console.log(`database error:${err}`);
-                process.exit(1)
+                process.exit(1);
                 }); // end mongoose connection error
-                
-                mongoose.connection.on('open', function (err) {
+
+                mongoose.connection.on("open", async function (err) {
                 if (err) {
                     console.log(`database error:${JSON.stringify(err)}`);
-                    process.exit(1)
+                    process.exit(1);
                 } else {
                     console.log("database connection open success");
                     // const redis_client = redis.createClient({
@@ -86,7 +88,7 @@ const startDB = (app,db_type)=>{
                      * Create HTTP server.
                      */
                     server.startServer(app);
-                    console.log('CWD :: ',process.cwd());
+                
                     const schemaPath = `${process.cwd()}/src/models`;
                     //Bootstrap models
                     fs.readdirSync(schemaPath).forEach(function (file) {
@@ -101,11 +103,12 @@ const startDB = (app,db_type)=>{
                     }
                     });
                     // // end bootstrap route
+
                 }
                 }); // end mongoose connection open handler
             }catch(err){
-                console.log(`Database Connection Open Error : ${err}`);
-            }
+               console.log(`Database Connection Open Error : ${err}`);
+           }
             break;
 
         default:
