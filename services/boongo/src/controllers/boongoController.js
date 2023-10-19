@@ -575,12 +575,9 @@ const rollback = async(data) => {
         let transactionValid = await commonController.isTransactionValid(referenced_transaction_id);
         if (!transactionValid) {
             console.log('invalid transaction');
-            return {
-                "uid": data.uid,            
-                "error": {
-                    "code": "INVALID_TOKEN"  
-                }
-            }    
+            let balance = await getbalance({ token : data.token });
+            balance.uid = data.uid;
+            return balance;
         }
         else{
             
