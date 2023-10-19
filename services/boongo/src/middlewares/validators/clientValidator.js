@@ -55,6 +55,10 @@ const clientRefundValidateSchema = Joi.object({
     bonus: Joi.number(),
     txn_id: Joi.string().required(),
     operator_transaction_id: Joi.string().required().allow(''),
+    transaction_status: Joi.boolean().required(),
+    code: Joi.string().required(),
+    round_id: Joi.string().required(),
+
 });
 
 /**
