@@ -62,18 +62,17 @@ const add_account = async (req, res, next) => {
           result: result,
         });
      
-     {
-        res.status(400).send({
-          err: err.message,
-        });
-     
+      {
+          res.status(400).send({
+            err: err.message,
+          });
+      }
   }
-   
-}
-catch(e) {
-  console.log("error", e);
-  return next(e);
-}
+  }
+  catch(e) {
+    console.log("error", e);
+    return next(e);
+  }
 }
 
 const add_account_techicals = async (req, res, next) => {
@@ -122,8 +121,10 @@ const show_account = async (req, res, next) => {
   }
 };
 
+
+
 module.exports = {
   add_account: add_account,
   show_account: show_account,
-  add_account_techicals : add_account_techicals
-};
+  add_account_techicals : add_account_techicals,
+}
