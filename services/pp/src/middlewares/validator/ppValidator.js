@@ -91,9 +91,9 @@ const reqbonosWinValidateSchema = Joi.object({
 })
 
 const reqRefundValidateSchema = Joi.object({
-    hash: Joi.required(),
-    userId: Joi.required(),
-    reference: Joi.required(),
+    hash: Joi.string().required(),
+    userId: Joi.string().required(),
+    reference: Joi.string().required(),
     providerId: Joi.required(),
     platform: Joi.string().allow("", null),
     amount: Joi.string().allow("", null),
