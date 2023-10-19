@@ -246,13 +246,13 @@ const rollback = async (req, res) => {
                     bonus: +100,
                     txn_id: req.body.txn_id,
                     operator_transaction_id: "",
-                    round_id: req.body.round_id
+                    round_id: trans_details.round_id
                 }
                 let apiResponse = responseLib.generate(false, "ALREADY_PROCESSED", payLoad);
                 return res.status(200).send(apiResponse);
             }
 
-            await commonController.updateBalance(req.body.user_id, req.body.refund_amount, "CREDIT");
+            await commonController.updateBalance(req.body.user_id, trans_details.transaction_amount, "CREDIT");
 
             let logData = {
                 session_id : trans_details.session_id,
@@ -262,9 +262,9 @@ const rollback = async (req, res) => {
                 provider_transaction_id : req.body.txn_id,
                 game_category_id : trans_details.game_category_id,
                 round_id : trans_details.round_id,
-                transaction_amount : req.body.refund_amount,
+                transaction_amount : trans_details.transaction_amount,
                 transaction_type : "CREDIT",
-                available_balance : parseFloat(userData.data.balance) + parseFloat(req.body.refund_amount),
+                available_balance : parseFloat(userData.data.balance) + parseFloat(trans_details.transaction_amount),
                 action : 'REFUND',
                 status : trans_details.status,
                 created_at:timeLib.now(),
@@ -276,13 +276,13 @@ const rollback = async (req, res) => {
             
              payLoad = {
             transaction_status: true,
-            available_balance: parseFloat(userData.data.balance) + parseFloat(req.body.refund_amount),
+            available_balance: parseFloat(userData.data.balance) + parseFloat(trans_details.transaction_amount),
             code: 'SUCCEED',
             currency: userData.data.currency_code,
             bonus: parseFloat(100.125),
             txn_id: req.body.txn_id,
             operator_transaction_id: inserData._id,
-            round_id: req.body.round_id
+            round_id: trans_details.round_id
         }
 
             let apiResponse = responseLib.generate(false, "Rollback", payLoad);

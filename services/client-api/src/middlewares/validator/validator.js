@@ -33,12 +33,7 @@ const winSchema = Joi.object({
 
 const refundSchema = Joi.object({
     user_id: Joi.string().required(),
-    game_id: Joi.string().required(),
-    round_id: Joi.string().required(),
-    txn_id: Joi.string().required(),
-    category_id: Joi.string().required(),
-    refund_amount: Joi.string().required(),
-    bonus: Joi.string().required().allow(''),
+    txn_id: Joi.string().required()
 })
 
 
