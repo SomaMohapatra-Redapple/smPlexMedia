@@ -380,12 +380,18 @@ const transaction = async(data) => {
                             }
                             break;
                         case 'BALANCE_EXCEED':
-                            returnData = {
-                                "uid": data.uid,            
-                                "error": {
-                                    "code": "FUNDS_EXCEED"  
-                                }
+                            // returnData = {
+                            //     "uid": data.uid,            
+                            //     "error": {
+                            //         "code": "FUNDS_EXCEED"  
+                            //     }
+                            // }
+                            let balance = await getbalance({ token : data.token });
+                            balance.uid = data.uid;
+                            balance.error = {
+                                "code": "FUNDS_EXCEED"  
                             }
+                            return balance;
                             break;
                         case 'ALREADY_PROCESSED':
                             returnData = {
