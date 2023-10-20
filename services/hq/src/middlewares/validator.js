@@ -246,6 +246,19 @@ const deleteEventValidateSchema = Joi.object({
     event_id: Joi.required()
 })
 
+ 
+// @author : Injamamul hoque
+// created_at : 19.10.2023
+// function : searchValidateSchema
+
+
+const searchValidateSchema = Joi.object({
+    
+    search : Joi.string().required(),
+    type : Joi.string().required()
+
+})
+
 
 let addClient = async(req,res,next)=>{
     try{
@@ -527,6 +540,34 @@ let deleteEventValidate = async(req, res, next) => {
     }
 }
 
+
+// @author : Injamamul hoque
+// created_at : 19.10.2023
+// function : searchValidateSchema
+
+
+let searchValidate = async (req, res, next) => {
+
+    try {
+        console.log("request body is",req.body);
+        const value = await searchValidateSchema.validate(req.body);
+        if(value.hasOwnProperty('error')){
+            throw new Error(value.error);
+
+        }else{
+            next();
+        }
+        
+    } catch (error) {
+
+        let apiResponse = responseLib.generate(true, ` ${error.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+        
+    }
+
+}
+
 module.exports = {
     loginValidate: loginValidate,
     AdminLoginValidate :AdminLoginValidate,
@@ -547,4 +588,6 @@ module.exports = {
     addEventValidate: addEventValidate,
     editEventValidate: editEventValidate,
     deleteEventValidate: deleteEventValidate,
+
+    searchValidate: searchValidate
 }

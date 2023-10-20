@@ -1,6 +1,9 @@
 const timeLIb = require("../libs/timeLib");
 const jwt = require("jsonwebtoken");
 const apiError = require("../libs/apiError");
+const checkLib = require("../libs/checkLib");
+const responseLib = require("../libs/responseLib");
+const commonControllers = require('./common')
 const responseMessage = require("../libs/responseMessage");
 // const client = require("../services/client");
 // const { AddClient, FindAllClient, FindSpecificClient } = client;
@@ -9,6 +12,7 @@ console.log("db", db.development.database);
 var data = db.development.database;
 const mongoose = require("mongoose");
 const ClientTable = mongoose.model("Client");
+const PlayerTable = mongoose.model("Player");
 const AdminTable = mongoose.model("SuperAdmin");
 
 const AddClient = async (query) => {
@@ -637,10 +641,124 @@ let log_in = async (req, res, next) => {
   }
 };
 
+
+
+/**
+ * 
+ * @author Injamamul Hoque
+ * @function setRouter
+ * @param {*} req res
+ * @returns res
+ * @created_at 19.10.2023
+ * 
+ */
+
+const search_client_user = async (req,res) => {
+
+  try {
+
+    let result = {};
+    let query ;
+    let search_str = req.body.search;
+    let type = req.body.type;
+
+    switch (type) {
+
+      case "client":
+
+          if (mongoose.Types.ObjectId.isValid(search_str)) {
+            query = { _id: search_str };
+          } else {
+            query = { username: search_str };
+          }
+
+          let client_details = await ClientTable.findOne(query);
+
+          if(!checkLib.isEmpty(client_details)){
+            result = {
+              details :{
+              client_name : client_details.client_name,
+              user_name : client_details.username,
+              client_code : client_details._id,
+              balance : "0.00",
+              registered_date: "2023"
+            },
+            hierarchy : await commonControllers.find_level(client_details)
+            }
+          }else{
+            throw new Error("Invalid client_user_name or client_code")
+          }
+        break;
+
+      case "user":
+
+        if (mongoose.Types.ObjectId.isValid(search_str)) {
+          query = { _id: search_str };
+        } else {
+          throw new Error("Invalid user_code");
+        }
+        let player_details = await PlayerTable.findOne(query)
+        let client;
+        if(!checkLib.isEmpty(player_details)){
+          await PlayerTable.findOne({ _id: search_str })
+          .populate({
+            path: 'account_id',
+            model: 'Accounts',
+            populate: {
+            path: 'client_id',
+            model: 'Client'
+          }
+        })
+        .then(player => {
+        if (player) {
+           client = player.account_id.client_id;
+        } else {
+          throw new Error("player not found")
+        }
+      })
+      .catch(err => {
+        throw new Error(err.message);
+      });
+
+      let hierarchy = await commonControllers.find_level(client);
+
+      hierarchy.push({ 
+        client_user_name: client.username,
+        client_name: client.client_name
+        })
+      
+        result = {
+          details :{
+          user_name : player_details.username,
+          user_code : player_details._id,
+          balance : "0.00",
+          registered_date: "2023"
+        },
+        hierarchy : hierarchy
+        }
+      
+      }
+        break;
+      default:
+        throw new Error("something went wrong");
+    }
+    let apiResponse = responseLib.generate(false,"data fetch successfully",result);
+    res.status(200).send(apiResponse);
+    
+  } catch (error) {
+    let apiResponse = responseLib.generate(true,error.message,null);
+    res.status(403).send(apiResponse);
+  }
+
+};
+
+
+
 module.exports = {
   add_client: add_client,
   all_client: all_client,
   log_in: log_in,
   add_client_by_client: add_client_by_client,
   nested_client: nested_client,
+  search_client_user : search_client_user
 };
