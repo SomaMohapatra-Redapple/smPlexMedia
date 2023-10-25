@@ -50,6 +50,7 @@ const FindAllClient = async (validatedBody) => {
     limit: parseInt(limit) || 15,
     sort: { createdAt: -1 },
   };
+  console.log("query",query);
   return await ClientTable.paginate(query, options);
 };
 const FindSpecificClient = async (query) => {
@@ -235,7 +236,9 @@ let all_client = async (req,res,next) => {
     let allClient;
     if(!req.body.parent_client_id)
     {
-      const query_for_all_client_of_logged_in = {parent_client_id : req.user.id}
+      const query_for_all_client_of_logged_in = {parent_client_id : req.user.id};
+      query_for_all_client_of_logged_in.page = req.query.page;
+      query_for_all_client_of_logged_in.limit = req.query.limit;
       allClient = await FindAllClient(query_for_all_client_of_logged_in);
       allClient = JSON.parse(JSON.stringify(allClient));
       let length = allClient.docs.length;
@@ -270,7 +273,9 @@ let all_client = async (req,res,next) => {
       }
     }
     else if(req.body.parent_client_id){
-      const query_for_all_client_of_nested_client = {parent_client_id : req.body.parent_client_id}
+      const query_for_all_client_of_nested_client = {parent_client_id : req.body.parent_client_id};
+      query_for_all_client_of_nested_client.page = req.query.page;
+      query_for_all_client_of_nested_client.limit = req.query.limit;
       allClient = await FindAllClient(query_for_all_client_of_nested_client);
       allClient = JSON.parse(JSON.stringify(allClient));
       console.log("allClient",allClient);
