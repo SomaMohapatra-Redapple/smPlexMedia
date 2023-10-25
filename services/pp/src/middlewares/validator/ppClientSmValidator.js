@@ -39,11 +39,24 @@ const clientResultValidationSchema = Joi.object({
 });
 
 const clientRefundValidationSchema = Joi.object({
-    available_balance: Joi.boolean().required(),
-    txn_id: Joi.number().required().allow(0),
-    operator_transaction_id: Joi.string().required().allow(null),
+    transaction_status: Joi.boolean().required(),
+    code: Joi.string().required(),
+    available_balance: Joi.number().required(),
+    txn_id: Joi.string().required(),
+    operator_transaction_id: Joi.string().required().allow(''),
     currency: Joi.string().required(),
-    bonus: Joi.number()
+    bonus: Joi.number(),
+    round_id: Joi.string()
+
+
+    // available_balance:4999630.625
+    // bonus:100
+    // code:"ALREADY_PROCESSED"
+    // currency:'USD'
+    // operator_transaction_id:''
+    // round_id:'test-round'
+    // transaction_status:false
+    // txn_id:'txn-id-14'
 });
 
 
@@ -73,6 +86,7 @@ let ppSmValidator = async (function_name, responseData) => {
         }
 
         if (value.hasOwnProperty('error')) {
+            console.log("validation error ==> ", value.error)
             return { error: true }
         } else {
             return { error: false }

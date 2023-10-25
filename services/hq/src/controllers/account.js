@@ -63,14 +63,16 @@ const add_account = async (req, res, next) => {
     added_account: added_account,
     added_account_technicals : added_account_technicals
   });
-  
-
 
 }
-catch(e) {
-  console.log("error", e);
-  return next(e);
-}
+        
+  catch(e) {
+    res.status(400).send({
+      err: err.message,
+    });
+    console.log("error", e);
+    return next(e);
+  }
 }
 
 //update_account
@@ -148,6 +150,9 @@ const show_account = async (req, res, next) => {
     return next(e);
   }
 };
+
+
+
 
 module.exports = {
   add_account: add_account,

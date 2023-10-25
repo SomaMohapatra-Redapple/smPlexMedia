@@ -75,8 +75,10 @@ const boongoTransactionValidateSchema = Joi.object({
             currency: Joi.string().required()
         }),
         bonus: Joi.string().required().allow(null),
-        tag: Joi.string().required().allow('')
-    })
+        tag: Joi.string().required().allow(''),
+        custom_arg: Joi.string().allow('')
+    }),
+    custom_arg: Joi.string().allow('')
 });
 
 const boongoRollbackValidateSchema = Joi.object({
@@ -109,6 +111,17 @@ const boongoRollbackValidateSchema = Joi.object({
     })
 });
 
+
+const getGameValidatateSchema = Joi.object({
+    mode: Joi.string().required(),
+    account_id: Joi.string().required(),
+    usercode: Joi.string().required(),
+    token: Joi.string().required(),
+    language: Joi.string().required(),
+    currency: Joi.string().required(),
+    game_id: Joi.string().required(),
+    return_url: Joi.string()   
+});
 
 /**
  * 
@@ -173,7 +186,38 @@ let boongoReqValidator = async (req, res, next) => {
     }
 }
 
+const getGameValidator = async (req, res, next) => {
+    try {
+        value = await getGameValidatateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            console.log('Err Value : ', value)
+            let apiResponse = {
+                uid: req.body.uid,
+                error: {
+                  code: 'FATAL_ERROR'
+                }
+              }
+            res.status(200)
+            res.send(apiResponse)
+
+        } else {
+            next();
+        }
+    } catch (error) {
+        console.log('Boongo validation catch error :', err.message);
+        let apiResponse = {
+            uid: req.body.uid,
+            error: {
+              code: 'FATAL_ERROR'
+            }
+          }
+        res.status(200)
+        res.send(apiResponse)
+    }
+}
+
 module.exports = {
-    boongoReqValidator: boongoReqValidator
+    boongoReqValidator: boongoReqValidator,
+    getGameValidator: getGameValidator
 }
 
