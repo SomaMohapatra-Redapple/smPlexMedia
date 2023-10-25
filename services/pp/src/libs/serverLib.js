@@ -1,76 +1,80 @@
-const http = require('http');
-class Server {
+let axios = require('axios');
+module.exports = class Server {
     /**
      * Create class instance and fill params from URL or fill it with default values if URL not contain needed data.
      * @constructs
     */
     constructor() {
-        //================Platform API URL================================
-        // this.baseUrl = "";//New structur
-
-        //================================================================
+        // Initialize any properties or configurations here //
+        // this.baseUrl = "";  //New structur
     };
 
     //##########################################################################
 
-    getData(url, options) {
-        return new Promise((resolve, reject) => {
-            const request = http.request(url, options, (response) => {
-                let data = '';
+    // async getData(url, options) {
+    //     try {
+    //         let response = await fetch(url, options);
+    //         return {
+    //             response: response,
+    //             error: false
+    //         }
+    //     } catch (err) {
+    //         console.log(" serverLib getData Error log: ", err);
+    //         return {
+    //             error: true
+    //         }
+    //     }
+    // };
 
-                response.on('data', (chunk) => {
-                    data += chunk;
-                });
-
-                response.on('end', () => {
-                    try {
-                        const parsedData = JSON.parse(data);
-                        resolve(parsedData);
-                    } catch (error) {
-                        reject(error);
-                    }
-                });
-            });
-
-            request.on('error', (error) => {
-                reject(error);
-            });
-
-            request.end();
-        });
-    };
-    async TokenAuthentication(_token) {
+    async getData(url, options) {
         try {
-            let reqHeaders = new Headers();
-            reqHeaders.append("Content-Type", "application/json");
-            let url = this.baseUrl + this.userAuthenticationUrlApi + "?token=" + _token;
+            let response = await axios(url, options);
+            return {
+                response: response,
+                error: false
+            }
+        } catch (err) {
+            console.log(" serverLib getData Error log: ", err);
+            return {
+                error: true
+            }
+        }
+    };
+
+    async postData(apiUrl, endpoint, bodyData) {
+        try {
+            let url = `${apiUrl}/callback?function=${endpoint}`;
             let requestOptions = {
                 method: 'POST',
-                headers: reqHeaders,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(bodyData)
             };
-            return (await this.getData(url, requestOptions));
-        } catch (err) {
-            cons.load("TokenAuthentication error : ", err);
-        }
-    };
-    async HowManyPreviousNextEvents(_howManyPrevious, _howManyNext, sessionId, _gameType) {
-        try {
-            let reqHeaders = new Headers();
-            reqHeaders.append("Content-Type", "application/json");
-            reqHeaders.append("token", this.token);
-            let url = this.baseUrl + this.howManyPreviousAndNextEventApi + "?howmanyprevious=" + howManyPrevious + "&howmanynext=" + _howManyNext + "&session_id=" + sessionId + "&type=" + gameType;
-            let requestOptions = {
-                method: 'GET',
-                headers: reqHeaders,
-            };
-            return (await this.getData(url, requestOptions));
+            const data = await this.getData(url, requestOptions);
+            return data;
         } catch (error) {
-            console.log("error----", error);
+            console.error(' server lib Error: ', error);
+            return {
+                error: true
+            }
+        }
+    };
+
+    async call(url, config) {
+        try {
+            const data = await this.getData(url, config);
+            return data;
+        } catch (error) {
+            console.error(' server lib Error: ', error);
+            return {
+                error: true
+            }
         }
     };
 };
-let server = new Server();
+// let server = new Server();
 
-module.exports = {
-    server: server
-};
+// module.exports = {
+//     server: server
+// };

@@ -10,19 +10,22 @@ const smObj = require('../../../../SMDB/dbObject');
 
 function modifyObjectForObjectId(obj) {
     for (const key in obj) {
-      if (!obj[key].hasOwnProperty('type') && typeof obj[key] === 'object' && obj[key] !== null) {
-        modifyObjectForObjectId(obj[key]);
-      } else {
-        if(obj[key].hasOwnProperty('isObjectId') && obj[key].isObjectId === true){
-            obj[key].type = Schema.Types.ObjectId;
-            delete obj[key].isObjectId;
+        if (!obj[key].hasOwnProperty('type') && typeof obj[key] === 'object' && obj[key] !== null) {
+            modifyObjectForObjectId(obj[key]);
+        } else {
+            if (obj[key].hasOwnProperty('isObjectId') && obj[key].isObjectId === true) {
+                obj[key].type = Schema.Types.ObjectId;
+                delete obj[key].isObjectId;
+            }
+            if (obj[key].type === Number) {
+                obj[key].type = Schema.Types.Decimal128;
+            }
         }
-      }
     }
-  }
-  
-  modifyObjectForObjectId(smObj);
-  
+}
+
+modifyObjectForObjectId(smObj);
+
 let accountSchema = new Schema(smObj.Account);
 let accountTechnicalsSchema = new Schema(smObj.AccountTechnicals);
 let categorySchema = new Schema(smObj.Category);
@@ -36,6 +39,9 @@ let clientProviderMappingSchema = new Schema(smObj.Client_provider_mapping);
 let clientGameMappingSchema = new Schema(smObj.Client_game_mapping);
 let clientProviderAccountMappingSchema = new Schema(smObj.Client_provider_account_mapping);
 let currencySchema = new Schema(smObj.Currency);
+let providerAccountSchema = new Schema(smObj.Provider_account);
+let ClientDbUsers = new Schema(smObj.Client_db_users);
+let ClientDbTransactions = new Schema(smObj.Client_db_transactions);
 
 mongoose.model('Accounts', accountSchema);
 mongoose.model('AccountsTechnicals', accountTechnicalsSchema);
@@ -49,4 +55,7 @@ mongoose.model('Transaction', transactionSchema);
 mongoose.model('Client_provider_mapping', clientProviderMappingSchema);
 mongoose.model('Client_game_mapping', clientGameMappingSchema);
 mongoose.model('Client_provider_account_mapping', clientProviderAccountMappingSchema);
-mongoose.model('Currency',currencySchema);
+mongoose.model('Currency', currencySchema);
+mongoose.model('Provider_account', providerAccountSchema);
+mongoose.model('Client_db_users', ClientDbUsers);
+mongoose.model('Client_db_transactions', ClientDbTransactions);

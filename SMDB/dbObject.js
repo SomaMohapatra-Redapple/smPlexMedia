@@ -5,6 +5,10 @@ let smObj = {
             ref: 'clients',
             isObjectId: true
         },
+        account_name: {
+            type: String,
+            required: true
+        },
         username: {
             type: String,
             default: ''
@@ -48,6 +52,11 @@ let smObj = {
         },
         service_endpoint: {
             type: String,
+            required: true,
+        },
+        environment: {
+            type: String,
+            default: "staging",
             required: true,
         },
         currency: {
@@ -448,6 +457,10 @@ let smObj = {
             default: "",
             required: true,
         },
+        available_balance: {
+            type: Number,
+            required: true,
+        },
         status: {
             type: String,
             // default : "online",
@@ -479,10 +492,10 @@ let smObj = {
             isObjectId: true
         },
         status: {
-            type: Number,
+            type: String,
             required: true,
-            default: 0,
-            enum: [0, 1, 2]
+            default: '0',
+            enum: ['0', '1', '2']
         }
     },
     Client_game_mapping: {
@@ -502,10 +515,10 @@ let smObj = {
             isObjectId: true
         },
         status: {
-            type: Number,
+            type: String,
             required: true,
-            default: 0,
-            enum: [0, 1, 2]
+            default: '0',
+            enum: ['0', '1', '2']
         }
     },
     Client_provider_account_mapping: {
@@ -530,10 +543,10 @@ let smObj = {
             isObjectId: true
         },
         status: {
-            type: Number,
+            type: String,
             required: true,
-            default: 0,
-            enum: [0, 1, 2]
+            default: '0',
+            enum: ['0', '1', '2']
         },
         created_at: {
             type: Date,
@@ -551,10 +564,10 @@ let smObj = {
             required: true
         },
         status: {
-            type: Number,
+            type: String,
             required: true,
-            default: 0,
-            enum: [0, 1, 2]
+            default: '0',
+            enum: ['0', '1', '2']
         },
         created_at: {
             type: Date,
@@ -565,7 +578,105 @@ let smObj = {
             default: ""
         }
 
-    }
+    },
+    Client_db_users: {
+        name: {
+            type: String,
+            default: null,
+        },
+        currency_code: {
+            type: String,
+            required: true,
+        },
+        language_code: {
+            type: String,
+            required: true,
+        },
+        balance: {
+            type: Number,
+            required: true,
+        },
+        status: {
+            type: String,
+            required: true,
+        },
+        country_code: {
+            type: String,
+            required: true,
+        },
+        jurisdiction: {
+            type: String,
+            required: true,
+        },
+        created_at: {
+            type: Date,
+            default: ""
+        },
+        updated_at: {
+            type: Date,
+            default: ""
+        }
+    },
+    Client_db_transactions: {
+        session_id: {
+            type: String,
+            required: false,
+            default: "",
+        },
+        user_id: {
+            type: String,
+            required: true,
+        },
+        game_id: {
+            type: String,
+            required: true,
+        },
+        provider_id: {
+            type: String,
+            required: true,
+        },
+        provider_transaction_id: {
+            type: String,
+            required: true,
+        },
+        game_category_id: {
+            type: String,
+            required: true,
+        },
+        round_id: {
+            type: String,
+            required: true,
+        },
+        transaction_amount: {
+            type: Number,
+            required: true,
+        },
+        transaction_type: {
+            type: String,
+            required: true,
+        },
+        available_balance: {
+            type: Number,
+            required: true,
+        },
+        action: {
+            type: String,
+            default: "",
+            required: true,
+        },
+        status: {
+            type: String,
+            required: true,
+        },
+        created_at: {
+            type: Date,
+            default: ""
+        },
+        updated_at: {
+            type: Date,
+            default: ""
+        }
+    },
 }
 
 module.exports = smObj;

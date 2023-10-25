@@ -91,9 +91,9 @@ const reqbonosWinValidateSchema = Joi.object({
 })
 
 const reqRefundValidateSchema = Joi.object({
-    hash: Joi.required(),
-    userId: Joi.required(),
-    reference: Joi.required(),
+    hash: Joi.string().required(),
+    userId: Joi.string().required(),
+    reference: Joi.string().required(),
     providerId: Joi.required(),
     platform: Joi.string().allow("", null),
     amount: Joi.string().allow("", null),
@@ -106,12 +106,12 @@ const reqRefundValidateSchema = Joi.object({
 })
 
 const reqResultValidateSchema = Joi.object({
-    hash: Joi.required(),
-    userId: Joi.required(),
-    gameId: Joi.required(),
+    hash: Joi.string().required(),
+    userId: Joi.string().required(),
+    gameId: Joi.string().required(),
     roundId: Joi.required(),
-    amount: Joi.required(),
-    reference: Joi.required(),
+    amount: Joi.number().required(),
+    reference: Joi.string().required(),
     providerId: Joi.required(),
     timestamp: Joi.required(),
     roundDetails: Joi.required(),
@@ -125,12 +125,12 @@ const reqResultValidateSchema = Joi.object({
 })
 
 const reqBetValidateSchema = Joi.object({
-    hash: Joi.required(),
-    userId: Joi.required(),
-    gameId: Joi.required(),
+    hash: Joi.string().required(),
+    userId: Joi.string().required(),
+    gameId: Joi.string().required(),
     roundId: Joi.required(),
-    amount: Joi.required(),
-    reference: Joi.required(),
+    amount: Joi.number().required(),
+    reference: Joi.string().required(),
     providerId: Joi.required(),
     timestamp: Joi.required(),
     roundDetails: Joi.required(),
@@ -161,13 +161,15 @@ const reqPromowinValidateSchema = Joi.object({
 })
 
 const getGameUrlValidateSchema = Joi.object({
-    usercode: Joi.required(),
     mode: Joi.required(),
-    game: Joi.required(),
-    lang: Joi.required(),
+    usercode: Joi.required(),
     token: Joi.required(),
+    account_id : Joi.required(),
+    game_id: Joi.required(),
+    lang: Joi.required(),
+    currency: Joi.required(),
     return_url: Joi.required(),
-    game_code: Joi.string().allow("", null),
+    // game_code: Joi.string().allow("", null),
 })
 
 

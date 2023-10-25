@@ -3,7 +3,7 @@
  * @author Rajdeep Adhikary
  * @purpose Boongo provider integration and game launch related works
  * @createdDate Sep 26 2023
- * @lastUpdated Oct 04 2023
+ * @lastUpdated Oct 11 2023
  * @lastUpdatedBy Rajdeep Adhikary
  */
 
@@ -17,6 +17,7 @@ const checker = require('../libs/checkLib');
 const time = require('../libs/timeLib');
 const redis = require('../libs/redisLib');
 const appConfig = require('../../config/appConfig');
+const apiLib = require('../libs/apiLib');
 
 /**
  * 
@@ -41,9 +42,6 @@ const handler  = async(req, res) => {
                 break;
             case "rollback":
                 response = await rollback(req.body);
-                break;
-            case "getGameUrl":
-                response = await getGameUrl(req.body);
                 break;
             default:
                 response = {}
@@ -81,29 +79,40 @@ const login = async(data) => {
             return {
                 "uid": data.uid,            
                 "error": {
-                    "code": "FATAL_ERROR"  
+                    "code": "INVALID_TOKEN"  
                 }
             }
         }
         else{
-            // let config = {
-            //     method: 'post',
-            //     url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     data: {
-            //         user_id : userdtls.account_user_id                       // YMDJD12
-            //     }
-            // };
-    
-            // let response = await axios(config);
 
             let dataToSend = {
                 user_id : userdtls.account_user_id                       // YMDJD12
             }
 
-            let response = await commonController.post(acountDetails.service_endpoint, 'authenticate', dataToSend);
+            // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'authenticate', dataToSend);
+            // response = await response.response.json();
+
+            let config = {
+                method: "POST",
+                url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
+                headers:{
+                    'Content-Type': 'application/json',
+                },
+                data: dataToSend
+            }
+            let response = await axios(config);
+            console.log( response);
+            response = response.data;
+            
+            if(response.err === true){
+                return {
+                    "uid": data.uid,            
+                    "error": {
+                        "code": "FATAL_ERROR" 
+                    }
+                }
+            }
+
             let validation = await clientValidator.validateResponse(response.data, 'login');
 
     
@@ -121,7 +130,7 @@ const login = async(data) => {
                         is_test: false,
                     },
                     balance: {
-                        value: parseFloat(user_balance).toFixed(2),
+                        value: parseFloat(user_balance).toFixed(2).toString(),
                         version: version
                     },
                     tag: ''
@@ -131,7 +140,7 @@ const login = async(data) => {
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "INVALID_TOKEN"  
                     }
                 }
             }
@@ -141,7 +150,7 @@ const login = async(data) => {
         return {
             uid: data.uid,
             error: {
-              code: 'FATAL_ERROR'
+              code: 'INVALID_TOKEN'
             }
           }
     }
@@ -167,32 +176,39 @@ const getbalance = async(data) => {
             return {
                 "uid": data.uid,            
                 "error": {
-                    "code": "FATAL_ERROR"  
+                    "code": "INVALID_TOKEN"  
                 }
             }
         }
         else{
 
-            // let config = {
-            //     method: 'post',
-            //     url: `${acountDetails.service_endpoint}/callback?function=balance`,
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     data: {
-            //         user_id : 'yudn2mak3lsmj0kgkdmd91'
-            //     }
-            // };
-
             let dataToSend = {
-                user_id : 'yudn2mak3lsmj0kgkdmd91'
+                user_id : userdtls.account_user_id
             }
 
-            // let response = await axios(config);
-            let response = await commonController.post(acountDetails.service_endpoint, 'balance', dataToSend);
-            // console.log(response)
-            // const walletEndTime = new Date();
-            // const walletTimeDifference = walletEndTime - walletStartTime;
+            // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'balance', dataToSend);
+            // response = await response.response.json();
+
+            let config = {
+                method: "POST",
+                url: `${acountDetails.service_endpoint}/callback?function=balance`,
+                headers:{
+                    'Content-Type': 'application/json',
+                },
+                data: dataToSend
+            }
+            let response = await axios(config);
+            console.log( response);
+            response = response.data;
+            
+            if(response.err === true){
+                return {
+                    "uid": data.uid,            
+                    "error": {
+                        "code": "FATAL_ERROR" 
+                    }
+                }
+            }
 
             let version = await commonController.getVersion();
 
@@ -202,7 +218,7 @@ const getbalance = async(data) => {
                 return {
                     "uid": data.uid,
                     "balance": {
-                        "value": parseFloat(response.data.amount.toFixed(2)),
+                        "value": parseFloat(response.data.amount.toFixed(2)).toString(),
                         "version": version
                     }
                 }
@@ -213,7 +229,7 @@ const getbalance = async(data) => {
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "INVALID_TOKEN"  
                     }
                 }
             }
@@ -223,7 +239,7 @@ const getbalance = async(data) => {
         return {
             "uid": data.uid,            
             "error": {
-                "code": "FATAL_ERROR"  
+                "code": "INVALID_TOKEN"  
             }
         }
     }
@@ -243,13 +259,13 @@ const transaction = async(data) => {
         let playerToken = data.token.split("-ucd-");
         let usercode = playerToken[1];
         const userdtls = await commonController.checkUsercodeExists(usercode);
-        let provider_id = "65142a47b0aef485da243a29";
+        let provider_id = appConfig.provider_id;
         let transaction_type = amount = '';
         let transaction_id = data.uid;
         // check if bet is allowed
         let betStatus = await commonController.isBetEnabled(userdtls.account_id, provider_id);
         if(betStatus.rejectionStatus === true || betStatus.maintenance_mode_status === 'Y'){
-            return {
+            returnData =  {
                 "uid": data.uid,            
                 "error": {
                     "code": "SESSION_CLOSED"  
@@ -279,35 +295,46 @@ const transaction = async(data) => {
             let acountDetails = await AccountsTechnicalsModel.findOne({account_id: userdtls.account_id }).lean();
 
             if(checker.isEmpty(acountDetails)){
-                return {
+                returnData =  {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "INVALID_TOKEN"  
                     }
                 }
             }
             else{
 
-                // let config = {
-                //     method: 'post',
-                //     url: `${acountDetails.service_endpoint}/callback?function=bet`,
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //     },
-                //     data: dataToSend
-                // };
+                // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'bet', dataToSend);
+                // response = await response.response.json();
 
-                // let response = await axios(config);
-
-                let response = await commonController.post(acountDetails.service_endpoint, 'bet', dataToSend);
+                let config = {
+                    method: "POST",
+                    url: `${acountDetails.service_endpoint}/callback?function=bet`,
+                    headers:{
+                        'Content-Type': 'application/json',
+                    },
+                    data: dataToSend
+                }
+                let response = await axios(config);
+                console.log( response);
+                response = response.data;
+                
+                if(response.err === true){
+                    returnData =  {
+                        "uid": data.uid,            
+                        "error": {
+                            "code": "FATAL_ERROR"
+                        }
+                    }
+                }
 
                 let validation = await clientValidator.validateResponse(response.data, 'bet');
 
                 if(validation.error === true){
-                    return {
+                    returnData = {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"  
+                            "code": "INVALID_TOKEN"  
                         }
                     }
                 }
@@ -330,6 +357,7 @@ const transaction = async(data) => {
                                 provider_transaction_id : transaction_id,
                                 round_id : roundId,
                                 operator_transaction_id : response.data.operator_transaction_id,
+                                available_balance : response.data.available_balance,
                                 transaction_amount : amount,
                                 transaction_type : transaction_type,
                                 action : 'BET',
@@ -342,35 +370,47 @@ const transaction = async(data) => {
                             await commonController.insertLog(logData);
 
                             // set success response
-                            return {
+                            returnData = {
                                 uid: data.uid,
                                 balance: {
-                                    value: (response.data.data.available_balance).toFixed(2),
+                                    value: (response.data.available_balance).toFixed(2),
                                     version: await commonController.getVersion(),
-                                    code: 3
+                                    
                                 }
                             }
+                            break;
                         case 'BALANCE_EXCEED':
-                            return {
-                                "uid": data.uid,            
-                                "error": {
-                                    "code": "FUNDS_EXCEED"  
-                                }
+                            // returnData = {
+                            //     "uid": data.uid,            
+                            //     "error": {
+                            //         "code": "FUNDS_EXCEED"  
+                            //     }
+                            // }
+                            let balance = await getbalance({ token : data.token });
+                            balance.uid = data.uid;
+                            balance.error = {
+                                "code": "FUNDS_EXCEED"  
                             }
+                            return balance;
+                            break;
                         case 'ALREADY_PROCESSED':
-                            return {
-                                "uid": data.uid,            
-                                "error": {
-                                    "code": "FUNDS_EXCEED"  
+                            returnData = {
+                                uid: data.uid,
+                                balance: {
+                                    value: (response.data.available_balance).toFixed(2).toString(),
+                                    version: await commonController.getVersion(),
+                                    
                                 }
                             }
+                            break;
                         default:
-                            return {
+                            returnData = {
                                 "uid": data.uid,            
                                 "error": {
-                                    "code": "FATAL_ERROR"  
+                                    "code": "INVALID_TOKEN"  
                                 }
                             }
+                            break;
                     }
                 }
             }
@@ -397,21 +437,43 @@ const transaction = async(data) => {
                 returnData =  {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "INVALID_TOKEN"  
                     }
                 }
             }
             else{
 
-                let response = await commonController.post(acountDetails.service_endpoint, 'win', dataToSend);
+                // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'win', dataToSend);
+                // response = await response.response.json();
+
+                let config = {
+                    method: "POST",
+                    url: `${acountDetails.service_endpoint}/callback?function=win`,
+                    headers:{
+                        'Content-Type': 'application/json',
+                    },
+                    data: dataToSend
+                }
+                let response = await axios(config);
+                console.log( response);
+                response = response.data;
+                
+                if(response.err === true){
+                    returnData = {
+                        "uid": data.uid,            
+                        "error": {
+                            "code": "FATAL_ERROR" 
+                        }
+                    }
+                }
 
                 let validation = await clientValidator.validateResponse(response.data, 'win');
 
                 if(validation.error === true){
-                    return {
+                    returnData = {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"  
+                            "code": "INVALID_TOKEN"  
                         }
                     }
                 }
@@ -434,6 +496,7 @@ const transaction = async(data) => {
                                 provider_transaction_id : transaction_id,
                                 round_id : roundId,
                                 operator_transaction_id : response.data.operator_transaction_id,
+                                available_balance : response.data.available_balance,
                                 transaction_amount : amount,
                                 transaction_type : transaction_type,
                                 action : 'WIN',
@@ -446,28 +509,33 @@ const transaction = async(data) => {
                             await commonController.insertLog(logData);
 
                             // set success response
-                            return {
+                            returnData = {
                                 uid: data.uid,
                                 balance: {
-                                    value: (response.data.data.available_balance).toFixed(2),
+                                    value: (response.data.available_balance).toFixed(2),
                                     version: await commonController.getVersion(),
-                                    code: 3
+                                    
                                 }
                             }
+                            break;
                         case 'ALREADY_PROCESSED':
-                            return {
-                                "uid": data.uid,            
-                                "error": {
-                                    "code": "FATAL_ERROR"  
+                            returnData = {
+                                uid: data.uid,
+                                balance: {
+                                    value: (response.data.available_balance).toFixed(2).toString(),
+                                    version: await commonController.getVersion(),
+                                    
                                 }
                             }
+                            break;
                         default:
-                            return {
+                            returnData = {
                                 "uid": data.uid,            
                                 "error": {
-                                    "code": "FATAL_ERROR"  
+                                    "code": "INVALID_TOKEN"  
                                 }
                             }
+                            break;
                     }
                 }
             }
@@ -479,7 +547,7 @@ const transaction = async(data) => {
         return {
             "uid": data.uid,            
             "error": {
-                "code": "FATAL_ERROR"  
+                "code": "INVALID_TOKEN"  
             }
         }
     }
@@ -502,7 +570,7 @@ const rollback = async(data) => {
         let playerToken = data.token.split("-ucd-");
         let usercode = playerToken[1];
         const userdtls = await commonController.checkUsercodeExists(usercode);
-        let provider_id = "65142a47b0aef485da243a29";
+        let provider_id = appConfig.provider_id;
         let transaction_type = 'CREDIT';
         let transaction_id = data.uid;
         let gamedtls = await commonController.getGameDetailsByGameCode(data.game_id, provider_id);
@@ -513,12 +581,9 @@ const rollback = async(data) => {
         let transactionValid = await commonController.isTransactionValid(referenced_transaction_id);
         if (!transactionValid) {
             console.log('invalid transaction');
-            return {
-                "uid": data.uid,            
-                "error": {
-                    "code": "FATAL_ERROR"  
-                }
-            }    
+            let balance = await getbalance({ token : data.token });
+            balance.uid = data.uid;
+            return balance;
         }
         else{
             
@@ -528,28 +593,41 @@ const rollback = async(data) => {
                 return {
                     "uid": data.uid,            
                     "error": {
-                        "code": "FATAL_ERROR"  
+                        "code": "INVALID_TOKEN"  
                     }
                 }
             }
             else{
 
                 let dataToSend = {
-                    txn_id : referenced_transaction_id
+                    txn_id : referenced_transaction_id,
+                    user_id : userdtls.account_user_id
                 }
 
-                // let config = {
-                //     method: 'post',
-                //     url: `${acountDetails.service_endpoint}/callback?function=refund`,
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //     },
-                //     data: dataToSend
-                // };
+                // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'refund', dataToSend);
+                // response = await response.response.json();
+                // console.log(response);
 
-                // let response = await axios(config);
-
-                let response = await commonController.post(acountDetails.service_endpoint, 'rollback', dataToSend);
+                let config = {
+                    method: "POST",
+                    url: `${acountDetails.service_endpoint}/callback?function=refund`,
+                    headers:{
+                        'Content-Type': 'application/json',
+                    },
+                    data: dataToSend
+                }
+                let response = await axios(config);
+                console.log( response);
+                response = response.data;
+                
+                if(response.err === true){
+                    return {
+                        "uid": data.uid,            
+                        "error": {
+                            "code": "FATAL_ERROR" 
+                        }
+                    }
+                }
 
                 let validation = await clientValidator.validateResponse(response.data, 'rollback');
 
@@ -557,7 +635,7 @@ const rollback = async(data) => {
                     return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"  
+                            "code": "INVALID_TOKEN"  
                         }
                     }
                 }
@@ -581,6 +659,7 @@ const rollback = async(data) => {
                             round_id : roundId,
                             operator_transaction_id : operator_transaction_id,
                             transaction_amount : transactionValid.transaction_amount,
+                            available_balance : response.data.available_balance,
                             transaction_type : transaction_type,
                             action : 'ROLLBACK',
                             status : 0,
@@ -595,9 +674,8 @@ const rollback = async(data) => {
                         return {
                             uid: data.uid,
                             balance: {
-                                value: (response.data.available_balance).toFixed(2),
+                                value: (response.data.available_balance).toFixed(2).toString(),
                                 version: await commonController.getVersion(),
-                                code: 3
                             }
                         }
                     }
@@ -605,7 +683,7 @@ const rollback = async(data) => {
                         return {
                             "uid": data.uid,            
                             "error": {
-                                "code": "FATAL_ERROR"  
+                                "code": "INVALID_TOKEN"  
                             }
                         }
                     }
@@ -620,7 +698,7 @@ const rollback = async(data) => {
         return {
             "uid": data.uid,            
             "error": {
-                "code": "FATAL_ERROR"  
+                "code": "INVALID_TOKEN"  
             }
         }
     }
@@ -635,72 +713,79 @@ const rollback = async(data) => {
  * 
  */
 
-const getGameUrl = async(data) => {
+const getGameUrl = async(req, res) => {
     try {
-        const userCode = data.user_code;
+        const data = req.body;
+        const userCode = data.usercode;
         const token = data.token;
         const language = data.language.toLowerCase();
         const gm_title = 'Boongo Game';
         const wl = "prod";
         const account_id = data.account_id;
         const currency = data.currency.toUpperCase();
-        const game_id = data.game_code;
+        const game_id = data.game_id;
 
         let provider_id = appConfig.provider_id;
 
         if(await commonController.isAccountExists(account_id) === false){
-            return {
-                code: 1001,                                 // Invalid Account Id
-                message: "INVALID_ACCOUNT_ID",
+            res.status(200).send({
+                code: 1001,                                         // Invalid Account Id
+                message: "INVALID_ACCOUNT",
                 data: {}
-            }
+            })
+            return;
         }
 
         let betStatus = await commonController.isBetEnabled(account_id, provider_id);
         if(betStatus.rejectionStatus === true){
-            return {
-        code: 1002,                                         // Provider and client not mapped
-                message: "PROVIDER_NOT_MAPPED",
+            res.status(200).send({
+                code: 1002,                                         // Provider and client not mapped
+                message: "PROVIDER_DENIED",
                 data: {}
-            }
+            })
+            return;
         }
 
         if(betStatus.maintenance_mode_status === 'Y'){
-            return {
-                code: 1003,                                 // client maintainance mode on
+            res.status(200).send({
+                code: 1003,                                         // client maintainance mode on
                 message: "MAINTENANCE_MODE_ON",
                 data: {}
-            }
+            })
+            return;
         }
 
         const isUser = await commonController.checkUserExistsOrRegister(userCode, account_id, currency, language);
         if(isUser.error){
-            return {
-                code: 1004,                                 // Invalid user or unable to save user
+            res.status(200).send({
+                code: 1004,                                         // Invalid user or unable to save user
                 message: "FATAL_ERROR",
                 data: {}
-            }
+            })
+            return;
         }
         let user = isUser.data;
 
         let gamedtls = await commonController.getGameDetailsByGameId(game_id);
 
         if(checker.isEmpty(gamedtls)){
-            return {
-                code: 1005,                                 //invalid game id
+            res.status(200).send({
+                code: 1005,                                         //invalid game id
                 message: "GAME_NOT_FOUND",
                 data: {}
-            }
+            })
+            return;
         }
 
         let getProviderAccount = await commonController.checkProviderAccountLink(account_id, provider_id); //get provider id first
 
         if(getProviderAccount.error){
-            return {
-                code: 1004,                                 // account id not mapped with any provider account & unable to retrieve default provider account
+            res.status(200).send({
+                code: 1004,                                         // account id not mapped with any provider account & unable to retrieve default provider account
                 message: "FATAL_ERROR",
                 data: {}
-            }
+            })
+            return;
         }
 
         let providerAccountId = getProviderAccount.data;
@@ -708,21 +793,23 @@ const getGameUrl = async(data) => {
         let providerTechnicals = await commonController.getProviderAccountTechnicals(providerAccountId);
         
         if(providerTechnicals.error === true){
-            return {
-                code: 1004,                                  // unable to get provider account details from redis
+            res.status(200).send({
+                code: 1004,                                         // unable to get provider account details from redis
                 message: "FATAL_ERROR",
                 data: {}
-            }
+            })
+            return;
         }
 
         providerTechnicals = providerTechnicals.data;
 
         if(providerTechnicals.currency.includes(currency) === false){
-            return {
-                code: 1006,                                    // currency not supported by provider
+            res.status(200).send({
+                code: 1006,                                         // currency not supported by provider
                 message: "INVALID_CURRENCY",
                 data: {}
-            }
+            })
+            return;
         }
 
         let game_url = providerTechnicals.technical_details.game_url;
@@ -739,10 +826,13 @@ const getGameUrl = async(data) => {
             "lang": language,
             "sound": "1",
             "ts": new Date().getTime(),
-            "title": gm_title,
-            "exit_url": data.return_url,
-            "cashier_url": data.return_url
+            "title": gm_title
         };
+
+        if((data.hasOwnProperty('return_url')) && (data.return_url !== null || data.return_url !== undefined)){
+            params.exit_url = data.return_url;
+            params.cashier_url = data.return_url;
+        }
 
         let query = "";
 
@@ -753,23 +843,26 @@ const getGameUrl = async(data) => {
 
         let finalLaunchUrl = game_url + "?" + query;
 
-        return {
+        res.status(200).send({
             code: 1000,                                    // currency not supported by provider
             message: "SUCCESS",
             data: {
-                return_url: finalLaunchUrl
+                game_url: finalLaunchUrl
             }
-        }
+        })
+        return;
     } catch (error) {
         console.log(error.message);
-        return {
+        res.status(500).send({
             code: 1004,                                  // unable to get provider account details from redis
             message: "FATAL_ERROR",
             data: {}
-        }
+        });
+        return;
     }
 }
 
 module.exports = {
     handler: handler ,
+    getGameUrl: getGameUrl,
 };

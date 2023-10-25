@@ -14,16 +14,18 @@ const customLoginValidateSchema = Joi.object({
 });
 
 const showAllClientValidateSchema = Joi.object({
-    parent_client_id: Joi.string(),
+    
     e_mail: Joi.string().email(),
     client_name: Joi.string(),
+    role : Joi.string(),
+    parent_client_id: Joi.string(),
     user_name: Joi.string(),
     contact: Joi.string()
       .min(10)
       .max(13)
       .pattern(/^[0-9]+$/),
-    page: Joi.string(),
-    limit: Joi.string(),
+    page: Joi.number(),
+    limit: Joi.number(),
   });
 
 const addClientValidationSchema = Joi.object({
@@ -75,17 +77,26 @@ const addAdminValidationSchema = Joi.object({
 })
 
 const addAccountSchema = Joi.object({
-  //client_id: Joi.string().required(),
-  client_id: Joi.string().required(),
-  username: Joi.string().required(),
-  status: Joi.string().required(),
-  password: Joi.string()
-    .required()
-    .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
-
-  status: Joi.string().required()
+    client_id: Joi.string().required(),
+    account_name: Joi.string().required(),
+    operator_account_type:Joi.string().required(),
+    environment : Joi.string().required(),
+    currency:Joi.string().required(),
+    status: Joi.string().required(),
 });
 
+const addAccountTechnicalSchema = Joi.object({
+    //client_id: Joi.string().required(),
+    client_id: Joi.string().required(),
+    account_id: Joi.string().required(),
+    api_username: Joi.string().required(),
+    api_secret: Joi.string().required(),
+    service_endpoint: Joi.string().required(),
+    currency: Joi.string().required(),
+    is_maintenance_mode_on: Joi.string().required(),
+    account_type: Joi.string().required(),
+    
+  });
 const LoginValidateSchema = Joi.object({
     username: Joi.string()
         .required(),
@@ -235,6 +246,19 @@ const deleteEventValidateSchema = Joi.object({
     event_id: Joi.required()
 })
 
+ 
+// @author : Injamamul hoque
+// created_at : 19.10.2023
+// function : searchValidateSchema
+
+
+const searchValidateSchema = Joi.object({
+    
+    search : Joi.string().required(),
+    type : Joi.string().required()
+
+})
+
 
 let addClient = async(req,res,next)=>{
     try{
@@ -322,6 +346,21 @@ let adminRegisterValidate = async(req, res, next) => {
 let addAccountValidation = async(req, res, next) => {
     try {
         const value = await addAccountSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
+
+let addAccountTechnicalValidation = async(req, res, next) => {
+    try {
+        const value = await addAccountTechnicalSchema.validate(req.body);
         if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
         } else {
@@ -501,6 +540,34 @@ let deleteEventValidate = async(req, res, next) => {
     }
 }
 
+
+// @author : Injamamul hoque
+// created_at : 19.10.2023
+// function : searchValidateSchema
+
+
+let searchValidate = async (req, res, next) => {
+
+    try {
+        console.log("request body is",req.body);
+        const value = await searchValidateSchema.validate(req.body);
+        if(value.hasOwnProperty('error')){
+            throw new Error(value.error);
+
+        }else{
+            next();
+        }
+        
+    } catch (error) {
+
+        let apiResponse = responseLib.generate(true, ` ${error.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+        
+    }
+
+}
+
 module.exports = {
     loginValidate: loginValidate,
     AdminLoginValidate :AdminLoginValidate,
@@ -508,6 +575,7 @@ module.exports = {
     showAllClient :showAllClient,
     adminRegisterValidate: adminRegisterValidate,
     addAccountValidation :addAccountValidation,
+    addAccountTechnicalValidation :addAccountTechnicalValidation,
     customRegisterValidate: customRegisterValidate,
     createQuestionValidate: createQuestionValidate,
     updateQuestionValidate: updateQuestionValidate,
@@ -520,4 +588,6 @@ module.exports = {
     addEventValidate: addEventValidate,
     editEventValidate: editEventValidate,
     deleteEventValidate: deleteEventValidate,
+
+    searchValidate: searchValidate
 }

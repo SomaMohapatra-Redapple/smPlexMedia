@@ -1,11 +1,13 @@
-const config = require('../../config/appConfig');
-const redis = require("redis");
+const config  = require('../../config/appConfig');
+const redis   = require("redis");
 
 const redis_client = redis.createClient({
     url: config.redis_url
 });
 
-class RedisCache {
+
+class RedisCache
+{
 
     async connect() {
 
@@ -23,98 +25,102 @@ class RedisCache {
             return false;
         }
     }
-
-    async add(id, data) {
-        try {
-            if (typeof data == 'object')
-                data = JSON.stringify(data);
+    async add(id, data)
+    {   
+       try {
+            if(typeof data == 'object')
+                data=JSON.stringify(data);
             await redis_client.set(id, data);
-        } catch (err) {
+        } catch(err) { 
             console.log('addToRedis ' + err.message);
             let data = {
-                error: true
+                error : true
             }
             return data;
         }
         return {
-            error: false
+            error : false
         };
     }
 
-    async addWithTtl(id, data, exp) {
-        try {
-            if (typeof data == 'object')
-                data = JSON.stringify(data);
-            await redis_client.set(id, data, 'EX', exp);
-        } catch (err) {
+    async addWithTtl(id, data, exp)
+    {   
+       try {
+        if(typeof data == 'object')
+            data=JSON.stringify(data);
+        await redis_client.set(id, data, 'EX', exp);
+        } catch(err) { 
 
             console.log('addToRedisWithTtl ' + err.message);
             let data = {
-                error: true
+                error : true
             }
             return data;
 
         }
         return {
-            error: false
+            error : false
         };
     }
 
-    async get(id) {
+    async get(id)
+ {
         const value = await redis_client.get(id)
-            ;
+;
         try {
-            if (value) {
+            if(value) {
                 let data = {
-                    error: false,
-                    data: JSON.parse(value)
+                    error : false,
+                    data : JSON.parse(value)
                 }
                 return data;
-            }
-            return false;
-        } catch (err) {
+            } 
+            return false;          
+        } catch(err) {
             console.log('getRecordsByKeyRedis ' + err.message);
-            if (!value) {
+            if(!value)
+            {
                 let data = {
-                    error: true,
+                    error : true,
                 }
                 return data;
-            }
+           }
             return {
-                error: false,
-                data: value
+                error : false,
+                data : value
             };
         }
     }
 
-    async remove(id) {
+    async remove(id)
+ {
         try {
             await redis_client.del(id)
-                ;
+;
 
             return {
-                error: false
+                error : false
             }
-        } catch (error) {
+         } catch (error) {
             console.log('connect ' + error.message);
             return {
-                error: true
+                error : true
             }
-        }
+         }
     }
 
     // async incrFromRedis(id)
-    //  {
-    //     const res= await redis_client.incr(id)
+// {
+//     //     const res= await redis_client.incr(id)
 
-    //     await redis_client.expire(id,config.socketUserExpireTime);
-    //     return res;
-    // }
-    // async incrFromRedisWithoutTtl(id)
-    //  {
-    //     const res= await redis_client.incr(id)
+//     //     await redis_client.expire(id,config.socketUserExpireTime);
+//     //     return res;
+//     // }
+//     // async incrFromRedisWithoutTtl(id)
+//  {
+//     //     const res= await redis_client.incr(id)
 
-    //     return res;
+//     //     return res;
     // }
 }
 

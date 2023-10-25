@@ -32,7 +32,8 @@ const winSchema = Joi.object({
 });
 
 const refundSchema = Joi.object({
-    txn_id: Joi.string().required(),
+    user_id: Joi.string().required(),
+    txn_id: Joi.string().required()
 })
 
 
@@ -41,7 +42,7 @@ let apiValidator = async (req, res, next) => {
         let value = {};
         switch (req.query.function) {
             case "authenticate":
-                value = await reqAuthValidateSchema.validate();
+                value = await reqAuthValidateSchema.validate(req.body);
                 break;
             case "balance":
                 value = await userBalanceSchema.validate(req.body);

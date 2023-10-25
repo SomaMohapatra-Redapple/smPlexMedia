@@ -51,6 +51,7 @@ const admin_login = async (req, res, next) => {
         { expiresIn: process.env.JWT_TOKEN_EXPIRE_TIME }
       );
       res.status(200).send({
+        role : admin.role,
         message: "admin has logged in successfully",
         token: token,
       });
