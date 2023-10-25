@@ -47,30 +47,30 @@ process.on('unhandledRejection', (reason, p) => {
 // });
 
 // Bootstrap route
-const routesPath = './src/routes';
-fs.readdirSync(routesPath).forEach(function (file) {
-  if (~file.indexOf('.js')) {
-    let route = require(routesPath + '/' + file);
-    route.setRouter(app);
-  }
-});
+// const routesPath = './src/routes';
+// fs.readdirSync(routesPath).forEach(function (file) {
+//   if (~file.indexOf('.js')) {
+//     let route = require(routesPath + '/' + file);
+//     route.setRouter(app);
+//   }
+// });
 
 
 // Module route bootstrap
-// const moduleRoutesPath = './src/routes';
-// let routerFunction = (path) => {
-//   fs.readdirSync(path).forEach(function (dir) {
-//     if (~dir.indexOf('.js')) {
-//       let route = require(path + '/' + dir);
-//       route.setRouter(app);
-//     }
-//     let moduleRoute = path + "/" + dir
-//     if (fs.lstatSync(moduleRoute).isDirectory()) {
-//       routerFunction(moduleRoute)
-//     }
-//   });
-// }
-// routerFunction(moduleRoutesPath)
+const moduleRoutesPath = './src/routes';
+let routerFunction = (path) => {
+  fs.readdirSync(path).forEach(function (dir) {
+    if (~dir.indexOf('.js')) {
+      let route = require(path + '/' + dir);
+      route.setRouter(app);
+    }
+    let moduleRoute = path + "/" + dir
+    if (fs.lstatSync(moduleRoute).isDirectory()) {
+      routerFunction(moduleRoute)
+    }
+  });
+}
+routerFunction(moduleRoutesPath)
 // end bootstrap route
 
 /* Start Database*/
