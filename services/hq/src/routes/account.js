@@ -10,4 +10,5 @@ module.exports.setRouter = (app) => {
    app.post(`${baseUrl}/add_account`,validation.addAccountValidation,auth.isAuthorized,clientController.add_account);
    app.post(`${baseUrl}/add_account_techicals`,validation.addAccountTechnicalValidation,auth.isAuthorized,clientController.add_account_techicals);
    app.post(`${baseUrl}/show_account`,auth.isAuthorized,clientController.show_account);
+   app.post(`${baseUrl}/update_account`,auth.isAuthorized,clientController.update_account);
 };
