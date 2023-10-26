@@ -83,15 +83,10 @@ let smObj = {
         }
     },
     Category: {
-        game_provider_id: {
-            type: String,
-            ref: 'providers',
-            required: true,
-            isObjectId: true,
-        },
-        category: {
-            type: String,
-            required: true,
+
+        category_name: {
+            type: Object,
+            required: true
         },
         category_icon: {
             type: String,
@@ -105,6 +100,9 @@ let smObj = {
             type: String,
             // default : "online",
             required: true,
+        },
+        show_in_lobby: {
+            type: Boolean
         },
         created_at: {
             type: Date,
@@ -568,6 +566,25 @@ let smObj = {
             required: true,
             default: '0',
             enum: ['0', '1', '2']
+        },
+        created_at: {
+            type: Date,
+            default: ""
+        },
+        updated_at: {
+            type: Date,
+            default: ""
+        }
+
+    },
+    Language: {
+        language_name: {
+            type: String,
+            required: true
+        },
+        language_code: {
+            type: String,
+            required: true,
         },
         created_at: {
             type: Date,
