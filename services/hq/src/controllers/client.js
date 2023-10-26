@@ -331,46 +331,46 @@ catch(e){
 let edit_client = async(req,res,next) => {
   try {
     req.body.client_name = req.body.firstname + " " + req.body.lastname;
-    const update_account = await ClientTable.updateOne(
+    const delete_account = await ClientTable.updateOne(
       { _id: req.body._id }, // Specify the filter to match the document
-      { $set: { client_name: req.body.client_name, email: req.body.email, contact: req.body.contact, username: req.body.username, currency: req.body.currency } } // Specify the update operation
+      
     );
 
-    console.log("updated_account", update_account);
-    if (update_account) {
+    console.log("delete_account", delete_account);
+    if (delete_account) {
       res.status(200).send({
-        updated_account: update_account,
+        delete_account: delete_account,
         message: "account details updated",
       });
     } else {
       res.status(400).send({
-        updated_account: update_account,
-        message: "account details could not updated",
+        delete_account: delete_account,
+        message: "account details could not deleted",
       });
     }
   } catch (e) {
-    console.log("error from update_account", e);
+    console.log("error from delete_account", e);
   }
 }
 
 //edit client
 let delete_client = async(req,res,next) => {
   try {
-    req.body.client_name = req.body.firstname + " " + req.body.lastname;
-    const update_account = await ClientTable.updateOne(
+   
+    const delete_account = await ClientTable.deleteOne(
       { _id: req.body._id }, // Specify the filter to match the document
-      { $set: { client_name: req.body.client_name, email: req.body.email, contact: req.body.contact, username: req.body.username, currency: req.body.currency } } // Specify the update operation
+       
     );
 
-    console.log("updated_account", update_account);
+    console.log("delete_account", update_account);
     if (update_account) {
       res.status(200).send({
-        updated_account: update_account,
+        delete_account: update_account,
         message: "account details updated",
       });
     } else {
       res.status(400).send({
-        updated_account: update_account,
+        delete_account: update_account,
         message: "account details could not updated",
       });
     }
