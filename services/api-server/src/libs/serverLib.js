@@ -11,24 +11,9 @@ module.exports = class Server {
 
     //##########################################################################
 
-    // async getData(url, options) {
-    //     try {
-    //         let response = await fetch(url, options);
-    //         return {
-    //             response: response,
-    //             error: false
-    //         }
-    //     } catch (err) {
-    //         console.log(" serverLib getData Error log: ", err);
-    //         return {
-    //             error: true
-    //         }
-    //     }
-    // };
-
     async getData(url, options) {
         try {
-            let response = await axios(url, options);
+            let response = await fetch(url, options);
             return {
                 response: response,
                 error: false
@@ -40,6 +25,21 @@ module.exports = class Server {
             }
         }
     };
+
+    // async getData(url, options) {
+    //     try {
+    //         let response = await axios(url, options);
+    //         return {
+    //             response: response,
+    //             error: false
+    //         }
+    //     } catch (err) {
+    //         console.log(" serverLib getData Error log: ", err);
+    //         return {
+    //             error: true
+    //         }
+    //     }
+    // };
 
     async postData(apiUrl, endpoint, bodyData) {
         try {
