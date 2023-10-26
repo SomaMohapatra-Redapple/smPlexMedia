@@ -8,17 +8,19 @@ const express = require("express");
 const database = require("./www/db/db");
 const appConfig = require("./config/appConfig");
 const routeLoggerMiddleware = require("./src/middlewares/routeLogger");
-//const globalErrorMiddleware = require("./src/middlewares/appErrorHandler");
+const globalErrorMiddleware = require("./src/middlewares/appErrorHandler");
 const fs = require("fs");
 const path = require("path");
+
+const server = require('./www/rest/server');
 //var cors = require("cors");
 const app = express();
 
 //app.use(cors());
 //Bootstrap models
-fs.readdirSync(schemaPath).forEach(function (file) {
-  if (~file.indexOf(".js")) require(schemaPath + "/" + file);
-});
+// fs.readdirSync(schemaPath).forEach(function (file) {
+//   if (~file.indexOf(".js")) require(schemaPath + "/" + file);
+// });
 // end Bootstrap models
 // app.set('views','views');
 // app.set('view engine','ejs');

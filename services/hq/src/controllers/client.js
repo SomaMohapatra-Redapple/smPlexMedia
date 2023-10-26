@@ -353,6 +353,37 @@ let edit_client = async(req,res,next) => {
   }
 }
 
+//edit password
+let edit_password_client = async(req,res,next) => {
+  try {
+    
+    const update_password = await ClientTable.updateOne(
+      {
+        $and: [
+          { _id: req.body._id },
+          { password: req.body.old_password }
+        ]
+      }, // Specify the filter to match the document
+      { $set: { password: req.body.new_password} } // Specify the update operation
+    );
+
+    console.log("updated_password", update_password);
+    if (update_password) {
+      res.status(200).send({
+        updated_password: update_password,
+        message: "password updated",
+      });
+    } else {
+      res.status(400).send({
+        updated_password: update_password,
+        message: "password could not updated",
+      });
+    }
+  } catch (e) {
+    console.log("error from update_password", e);
+  }
+}
+
 // let all_client = async (req,res,next) =>{
 //   try{
 //     const agg = await AdminTable.aggregate([
@@ -792,5 +823,6 @@ module.exports = {
   add_client_by_client: add_client_by_client,
   nested_client: nested_client,
   edit_client : edit_client,
+  edit_password_client : edit_password_client,
   search_client_user : search_client_user
 };
