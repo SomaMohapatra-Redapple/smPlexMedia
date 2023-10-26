@@ -18,29 +18,6 @@ const AddAccountTechnicals = async (query) => {
 const AccountTechnicalsUpdate = async (query) => {
   return AccountsTechnicalsTable.updateOne(query);
 };
-const ShowAccount = async (validatedBody) => {
-  console.log("validated body", validatedBody);
-
-  const { client_id, username, page, limit } = validatedBody;
-  let query = {};
-  if (client_id) {
-    //query.client_id = new RegExp(client_id,"i");
-    query.client_id = client_id;
-  }
-  if (username) {
-    query.username = username;
-  }
-  let options = {
-    page: parseInt(page) || 1,
-    limit: parseInt(limit) || 15,
-    sort: { createdAt: -1 },
-  };
-  return await AccountTable.paginate(query, options);
-};
-// const ShowAccount = async (query) => {
-//   //const {page,limit} = validatedBody;
-//   return await AccountTable.find(query);
-// };
 
 //add account
 const add_account = async (req, res, next) => {
@@ -115,6 +92,7 @@ const update_account = async (req, res, next) => {
   }
 };
 
+
 //add account_techicals
 const add_account_techicals = async (req, res, next) => {
   try {
@@ -143,18 +121,59 @@ const add_account_techicals = async (req, res, next) => {
 const show_account = async (req, res, next) => {
   try {
     const query = {}; //validatedBody.value;
-    const added_client = await ShowAccount(query)
-      .then((result) => {
-        res.status(200).send({
-          message: "accounts found",
-          result: result,
-        });
-      })
-      .catch((err) => {
-        res.status(400).send({
-          err: err.message,
-        });
+    const page = parseInt(req.query.page)||2; // Replace with your desired page number
+    const perPage = parseInt(req.query.limit)||10; // Replace with the number of results per page
+
+    let show_all_account = await AccountTable.aggregate([
+      {
+        $lookup: {
+          from: "accountstechnicals",
+          localField: "_id",
+          foreignField: "account_id",
+          as: "all",
+        },
+      },
+      {
+        $unwind: "$all", // Unwind the array created by $lookup
+      },
+      {
+        $project: {
+          username: "$username",
+          status : "$status",
+          environment : "$all.environment",
+          account_type : "$all.account_type",
+          currency: "$all.currency"
+        },
+      },
+      
+  {
+    $skip: (page - 1) * perPage
+  },
+  {
+    $limit: perPage
+  }
+    ]);
+     
+    if(show_all_account.length>0){
+      show_all_account = JSON.parse(JSON.stringify(show_all_account));
+      for(let each of show_all_account){
+        each.slno = show_all_account.indexOf(each)+1;
+      }
+
+      console.log("show_all_account",show_all_account);
+      res.status(200).send({
+        show_all_account: show_all_account,
+        message: "accounts found",
       });
+
+    }
+    else{
+      res.status(400).send({
+        message: "no accounts found",
+      });
+
+    }
+
   } catch (e) {
     console.log("error", e);
     return next(e);
