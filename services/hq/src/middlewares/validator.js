@@ -79,24 +79,23 @@ const addAdminValidationSchema = Joi.object({
 const addAccountSchema = Joi.object({
     client_id: Joi.string().required(),
     account_name: Joi.string().required(),
-    operator_account_type:Joi.string().required(),
+    account_type:Joi.string().required(),
     environment : Joi.string().required(),
     currency:Joi.string().required(),
-    status: Joi.string().required(),
+    status: Joi.string(),
 });
 
-const addAccountTechnicalSchema = Joi.object({
-    //client_id: Joi.string().required(),
-    client_id: Joi.string().required(),
-    account_id: Joi.string().required(),
-    api_username: Joi.string().required(),
-    api_secret: Joi.string().required(),
-    service_endpoint: Joi.string().required(),
-    currency: Joi.string().required(),
-    is_maintenance_mode_on: Joi.string().required(),
-    account_type: Joi.string().required(),
+// const addAccountTechnicalSchema = Joi.object({
+//     //client_id: Joi.string().required(),
+//     account_id: Joi.string().required(),
+//     api_username: Joi.string().required(),
+//     api_secret: Joi.string().required(),
+//     service_endpoint: Joi.string().required(),
+//     currency: Joi.string().required(),
+//     is_maintenance_mode_on: Joi.string().required(),
+//     account_type: Joi.string().required()
     
-  });
+//   });
 const LoginValidateSchema = Joi.object({
     username: Joi.string()
         .required(),

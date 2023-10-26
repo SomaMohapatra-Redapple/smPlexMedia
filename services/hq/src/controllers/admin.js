@@ -9,7 +9,9 @@ const AddToAdminTable = async (query) => {
   return admin;
 };
 const FindAdmin = async (query) => {
+  console.log("query",query);
   const admin = await AdminTable.findOne(query);
+  
   return admin;
 };
 
@@ -39,8 +41,9 @@ const add_admin = async (req, res, next) => {
 const admin_login = async (req, res, next) => {
   try {
     const { username, password,role } = req.body;
-    const query = { username: username };
+    const query = { username:username };
     const admin = await FindAdmin(query);
+    
     
     if(admin){
     
