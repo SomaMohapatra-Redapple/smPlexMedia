@@ -74,5 +74,5 @@ routerFunction(moduleRoutesPath)
 // end bootstrap route
 
 /* Start Database*/
-
+ 
 database.startDB(app, process.env.DATABASE_TYPE);
