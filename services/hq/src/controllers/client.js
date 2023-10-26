@@ -327,6 +327,89 @@ catch(e){
 }
 }
 
+//edit client
+let edit_client = async(req,res,next) => {
+  try {
+    req.body.client_name = req.body.firstname + " " + req.body.lastname;
+    const delete_account = await ClientTable.updateOne(
+      { _id: req.body._id }, // Specify the filter to match the document
+      
+    );
+
+    console.log("delete_account", delete_account);
+    if (delete_account) {
+      res.status(200).send({
+        delete_account: delete_account,
+        message: "account details updated",
+      });
+    } else {
+      res.status(400).send({
+        delete_account: delete_account,
+        message: "account details could not deleted",
+      });
+    }
+  } catch (e) {
+    console.log("error from delete_account", e);
+  }
+}
+
+//edit client
+let delete_client = async(req,res,next) => {
+  try {
+   
+    const delete_account = await ClientTable.deleteOne(
+      { _id: req.body._id }, // Specify the filter to match the document
+       
+    );
+
+    console.log("delete_account", update_account);
+    if (update_account) {
+      res.status(200).send({
+        delete_account: update_account,
+        message: "account details updated",
+      });
+    } else {
+      res.status(400).send({
+        delete_account: update_account,
+        message: "account details could not updated",
+      });
+    }
+  } catch (e) {
+    console.log("error from update_account", e);
+  }
+}
+
+//edit password
+let edit_password_client = async(req,res,next) => {
+  try {
+    
+    const update_password = await ClientTable.updateOne(
+      {
+        $and: [
+          { _id: req.body._id },
+          { password: req.body.old_password }
+        ]
+      }, // Specify the filter to match the document
+      { $set: { password: req.body.new_password} } // Specify the update operation
+    );
+
+    console.log("updated_password", update_password);
+    if (update_password) {
+      res.status(200).send({
+        updated_password: update_password,
+        message: "password updated",
+      });
+    } else {
+      res.status(400).send({
+        updated_password: update_password,
+        message: "password could not updated",
+      });
+    }
+  } catch (e) {
+    console.log("error from update_password", e);
+  }
+}
+
 // let all_client = async (req,res,next) =>{
 //   try{
 //     const agg = await AdminTable.aggregate([
@@ -765,5 +848,8 @@ module.exports = {
   log_in: log_in,
   add_client_by_client: add_client_by_client,
   nested_client: nested_client,
+  edit_client : edit_client,
+  edit_password_client : edit_password_client,
+  delete_client : delete_client,
   search_client_user : search_client_user
 };

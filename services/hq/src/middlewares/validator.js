@@ -52,6 +52,23 @@ const addClientValidationSchema = Joi.object({
 
 })
 
+
+const editClientValidateSchema = Joi.object({
+    
+    _id : Joi.string().required(),   
+    firstname : Joi.string().required(),
+    lastname : Joi.string(),
+    email: Joi.string().email(),
+    username: Joi.string().required(),
+    contact: Joi.string()
+      .min(10)
+      .max(13)
+      .pattern(/^[0-9]+$/)
+      ,
+    currency: Joi.string()
+
+})
+
 const addAdminValidationSchema = Joi.object({
     
     //client_id: Joi.string().required(),
@@ -189,18 +206,6 @@ const updateQuestionValidateSchema = Joi.object({
     exp: Joi.number().required(),
     objectives: Joi.array().items(mcq).required(),
     subjectives: Joi.array().items(sub).required()
-});
-
-let answer = Joi.object().keys({
-    question: Joi.string().required(),
-    answer: Joi.string().required(),
-    marks: Joi.number().required()
-});
-const submitMCQValidateSchema = Joi.object({
-    lang: Joi.string().required(),
-    exp: Joi.number().required(),
-    // question_id: Joi.string().required(),
-    mcq_response: Joi.array().items(answer).required()
 });
 
 const codeValidateSchema = Joi.object({
@@ -372,6 +377,21 @@ let addAccountTechnicalValidation = async(req, res, next) => {
     }
 }
 
+let editClientValidate = async (req,res,next) => {
+    try {
+        const value = await editClientValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
+
 let customRegisterValidate = async(req, res, next) => {
     try {
         const value = await customRegisterValidateSchema.validate(req.body);
@@ -416,20 +436,7 @@ let updateQuestionValidate = async(req, res, next) => {
     }
 }
 
-let mcqValidate = async(req, res, next) => {
-    try {
-        const value = await submitMCQValidateSchema.validate(req.body);
-        if (value.hasOwnProperty('error')) {
-            throw new Error(value.error);
-        } else {
-            next();
-        }
-    } catch (err) {
-        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
-        res.status(400);
-        res.send(apiResponse)
-    }
-}
+
 
 let codeValidate = async(req, res, next) => {
     try {
@@ -572,13 +579,13 @@ module.exports = {
     AdminLoginValidate :AdminLoginValidate,
     addClient : addClient,
     showAllClient :showAllClient,
+    editClientValidate : editClientValidate,
     adminRegisterValidate: adminRegisterValidate,
     addAccountValidation :addAccountValidation,
     addAccountTechnicalValidation :addAccountTechnicalValidation,
     customRegisterValidate: customRegisterValidate,
     createQuestionValidate: createQuestionValidate,
     updateQuestionValidate: updateQuestionValidate,
-    mcqValidate: mcqValidate,
     codeValidate: codeValidate,
     addLanguageValidate: addLanguageValidate,
     editLanguageValidate: editLanguageValidate,
