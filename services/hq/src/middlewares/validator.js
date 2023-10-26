@@ -88,13 +88,13 @@ const addAccountSchema = Joi.object({
 const addAccountTechnicalSchema = Joi.object({
     //client_id: Joi.string().required(),
     client_id: Joi.string().required(),
-    account_id: Joi.string(),
-    api_username: Joi.string(),
-    api_secret: Joi.string(),
-    service_endpoint: Joi.string(),
-    currency: Joi.string(),
-    is_maintenance_mode_on: Joi.string(),
-    account_type: Joi.string(),
+    account_id: Joi.string().required(),
+    api_username: Joi.string().required(),
+    api_secret: Joi.string().required(),
+    service_endpoint: Joi.string().required(),
+    currency: Joi.string().required(),
+    is_maintenance_mode_on: Joi.string().required(),
+    account_type: Joi.string().required()
     
   });
 const LoginValidateSchema = Joi.object({

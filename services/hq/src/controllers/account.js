@@ -48,9 +48,9 @@ const add_account = async (req, res, next) => {
     const query = req.body;
     query.created_at = timeLIb.now();
     query.updated_at = timeLIb.now();
-    query.service_endpoint = "sep_static";
-    query.api_secret = "qas_static";
-    query.api_username = "au_name_static";
+    query.service_endpoint = " ";
+    query.api_secret = " ";
+    query.api_username = " ";
     const added_account = await AddAccount(query);
 
     query.account_id = added_account._id ;
@@ -74,7 +74,9 @@ const add_account = async (req, res, next) => {
     }
     
   } catch (e) {
-    return next(e);
+    return res.status(400).send({
+      message : e
+    });
   }
 };
 
