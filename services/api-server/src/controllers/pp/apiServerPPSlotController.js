@@ -79,7 +79,7 @@ let getGameUrl = async (req, res) => {
 
         // let responseObj = response.response.data;
         let responseObj = await response.response.json();
-        
+         
         return {
             code: 1000,
             message: "SUCCESS",
