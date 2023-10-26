@@ -11,7 +11,8 @@ const routeLoggerMiddleware = require('./src/middlewares/routeLogger');
 const globalErrorMiddleware = require('./src/middlewares/appErrorHandler');
 const fs = require('fs');
 const path = require('path');
-let database = require('./www/db/db');
+const database = require('./www/db/db');
+const server = require('./www/rest/server');
 
 const app = express();
 
@@ -37,16 +38,22 @@ process.on('unhandledRejection', (reason, p) => {
   // application specific logging, throwing an error, or other logic here
 });
 
-app.use(express.static(path.join(__dirname, 'views')));
+// app.use(express.static(path.join(__dirname, 'views')));
+
+// //Bootstrap models
+// const schemaPath = './src/models';
+// fs.readdirSync(schemaPath).forEach(function (file) {
+//   if (~file.indexOf('.js')) require(schemaPath + '/' + file)
+// });
 
 // Bootstrap route
-const routesPath = './src/routes';
-fs.readdirSync(routesPath).forEach(function (file) {
-  if (~file.indexOf('.js')) {
-    let route = require(routesPath + '/' + file);
-    route.setRouter(app);
-  }
-});
+// const routesPath = './src/routes';
+// fs.readdirSync(routesPath).forEach(function (file) {
+//   if (~file.indexOf('.js')) {
+//     let route = require(routesPath + '/' + file);
+//     route.setRouter(app);
+//   }
+// });
 
 
 // Module route bootstrap
@@ -67,5 +74,5 @@ routerFunction(moduleRoutesPath)
 // end bootstrap route
 
 /* Start Database*/
-
+ 
 database.startDB(app, process.env.DATABASE_TYPE);
