@@ -331,25 +331,25 @@ catch(e){
 let edit_client = async(req,res,next) => {
   try {
     req.body.client_name = req.body.firstname + " " + req.body.lastname;
-    const delete_account = await ClientTable.updateOne(
+    const update_account = await ClientTable.updateOne(
       { _id: req.body._id }, // Specify the filter to match the document
-      
+      { $set: { client_name: req.body.client_name, email: req.body.email, contact: req.body.contact, username: req.body.username, currency: req.body.currency } } // Specify the update operation
     );
 
-    console.log("delete_account", delete_account);
-    if (delete_account) {
+    console.log("updated_account", update_account);
+    if (update_account) {
       res.status(200).send({
-        delete_account: delete_account,
+        updated_account: update_account,
         message: "account details updated",
       });
     } else {
       res.status(400).send({
-        delete_account: delete_account,
-        message: "account details could not deleted",
+        updated_account: update_account,
+        message: "account details could not updated",
       });
     }
   } catch (e) {
-    console.log("error from delete_account", e);
+    console.log("error from update_account", e);
   }
 }
 
@@ -357,25 +357,25 @@ let edit_client = async(req,res,next) => {
 let delete_client = async(req,res,next) => {
   try {
    
-    const delete_account = await ClientTable.deleteOne(
+    const delete_client = await ClientTable.deleteOne(
       { _id: req.body._id }, // Specify the filter to match the document
        
     );
 
-    console.log("delete_account", update_account);
-    if (update_account) {
+    console.log("delete_client", delete_client);
+    if (delete_client) {
       res.status(200).send({
-        delete_account: update_account,
+        delete_client: delete_client,
         message: "account details updated",
       });
     } else {
       res.status(400).send({
-        delete_account: update_account,
+        delete_client: delete_client,
         message: "account details could not updated",
       });
     }
   } catch (e) {
-    console.log("error from update_account", e);
+    console.log("error from delete_client", e);
   }
 }
 
