@@ -124,40 +124,72 @@ const show_account = async (req, res, next) => {
     const page = parseInt(req.query.page)||2; // Replace with your desired page number
     const perPage = parseInt(req.query.limit)||10; // Replace with the number of results per page
 
-    let show_all_account = await AccountTable.aggregate([
+  //   let show_all_account = await AccountTable.aggregate([
 
-      {
-        $match: { _id: req.body.id } // Filter by specific ID
-      },
-      {
-        $lookup: {
-          from: "accountstechnicals",
-          localField: "_id",
-          foreignField: "account_id",
-          as: "all",
-        },
-      },
-      {
-        $unwind: "$all", // Unwind the array created by $lookup
-      },
-      {
-        $project: {
-          username: "$username",
-          status : "$status",
-          environment : "$all.environment",
-          account_type : "$all.account_type",
-          currency: "$all.currency"
-        },
-      },
       
-  {
-    $skip: (page - 1) * perPage
-  },
-  {
-    $limit: perPage
-  }
-    ]);
-     
+  //     {
+  //       $lookup: {
+  //         from: "accountstechnicals",
+  //         localField: "_id",
+  //         foreignField: "account_id",
+  //         as: "all",
+  //       },
+  //     },
+  //     {
+  //       $unwind: "$all", // Unwind the array created by $lookup
+  //     },
+  //     {
+  //       $project: {
+  //         username: "$username",
+  //         status : "$status",
+  //         environment : "$all.environment",
+  //         account_type : "$all.account_type",
+  //         currency: "$all.currency"
+  //       },
+  //     },
+  //     {
+  //       $match: { "all.client_id": req.body.client_id }, // Filter by client_id
+  //     },
+      
+  // {
+  //   $skip: (page - 1) * perPage
+  // },
+  // {
+  //   $limit: perPage
+  // }
+  //   ]);
+
+  let show_all_account = await AccountTable.aggregate([
+    
+    {
+      $lookup: {
+        from: "accountstechnicals",
+        localField: "_id",
+        foreignField: "account_id",
+        as: "all",
+      },
+    },
+    {
+      $unwind: "$all", // Unwind the array created by $lookup
+    },
+    {
+      $project: {
+        username: "$username",
+        status: "$status",
+        environment: "$all.environment",
+        account_type: "$all.account_type",
+        currency: "$all.currency",
+      },
+    },
+    {
+      $skip: (page - 1) * perPage,
+    },
+    {
+      $limit: perPage,
+    }
+  ]);
+  
+    console.log("show_all_account",show_all_account); 
     if(show_all_account.length>0){
       show_all_account = JSON.parse(JSON.stringify(show_all_account));
       for(let each of show_all_account){
