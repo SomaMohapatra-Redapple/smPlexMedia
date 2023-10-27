@@ -343,7 +343,7 @@ const checkProviderAccountLink = async (account_id, provider_id) => {
     }
 }
 
-let isHashvalid = async (parameter, client_id) => {
+let isHashvalid = async (parameter) => {
 
     let reqhash = '';
     let requestsend = {};
@@ -353,18 +353,17 @@ let isHashvalid = async (parameter, client_id) => {
         delete parameter.hash;
     }
 
-    parameter = check.removeEmpty(parameter); // removing blank values
+    parameter = checkLib.removeEmpty(parameter); // removing blank values
 
-    parameter = check.sortObj(parameter); // sorting object
+    parameter = checkLib.sortObj(parameter); // sorting object
     let finalstring = httpBuildQuery(parameter) + setdata.key; //converting json to string
-    let md5hash = check.createMd5hash(finalstring);
+    let md5hash = checkLib.createMd5hash(finalstring);
 
     if (md5hash != reqhash) {
-        let errmsg = "Invalid hash code. Should be returned in the response on any request sent by Pragmatic Play if the hash code validation is failed.";
-        requestsend = await invalidError(5, errmsg);
+        return { error: trur }
+    } else {
+        return { error: false }
     }
-
-    return requestsend;
 }
 
 module.exports = {

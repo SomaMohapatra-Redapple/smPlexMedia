@@ -278,8 +278,8 @@ let getGameUrl = async (req, res) => {
             //console.log(finalLaunchUrl);
 
             return {
-                code: 1004,
-                message: "FATAL_ERROR",
+                code: 1000,
+                message: "SUCCESS",
                 data: {
                     game_url: finalLaunchUrl
                 }
@@ -327,6 +327,17 @@ let authenticate = async (req, res) => {
         const userdtls = await commonController.checkUsercodeExists(usercode);
         let account_user_id = userdtls.account_user_id;
         let account_id = userdtls.account_id;
+
+        // do the hash calculation here
+            // let checkHash = commonController.isHashvalid();
+            // if (checkHash.error == true) {
+            //     const payLoad = {
+            //         error: 5,
+            //         description: "Invalid hash code. Should be returned in the response on any request sentby Pragmatic Play if the hash code validation is failed."
+            //     }
+            //     return payLoad;
+            // }
+        //
 
         let acountDetails = await AccountsTechnicalsModel.findOne({ account_id: account_id }).lean();
         if (checkLib.isEmpty(acountDetails)) {
@@ -980,8 +991,8 @@ let refund = async (req, res) => {
         /* checking the client data format has any error or not */
         if (responseCheck.error == true) {
             payLoad = {
-                "error": 1,
-                "description": "error"
+                error: 120,
+                description: "Internal server error. Casino Operator will return this error code if their system has internal problem and cannot process the request andOperator logic does not require a retry of the request."
             }
             return payLoad;
         }
