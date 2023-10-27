@@ -5,6 +5,8 @@ const timeLIb = require("../libs/timeLib");
 const mongoose = require("mongoose");
 const AccountTable = mongoose.model("Accounts");
 const AccountsTechnicalsTable = mongoose.model("AccountsTechnicals");
+//const { ObjectId } = require('mongodb');
+const ObjectId = mongoose.Types.ObjectId;
 
 const AddAccount = async (query) => {
   return await AccountTable.create(query);
@@ -124,43 +126,13 @@ const show_account = async (req, res, next) => {
     const page = parseInt(req.query.page)||2; // Replace with your desired page number
     const perPage = parseInt(req.query.limit)||10; // Replace with the number of results per page
 
-  //   let show_all_account = await AccountTable.aggregate([
-
-      
-  //     {
-  //       $lookup: {
-  //         from: "accountstechnicals",
-  //         localField: "_id",
-  //         foreignField: "account_id",
-  //         as: "all",
-  //       },
-  //     },
-  //     {
-  //       $unwind: "$all", // Unwind the array created by $lookup
-  //     },
-  //     {
-  //       $project: {
-  //         username: "$username",
-  //         status : "$status",
-  //         environment : "$all.environment",
-  //         account_type : "$all.account_type",
-  //         currency: "$all.currency"
-  //       },
-  //     },
-  //     {
-  //       $match: { "all.client_id": req.body.client_id }, // Filter by client_id
-  //     },
-      
-  // {
-  //   $skip: (page - 1) * perPage
-  // },
-  // {
-  //   $limit: perPage
-  // }
-  //   ]);
 
   let show_all_account = await AccountTable.aggregate([
-    
+    {
+      $match: {
+        "client_id": new ObjectId(req.body.client_id), // Create a new instance of ObjectId
+      },
+    },
     {
       $lookup: {
         from: "accountstechnicals",
@@ -179,6 +151,7 @@ const show_account = async (req, res, next) => {
         environment: "$all.environment",
         account_type: "$all.account_type",
         currency: "$all.currency",
+        client_id : "$all.client_id"
       },
     },
     {
