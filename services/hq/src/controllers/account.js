@@ -125,6 +125,10 @@ const show_account = async (req, res, next) => {
     const perPage = parseInt(req.query.limit)||10; // Replace with the number of results per page
 
     let show_all_account = await AccountTable.aggregate([
+
+      {
+        $match: { _id: req.body.id } // Filter by specific ID
+      },
       {
         $lookup: {
           from: "accountstechnicals",
