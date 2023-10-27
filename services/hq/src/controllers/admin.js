@@ -41,10 +41,9 @@ const add_admin = async (req, res, next) => {
 const admin_login = async (req, res, next) => {
   try {
     const { username, password,role } = req.body;
-    console.log("req.body",req.body);
     const query = { username:username };
     const admin = await FindAdmin(query);
-    console.log("admin",admin);
+    
     
     if(admin){
     

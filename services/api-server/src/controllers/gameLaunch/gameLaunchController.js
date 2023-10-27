@@ -85,7 +85,7 @@ let ppGetGameUrl = async (req, res, gameData) => {
     try {
         let gameCategory = gameData[0].categories[0].category_name.en;
         if (gameCategory == 'slot') {
-            let url = 'http://localhost:5003/api/v1/pp/slot/getGameUrl';
+            let url = 'http://18.162.166.6:5003/api/v1/pp/slot/getGameUrl';
             let requestOptions = {
                 method: 'POST',
                 headers: {

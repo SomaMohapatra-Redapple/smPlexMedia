@@ -278,8 +278,13 @@ let getGameUrl = async (req, res) => {
             //console.log(finalLaunchUrl);
 
             return {
+<<<<<<< HEAD
+                code: 1004,
+                message: "FATAL_ERROR",
+=======
                 code: 1000,
                 message: "SUCCESS",
+>>>>>>> development
                 data: {
                     game_url: finalLaunchUrl
                 }
