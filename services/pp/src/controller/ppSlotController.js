@@ -149,7 +149,7 @@ let getGameUrl = async (req, res) => {
             }
         }
 
-        if ((gamedtls.categorydtls.category != 'Slots')) {
+        if ((gamedtls.categorydtls.category_name.en != 'slot')) {
             return {
                 code: 1005,
                 message: "GAME_NOT_FOUND",
@@ -278,17 +278,16 @@ let getGameUrl = async (req, res) => {
             //console.log(finalLaunchUrl);
 
             return {
-                status: 0,
-                code: "success",
-                message: "Game URL has been generated!",
+                code: 1004,
+                message: "FATAL_ERROR",
                 data: {
-                    return_url: finalLaunchUrl
+                    game_url: finalLaunchUrl
                 }
             }
         } else {
             return {
-                status: false,
-                code: 120,
+                code: 1004,
+                message: "FATAL_ERROR",
                 data: {}
             }
         }
