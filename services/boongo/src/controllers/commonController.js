@@ -109,15 +109,38 @@ const getGameDetailsByGameCode = async(gamecode, provider_id) => {
 }
 
 const insertLog = async(data) => {
+    // try {
+    //     let transactionData = new TransactionModel(data);
+    //     let saveData = await transactionData.save();
+    //     if(saveData)
+    //         return true;
+    //     else
+    //         return false;
+    // } catch (e) {
+    //     console.log('error ==>', e);
+    // }
+
     try {
         let transactionData = new TransactionModel(data);
         let saveData = await transactionData.save();
-        if(saveData)
-            return true;
-        else
-            return false;
+        // console.log(saveData);
+        if (saveData) {
+            let insertData = {
+                _id: saveData._id,
+                error: false
+            }
+            return insertData;
+        }
+        else {
+            let insertData = {
+                error: true
+            }
+            return insertData;
+        }
+
     } catch (e) {
         console.log('error ==>', e);
+        return { error: true };
     }
 }
 

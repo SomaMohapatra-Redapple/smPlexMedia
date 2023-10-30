@@ -364,7 +364,8 @@ const transaction = async(data) => {
                             }
                             
                             // log the data
-                            await commonController.insertLog(logData);
+                            console.log('transaction saved :');
+                            console.log(await commonController.insertLog(logData));
 
                             // set success response
                             returnData = {
@@ -502,7 +503,8 @@ const transaction = async(data) => {
                             }
                             
                             // log the data
-                            await commonController.insertLog(logData);
+                            console.log('transaction saved :');
+                            console.log(await commonController.insertLog(logData));
 
                             // set success response
                             returnData = {
@@ -664,7 +666,8 @@ const rollback = async(data) => {
                         }
 
                         // log the data
-                        await commonController.insertLog(logData);
+                        console.log('transaction saved :');
+                        console.log(await commonController.insertLog(logData));
 
                         // set success response
                         return {
