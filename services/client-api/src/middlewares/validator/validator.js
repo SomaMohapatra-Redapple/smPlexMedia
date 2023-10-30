@@ -17,8 +17,7 @@ const betSchema = Joi.object({
     round_id: Joi.string().required(),
     txn_id: Joi.string().required(),
     category_id: Joi.string().required(),
-    bet_amount: Joi.string().required(),
-    bonus: Joi.string().required().allow(''),
+    bet_amount: Joi.number().precision(4).required(),
 });
 
 const winSchema = Joi.object({
@@ -27,8 +26,7 @@ const winSchema = Joi.object({
     round_id: Joi.string().required(),
     txn_id: Joi.string().required(),
     category_id: Joi.string().required(),
-    win_amount: Joi.string().required(),
-    bonus: Joi.string().required().allow(''),
+    win_amount: Joi.number().required(),
 });
 
 const refundSchema = Joi.object({
@@ -58,7 +56,7 @@ let apiValidator = async (req, res, next) => {
                 break;
             default:
                 let apiResponse = responseLib.generate(true, `INVALID_REQUEST`, {});
-                res.status(400).send(apiResponse);
+                res.status(200).send(apiResponse);
                 break;
         }
 
@@ -71,7 +69,7 @@ let apiValidator = async (req, res, next) => {
     } catch (err) {
         console.log(err.message);
         let apiResponse = responseLib.generate(true, ` ERROR : ${err.message}`, {});
-        res.status(400).send(apiResponse);
+        res.status(200).send(apiResponse);
     }
 }
 
