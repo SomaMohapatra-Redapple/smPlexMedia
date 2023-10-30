@@ -77,7 +77,7 @@ let bet = async (req, res) => {
 
         if (parseFloat(userData.data.balance) < parseFloat(req.body.bet_amount)) {
             payLoad = {
-                available_balance: parseFloat(useparseFloat(userData.data.balance).toFixed(4)),
+                available_balance: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
                 currency: userData.data.currency_code,
                 txn_id: req.body.txn_id,
                 operator_transaction_id: "",
