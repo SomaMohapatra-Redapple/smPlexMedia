@@ -140,7 +140,7 @@ const insertLog = async(data) => {
 
     } catch (e) {
         console.log('error ==>', e);
-        return { error: true };
+        return false;
     }
 }
 
