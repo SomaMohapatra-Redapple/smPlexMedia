@@ -18,6 +18,7 @@ let userBalance = async (req, res) => {
         let payLoad = {
             currency: userData.data.currency_code,
             amount: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
+            amount: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
         }
 
         let apiResponse = responseLib.generate(1000, "SUCCESS", payLoad);
@@ -235,7 +236,8 @@ const rollback = async (req, res) => {
 
             await commonController.updateBalance(req.body.user_id, trans_details.transaction_amount, "CREDIT");
             let currentBalance = parseFloat(parseFloat(userData.data.balance).toFixed(4)) + parseFloat(parseFloat(trans_details.transaction_amount).toFixed(4));
-
+            
+            console.log(currentBalance);
             let logData = {
                 session_id : trans_details.session_id,
                 user_id : trans_details.user_id,
@@ -279,7 +281,7 @@ const rollback = async (req, res) => {
                 round_id : ""
             }
 
-            let apiResponse = responseLib.generate(1000, "SUCCESS", payLoad);
+            let apiResponse = responseLib.generate(2004, "INVALID_TRANSACTION", payLoad);
             res.status(200).send(apiResponse);
 
         }
