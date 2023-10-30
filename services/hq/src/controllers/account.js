@@ -200,7 +200,7 @@ const show_account = async (req, res, next) => {
 //show account_technicals
 const show_account_technicals = async (req,res,next) => {
   try{
-    const query = {} ;
+    
     const account_technicals = await ShowAccountTechnicals(query);
     console.log("account_technicals",account_technicals);
     res.status(200).send({
