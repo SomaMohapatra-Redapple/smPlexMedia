@@ -17,8 +17,7 @@ let userBalance = async (req, res) => {
 
         let payLoad = {
             currency: userData.data.currency_code,
-            amount: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
-            amount: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
+            amount: commonController.toFloat(userData.data.balance)
         }
 
         let apiResponse = responseLib.generate(1000, "SUCCESS", payLoad);
@@ -44,7 +43,7 @@ let authenticate = async(req, res) => {
         else{
             payLoad = {
                 currency: userData.data.currency_code,
-                amount: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
+                amount: commonController.toFloat(userData.data.balance),
                 country : userData.data.country_code,
                 jurisdiction : userData.data.jurisdiction
             }
@@ -75,9 +74,9 @@ let bet = async (req, res) => {
 
         // check if bet is greater than user's balance
 
-        if (parseFloat(userData.data.balance) < parseFloat(req.body.bet_amount)) {
+        if (commonController.toFloat(userData.data.balance) < commonController.toFloat(req.body.bet_amount)) {
             payLoad = {
-                available_balance: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
+                available_balance: commonController.toFloat(userData.data.balance),
                 currency: userData.data.currency_code,
                 txn_id: req.body.txn_id,
                 operator_transaction_id: "",
@@ -89,7 +88,7 @@ let bet = async (req, res) => {
 
         if(await commonController.isTransactionProcessed(req.body.txn_id, 'DEBIT')){
             payLoad = {
-                available_balance: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
+                available_balance: commonController.toFloat(userData.data.balance),
                 currency: userData.data.currency_code,
                 txn_id: req.body.txn_id,
                 operator_transaction_id: "",
@@ -100,7 +99,7 @@ let bet = async (req, res) => {
         }
                 
         await commonController.updateBalance(req.body.user_id, req.body.bet_amount, "DEBIT");
-        let currentBalance = parseFloat(parseFloat(userData.data.balance).toFixed(4)) - parseFloat(parseFloat(req.body.bet_amount).toFixed(4));
+        let currentBalance = commonController.toFloat(userData.data.balance) - commonController.toFloat(req.body.bet_amount);
 
         let logData = {
             session_id: "00000",
@@ -110,9 +109,9 @@ let bet = async (req, res) => {
             provider_transaction_id: req.body.txn_id,
             game_category_id: req.body.category_id,
             round_id: req.body.round_id,
-            transaction_amount: parseFloat(req.body.bet_amount),
+            transaction_amount: commonController.toFloat(req.body.bet_amount),
             transaction_type: "DEBIT",
-            available_balance: parseFloat(parseFloat(currentBalance).toFixed(4)),
+            available_balance: commonController.toFloat(currentBalance),
             action: "BET",
             status: true,
             created_at: timeLib.now(),
@@ -122,7 +121,7 @@ let bet = async (req, res) => {
         // log the data
         let inserData = await commonController.insertLog(logData);
         payLoad = {
-            available_balance: parseFloat(parseFloat(currentBalance).toFixed(4)),
+            available_balance: commonController.toFloat(currentBalance),
             currency: userData.data.currency_code,
             txn_id: req.body.txn_id,
             operator_transaction_id: inserData._id,
@@ -152,7 +151,7 @@ let win = async(req, res) => {
 
         if(await commonController.isTransactionProcessed(req.body.txn_id, 'CREDIT')){
             payLoad = {
-                available_balance: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
+                available_balance: commonController.toFloat(userData.data.balance),
                 currency: userData.data.currency_code,
                 txn_id: req.body.txn_id,
                 operator_transaction_id: "",
@@ -163,7 +162,7 @@ let win = async(req, res) => {
         }
                 
         await commonController.updateBalance(req.body.user_id, req.body.win_amount, "CREDIT");
-        let currentBalance = parseFloat(parseFloat(userData.data.balance).toFixed(4)) + parseFloat(parseFloat(req.body.win_amount).toFixed(4))
+        let currentBalance = commonController.toFloat(userData.data.balance) + commonController.toFloat(req.body.win_amount)
         let logData = {
             session_id: "00000",
             user_id: req.body.user_id,
@@ -172,9 +171,9 @@ let win = async(req, res) => {
             provider_transaction_id: req.body.txn_id,
             game_category_id: req.body.category_id,
             round_id: req.body.round_id,
-            transaction_amount: parseFloat(req.body.win_amount),
+            transaction_amount: commonController.toFloat(req.body.win_amount),
             transaction_type: "CREDIT",
-            available_balance: parseFloat(parseFloat(currentBalance).toFixed(4)),
+            available_balance: commonController.toFloat(currentBalance),
             action: "WIN",
             status: true,
             created_at: timeLib.now(),
@@ -184,7 +183,7 @@ let win = async(req, res) => {
         // log the data
         let inserData = await commonController.insertLog(logData);
         payLoad = {
-            available_balance: parseFloat(parseFloat(currentBalance).toFixed(4)),
+            available_balance: commonController.toFloat(currentBalance),
             currency: userData.data.currency_code,
             txn_id: req.body.txn_id,
             operator_transaction_id: inserData._id,
@@ -224,7 +223,7 @@ const rollback = async (req, res) => {
             if( await commonController.isTransactionProcessed(req.body.txn_id,"CREDIT")){
 
                 payLoad = {
-                    available_balance: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
+                    available_balance: commonController.toFloat(userData.data.balance),
                     currency: userData.data.currency_code,
                     txn_id: req.body.txn_id,
                     operator_transaction_id: "",
@@ -235,7 +234,7 @@ const rollback = async (req, res) => {
             }
 
             await commonController.updateBalance(req.body.user_id, trans_details.transaction_amount, "CREDIT");
-            let currentBalance = parseFloat(parseFloat(userData.data.balance).toFixed(4)) + parseFloat(parseFloat(trans_details.transaction_amount).toFixed(4));
+            let currentBalance = commonController.toFloat(userData.data.balance) + commonController.toFloat(trans_details.transaction_amount);
             
             console.log(currentBalance);
             let logData = {
@@ -248,7 +247,7 @@ const rollback = async (req, res) => {
                 round_id : trans_details.round_id,
                 transaction_amount : trans_details.transaction_amount,
                 transaction_type : "CREDIT",
-                available_balance : parseFloat(parseFloat(currentBalance).toFixed(4)),
+                available_balance : commonController.toFloat(currentBalance),
                 action : 'REFUND',
                 status : trans_details.status,
                 created_at:timeLib.now(),
@@ -259,7 +258,7 @@ const rollback = async (req, res) => {
 
             
              payLoad = {
-                available_balance: parseFloat(parseFloat(currentBalance).toFixed(4)),
+                available_balance: commonController.toFloat(currentBalance),
                 currency: userData.data.currency_code,
                 txn_id: req.body.txn_id,
                 operator_transaction_id: inserData._id,
@@ -274,7 +273,7 @@ const rollback = async (req, res) => {
         }else{
 
             let payLoad = {
-                available_balance : parseFloat(parseFloat(userData.data.balance).toFixed(4)),
+                available_balance : commonController.toFloat(userData.data.balance),
                 txn_id : req.body.txn_id,
                 operator_transaction_id: "",
                 currency : userData.data.currency_code,

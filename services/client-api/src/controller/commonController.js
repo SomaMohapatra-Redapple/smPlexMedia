@@ -91,9 +91,14 @@ const isTransactionProcessed = async (txn_id, transaction_type) => {
         return false;
     }
 }
+
+const toFloat = (number) => {
+    return parseFloat(parseFloat(number).toFixed(4));
+}
 module.exports = {
     userDetails: userDetails,
     insertLog: insertLog,
     updateBalance: updateBalance,
-    isTransactionProcessed: isTransactionProcessed
+    isTransactionProcessed: isTransactionProcessed,
+    toFloat: toFloat
 }
