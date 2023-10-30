@@ -19,7 +19,7 @@ const AddAccountTechnicals = async (query) => {
 };
 
 const ShowAccountTechnicals = async (query) => {
-  return await AccountsTechnicalsTable.find(query);
+  return await AccountsTechnicalsTable.findOne(query);
 };
 const AccountTechnicalsUpdate = async (query) => {
   return AccountsTechnicalsTable.updateOne(query);
@@ -126,7 +126,7 @@ const add_account_techicals = async (req, res, next) => {
 //show account
 const show_account = async (req, res, next) => {
   try {
-    const query = {}; //validatedBody.value;
+    const query = {account_id : req.body.account_id}; //validatedBody.value;
     const page = parseInt(req.query.page)||2; // Replace with your desired page number
     const perPage = parseInt(req.query.limit)||10; // Replace with the number of results per page
     
@@ -200,11 +200,15 @@ const show_account = async (req, res, next) => {
 //show account_technicals
 const show_account_technicals = async (req,res,next) => {
   try{
-    
+    const query = {account_id : req.body.client_id};
+    let data = {};
     const account_technicals = await ShowAccountTechnicals(query);
     console.log("account_technicals",account_technicals);
+    data.account_id = account_technicals.account_id;
+    data.api_secret = account_technicals.api_secret;
+    data.service_endpoint = account_technicals.service_endpoint;
     res.status(200).send({
-      result : account_technicals,
+      result : data,
       message : "account_technicals found"
     })
     
