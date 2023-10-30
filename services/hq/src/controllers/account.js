@@ -200,7 +200,7 @@ const show_account = async (req, res, next) => {
 //show account_technicals
 const show_account_technicals = async (req,res,next) => {
   try{
-    const query = {account_id : req.body.client_id};
+    const query = {account_id : req.body.account_id};
     let data = {};
     const account_technicals = await ShowAccountTechnicals(query);
     console.log("account_technicals",account_technicals);
