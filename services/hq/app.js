@@ -22,10 +22,9 @@ app.use(function (req, res, next) {
 })
 
 app.use(express.json());
-
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
 app.use(routeLoggerMiddleware.logIp);
-app.use(globalErrorMiddleware.globalErrorHandler);
+//pp.use(globalErrorMiddleware.globalErrorHandler);
 
 app.all(appConfig.allowedCorsOrigin, function (req, res, next) {
   res.header("Access-Control-Allow-Origin", appConfig.allowedCorsOrigin);

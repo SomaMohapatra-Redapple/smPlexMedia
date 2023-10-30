@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const ClientTable = mongoose.model("Client");
+const GameTable = mongoose.model("Game");
 const responseLib = require('../libs/responseLib')
 
 
@@ -38,6 +39,48 @@ const find_level = async(user_details)=>{
 }
 
 
+/**
+ * 
+ * @author Injamamul Hoque
+ * @function searchGames
+ * @param {*} providerName,subProvider,gameParams
+ * @returns game details
+ * @created_at 27.10.2023
+ * 
+ */
+
+const searchGames = async (providerName, subProvider, gameParams) => {
+    let query = {};
+  
+    if (providerName) {
+      query.provider_name = providerName;
+    }
+  
+    if (subProvider) {
+      query.sub_provider = subProvider;
+    }
+  
+    if (gameParams) {
+      if (gameParams.game_name) {
+        query.game_name = gameParams.game_name;
+      }
+  
+      if (gameParams.game_code) {
+        query.game_code = gameParams.game_code;
+      }
+  
+      if (gameParams.game_id) {
+        query.game_id = gameParams.game_id;
+      }
+    }
+  
+    const results = await GameTable.find(query);
+    return results;
+  };
+  
+
+
 module.exports = {
-    find_level: find_level
+    find_level: find_level,
+    searchGames: searchGames
 }

@@ -40,6 +40,8 @@ let playerSchema = new Schema(smObj.Player);
 let providerSchema = new Schema(smObj.Provider);
 let superAdminSchema = new Schema(smObj.SuperAdmin);
 let transactionSchema = new Schema(smObj.Transaction);
+let categoriesSchema = new Schema(smObj.Category);
+let languageSchema = new Schema(smObj.Language);
 
 clientSchema.plugin(mongoosePaginate);
 accountSchema.plugin(mongoosePaginate);
@@ -53,3 +55,6 @@ mongoose.model("Player", playerSchema);
 mongoose.model("Provider", providerSchema);
 mongoose.model("SuperAdmin", superAdminSchema);
 mongoose.model("Transaction", transactionSchema);
+mongoose.model("Category", categorySchema);
+mongoose.model("Language",languageSchema);
+

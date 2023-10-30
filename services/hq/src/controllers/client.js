@@ -14,6 +14,8 @@ const mongoose = require("mongoose");
 const ClientTable = mongoose.model("Client");
 const PlayerTable = mongoose.model("Player");
 const AdminTable = mongoose.model("SuperAdmin");
+const CategoryTable = mongoose.model("Category");
+const LanguageTable = mongoose.model("Language");
 
 const AddClient = async (query) => {
   console.log("query", query);
@@ -641,7 +643,7 @@ let log_in = async (req, res, next) => {
 /**
  * 
  * @author Injamamul Hoque
- * @function setRouter
+ * @function search_client_user
  * @param {*} req res
  * @returns res
  * @created_at 19.10.2023
@@ -748,6 +750,194 @@ const search_client_user = async (req,res) => {
 };
 
 
+/**
+ * 
+ * @author Injamamul Hoque
+ * @function show_lang_list
+ * @param {*} req res
+ * @returns res
+ * @created_at 26.10.2023
+ * 
+ */
+
+const show_lang_list = async(req,res)=>{
+
+  try {
+
+    let lang_list = await LanguageTable.find();
+
+    if(lang_list){
+
+      let apiResponse = responseLib.generate(false,"data fetched successfully",lang_list);
+      res.status(200).send(apiResponse);
+
+    }else{
+
+      throw new Error("Couldn't find")
+
+    }
+    
+  } catch (error) {
+    
+    let apiResponse =  responseLib.generate(true,error.message,null);
+    res.status(403).send(apiResponse);
+
+  }
+
+};
+
+
+/**
+ * 
+ * @author Injamamul Hoque
+ * @function show_category_list
+ * @param {*} req res
+ * @returns res
+ * @created_at 26.10.2023
+ * 
+ */
+
+const show_category_list = async(req,res)=>{
+
+  const { page = 1,limit = 10} = req.query;
+
+  try {
+
+    let category_list = await CategoryTable.find()
+    .limit(limit * 1)
+    .skip((page - 1) * limit)
+    .exec();
+
+    //get total documents in the category collection
+
+    const count = await CategoryTable.count();
+
+
+    if(category_list.length !== 0) {
+
+      let apiResponse =  responseLib.generate(false,"data fetched successfully",{category_list,totalPages: Math.ceil(count/limit),currentPage:page});
+
+      res.status(200).json(apiResponse);
+     
+    } else{
+      throw new Error("Couldn't find category");
+    }
+
+    
+  } catch (error) {
+
+    let apiResponse =  responseLib.generate(true,error.message,null);
+    res.status(403).send(apiResponse)
+    
+  }
+};
+
+
+/**
+ * 
+ * @author Injamamul Hoque
+ * @function add_category
+ * @param {*} req res
+ * @returns res
+ * @created_at 26.10.2023
+ * 
+ */
+
+const add_category = async(req,res)=>{
+
+  try {
+
+    let cat_details = await CategoryTable.findOne({category_name:req.body.category_name});
+    if(checkLib.isEmpty(cat_details)){
+
+      let new_category =  new CategoryTable({
+        category_name : req.body.category_name,
+        category_icon : "category-icon.png",
+        category_order : "0",
+        status : "online",
+        show_in_lobby : true
+      })
+      cat_details = await new_category.save();
+      if(cat_details){
+
+        let apiResponse = responseLib.generate(false, "category added successfully",null);
+        res.status(200).send(apiResponse);
+
+      }else{
+        throw new Error("Couldn't add category")
+      }
+
+    }else{
+      throw new Error("category already exists")
+    }
+
+  } catch (error) {
+    
+    let apiResponse = responseLib.generate(true,error.message,null)
+    res.status(403).send(apiResponse);
+  }
+
+};
+
+
+/**
+ * 
+ * @author Injamamul Hoque
+ * @function delete_category
+ * @param {*} req res
+ * @returns res
+ * @created_at 26.10.2023
+ * 
+ */
+
+const delete_category = async(req,res) => {
+  try {
+
+    let category_id = req.body.category_id;
+    await CategoryTable.findByIdAndDelete(category_id);
+
+    let apiResponse = responseLib.generate(false,"category deleted successfully",null);
+    res.status(200).send(apiResponse);
+
+  } catch (error) {
+
+    let apiResponse = responseLib.generate(true,error.message,null);
+    res.status(403).send(apiResponse);
+
+  }
+}
+
+
+/**
+ * 
+ * @author Injamamul Hoque
+ * @function edit_category
+ * @param {*} req res
+ * @returns res
+ * @created_at 26.10.2023
+ * 
+ */
+
+const edit_category = async(req,res) => {
+  try {
+
+    let category_id = req.body.category_id;
+    let cat_details = await CategoryTable.findByIdAndUpdate({category_id},{category_name: req.body.category_name});
+    if(cat_details){
+      let apiResponse = responseLib.generate(false,"category edited successfully",cat_details);
+      res.status(200).send(apiResponse);
+    }else{
+      throw new Error("category not updated");
+    }
+   
+  } catch (error) {
+    let apiResponse = responseLib.generate(true,error.message,null);
+    res.status(403).send(apiResponse);
+  }
+
+};
+
+
 
 module.exports = {
   add_client: add_client,
@@ -758,5 +948,12 @@ module.exports = {
   edit_client : edit_client,
   edit_password_client : edit_password_client,
   delete_client : delete_client,
-  search_client_user : search_client_user
+
+  search_client_user : search_client_user,
+  show_lang_list : show_lang_list,
+  show_category_list: show_category_list,
+  add_category : add_category,
+  delete_category : delete_category,
+  edit_category : edit_category
+
 };
