@@ -17,6 +17,10 @@ const AccountUpdate = async (query) => {
 const AddAccountTechnicals = async (query) => {
   return await AccountsTechnicalsTable.create(query);
 };
+
+const ShowAccountTechnicals = async (query) => {
+  return await AccountsTechnicalsTable.find(query);
+};
 const AccountTechnicalsUpdate = async (query) => {
   return AccountsTechnicalsTable.updateOne(query);
 };
@@ -125,7 +129,7 @@ const show_account = async (req, res, next) => {
     const query = {}; //validatedBody.value;
     const page = parseInt(req.query.page)||2; // Replace with your desired page number
     const perPage = parseInt(req.query.limit)||10; // Replace with the number of results per page
-
+    
 
   let show_all_account = await AccountTable.aggregate([
     {
@@ -162,7 +166,8 @@ const show_account = async (req, res, next) => {
     }
   ]);
   
-    console.log("show_all_account",show_all_account); 
+  const total = page*perPage;  
+  console.log("show_all_account",show_all_account); 
     if(show_all_account.length>0){
       show_all_account = JSON.parse(JSON.stringify(show_all_account));
       for(let each of show_all_account){
@@ -172,6 +177,9 @@ const show_account = async (req, res, next) => {
       console.log("show_all_account",show_all_account);
       res.status(200).send({
         show_all_account: show_all_account,
+        total: total,
+        limit: perPage,
+        page: page,
         message: "accounts found",
       });
 
@@ -189,9 +197,31 @@ const show_account = async (req, res, next) => {
   }
 };
 
+//show account_technicals
+const show_account_technicals = async (req,res,next) => {
+  try{
+    const query = {} ;
+    const account_technicals = await ShowAccountTechnicals(query);
+    console.log("account_technicals",account_technicals);
+    res.status(200).send({
+      result : account_technicals,
+      message : "account_technicals found"
+    })
+    
+
+
+  }
+  catch(e){
+    console.log("error from account technicals",e);
+
+  }
+
+};
+
 module.exports = {
   add_account: add_account,
   show_account: show_account,
   add_account_techicals: add_account_techicals,
   update_account: update_account,
+  show_account_technicals : show_account_technicals
 };
