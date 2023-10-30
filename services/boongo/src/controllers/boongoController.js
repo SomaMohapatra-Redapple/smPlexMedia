@@ -336,9 +336,9 @@ const transaction = async(data) => {
                     }
                 }
                 else{
-                    let transaction_code = response.data.code;
+                    let transaction_code = response.message;
                     switch (transaction_code) {
-                        case 'SUCCEED':
+                        case 'SUCCESS':
                             // prepare data to log
                             let logData = {
                                 session_id : "",
@@ -474,9 +474,9 @@ const transaction = async(data) => {
                     }
                 }
                 else{
-                    let transaction_code = response.data.code;
+                    let transaction_code = response.message;
                     switch (transaction_code) {
-                        case 'SUCCEED':
+                        case 'SUCCESS':
                             // prepare data to log
                             let logData = {
                                 session_id : "",
