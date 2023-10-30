@@ -12,7 +12,6 @@ const Joi = require('joi').extend(require('@joi/date'));
 const clientGetBalanceValidateSchema = Joi.object({
     amount: Joi.number().required().allow(0),
     currency: Joi.string(),
-    bonus: Joi.number(),
     country: Joi.string(),
     jurisdiction: Joi.string()
 });
@@ -20,29 +19,20 @@ const clientGetBalanceValidateSchema = Joi.object({
 
 const clientAuthenticationValidateSchema = Joi.object({
     amount: Joi.number().required().allow(0),
-    currency: Joi.string().required(),
-    bonus: Joi.number(),
-    country: Joi.string(),
-    jurisdiction: Joi.string()
+    currency: Joi.string().required()
 });
 
 const clientBetValidateSchema = Joi.object({
-    transaction_status: Joi.boolean().required(),
     available_balance: Joi.number().required().allow(0),
-    code: Joi.string().required(),
     currency: Joi.string().required(),
-    bonus: Joi.number(),
     round_id: Joi.string().required(),
     txn_id: Joi.string().required(),
     operator_transaction_id: Joi.string().required().allow(''),
 });
 
 const clientWinValidateSchema = Joi.object({
-    transaction_status: Joi.boolean().required(),
     available_balance: Joi.number().required().allow(0),
-    code: Joi.string().required(),
     currency: Joi.string().required(),
-    bonus: Joi.number(),
     round_id: Joi.string().required(),
     txn_id: Joi.string().required(),
     operator_transaction_id: Joi.string().required().allow(''),
@@ -52,12 +42,9 @@ const clientWinValidateSchema = Joi.object({
 const clientRefundValidateSchema = Joi.object({
     available_balance: Joi.number().required().allow(0),
     currency: Joi.string().required(),
-    bonus: Joi.number(),
     txn_id: Joi.string().required(),
     operator_transaction_id: Joi.string().required().allow(''),
-    transaction_status: Joi.boolean().required(),
-    code: Joi.string().required(),
-    round_id: Joi.string().required(),
+    round_id: Joi.string().required().allow(''),
 
 });
 

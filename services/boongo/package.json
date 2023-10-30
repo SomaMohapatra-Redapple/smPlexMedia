@@ -6,6 +6,9 @@
     "scripts": {
         "start": "node app.js"
     },
+    "engines": {
+        "node": "18.18.1"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Redapple2014/SM-PlexMedia-Backend.git"

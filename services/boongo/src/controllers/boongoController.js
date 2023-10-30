@@ -164,13 +164,11 @@ const login = async(data) => {
  * 
  */
 const getbalance = async(data) => {
-    // const serverStartTime = new Date();
     try {
         let playerToken = data.token.split("-ucd-");
         let usercode = playerToken[1];
         const userdtls = await commonController.checkUsercodeExists(usercode);
         let acountDetails = await AccountsTechnicalsModel.findOne({account_id: userdtls.account_id }).lean();
-        // const walletStartTime = new Date();
 
         if(checker.isEmpty(acountDetails)){
             return {
@@ -288,7 +286,6 @@ const transaction = async(data) => {
                 bet_amount : amount,
                 game_id : gamedtls._id,
                 category_id : gamedtls.game_category_id,
-                bonus : '',
                 user_id : userdtls.account_user_id
             }
 
@@ -427,7 +424,6 @@ const transaction = async(data) => {
                 win_amount : amount,
                 game_id : gamedtls._id,
                 category_id : gamedtls.game_category_id,
-                bonus : '',
                 user_id : userdtls.account_user_id
             }
 
