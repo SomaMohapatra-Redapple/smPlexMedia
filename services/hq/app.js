@@ -20,6 +20,15 @@ const schemaPath = "./src/models";
 fs.readdirSync(schemaPath).forEach(function (file) {
   if (~file.indexOf(".js")) require(schemaPath + "/" + file);
 });
+
+// Bootstrap route
+const routesPath = './src/routes';
+fs.readdirSync(routesPath).forEach(function (file) {
+  if (~file.indexOf('.js')) {
+    let route = require(routesPath + '/' + file);
+    route.setRouter(app);
+  }
+});
 // end Bootstrap models
 // app.set('views','views');
 // app.set('view engine','ejs');
