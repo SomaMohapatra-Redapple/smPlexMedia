@@ -79,12 +79,12 @@ let getGameUrl = async (req, res) => {
 
         // let responseObj = response.response.data;
         let responseObj = await response.response.json();
-         
+
         return {
             code: 1000,
             message: "SUCCESS",
-            data : {
-                game_url : responseObj.data.return_url
+            data: {
+                game_url: responseObj.data.return_url
             }
         }
     } catch (error) {
@@ -112,7 +112,7 @@ let authenticate = async (req, res) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            data: JSON.stringify(req.body)
+            body: JSON.stringify(req.body)
         };
         let response = await apiService.call(url, requestOptions);
         if (response.error == true) {
@@ -122,11 +122,10 @@ let authenticate = async (req, res) => {
             }
         }
 
-        return {
-            code: 1000,
-            message: "SUCCESS",
-            data : response.response.data.data.return_url
-        }
+        // let responseObj = response.response.data;
+        let responseObj = await response.response.json();
+        return responseObj;
+
     } catch (error) {
         console.log("ERROR :: API-Server pp slot controller getGameurl function catch error => ", error.message)
         return {
@@ -152,7 +151,7 @@ let balance = async (req, res) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            data: JSON.stringify(req.body)
+            body: JSON.stringify(req.body)
         };
         let response = await apiService.call(url, requestOptions);
         if (response.error == true) {
@@ -162,11 +161,10 @@ let balance = async (req, res) => {
             }
         }
 
-        return {
-            code: 1000,
-            message: "SUCCESS",
-            data : response.response.data.data.return_url
-        }
+        // let responseObj = response.response.data;
+        let responseObj = await response.response.json();
+        return responseObj;
+
     } catch (error) {
         console.log("ERROR :: API-Server pp slot controller getGameurl function catch error => ", error.message)
         return {
@@ -192,7 +190,7 @@ let bet = async (req, res) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            data: JSON.stringify(req.body)
+            body: JSON.stringify(req.body)
         };
         let response = await apiService.call(url, requestOptions);
         if (response.error == true) {
@@ -202,11 +200,10 @@ let bet = async (req, res) => {
             }
         }
 
-        return {
-            code: 1000,
-            message: "SUCCESS",
-            data : response.response.data.data.return_url
-        }
+        // let responseObj = response.response.data;
+        let responseObj = await response.response.json();
+        return responseObj;
+
     } catch (error) {
         console.log("ERROR :: API-Server pp slot controller getGameurl function catch error => ", error.message)
         return {
@@ -232,7 +229,7 @@ let result = async (req, res) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            data: JSON.stringify(req.body)
+            body: JSON.stringify(req.body)
         };
         let response = await apiService.call(url, requestOptions);
         if (response.error == true) {
@@ -242,11 +239,10 @@ let result = async (req, res) => {
             }
         }
 
-        return {
-            code: 1000,
-            message: "SUCCESS",
-            data : response.response.data.data.return_url
-        }
+        // let responseObj = response.response.data;
+        let responseObj = await response.response.json();
+        return responseObj;
+
     } catch (error) {
         console.log("ERROR :: API-Server pp slot controller getGameurl function catch error => ", error.message)
         return {
@@ -272,7 +268,7 @@ let refund = async (req, res) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            data: JSON.stringify(req.body)
+            body: JSON.stringify(req.body)
         };
         let response = await apiService.call(url, requestOptions);
         if (response.error == true) {
@@ -282,11 +278,10 @@ let refund = async (req, res) => {
             }
         }
 
-        return {
-            code: 1000,
-            message: "SUCCESS",
-            data : response.response.data.data.return_url
-        }
+        // let responseObj = response.response.data;
+        let responseObj = await response.response.json();
+        return responseObj;
+
     } catch (error) {
         console.log("ERROR :: API-Server pp slot controller getGameurl function catch error => ", error.message)
         return {

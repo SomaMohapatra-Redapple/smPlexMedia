@@ -9,9 +9,9 @@ let generateEnc = (err, message, data) => {
     }
     return response
   }
-  let generate = (err, message, data) => {
+  let generate = (code, message, data) => {
     let response = {
-      err:err,
+      code:code,
       message: message,
       data: data
     }

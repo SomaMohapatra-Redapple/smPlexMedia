@@ -3,6 +3,7 @@ let dataAPI;
 const mode = process.env.NODE_ENV;
 const server = require('../../../api-server/www/rest/server');
 const appConfig = require('../../config/appConfig');
+const redisLib = require('../../src/libs/redisLib');
 
 /**
  * Proceed with Multiple databases connection from ENV
@@ -31,24 +32,20 @@ const startDB = (app, db_type) => {
           process.exit(1)
         }); // end mongoose connection error
 
-        mongoose.connection.on('open', function (err) {
+        mongoose.connection.on('open', async function (err) {
           if (err) {
             console.log(`database error:${JSON.stringify(err)}`);
             process.exit(1)
           } else {
             console.log("database connection open success");
-            // const redis_client = redis.createClient({
-            //     url:appConfig.redis_url
-            // });
-            // redis_client.connect();
-            // redis_client.on('error', (err) => {
-            //     console.log("REDIS Error " + err)
-            // });
-            // module.exports.redis_client = redis_client;
-            /**
-             * Create HTTP server.
-             */
-            server.startServer(app);
+            let redisConnect = await redisLib.connect(appConfig.redis_url);
+
+            if (redisConnect == true) {
+              /* Create HTTP server */
+              server.startServer(app);
+            } else {
+              console.log("server connection failed");
+            }
           }
         }); // end mongoose connection open handler
       } catch (err) {

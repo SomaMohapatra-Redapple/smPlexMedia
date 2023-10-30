@@ -11,21 +11,20 @@ let userBalance = async (req, res) => {
         let userData = await commonController.userDetails(req.body.user_id);
 
         if (userData.error == true) {
-            let apiResponse = responseLib.generate(true, "Invalid User", {});
-            return res.status(500).send(apiResponse);
+            let apiResponse = responseLib.generate(2001, "INVALID_USER", {});
+            return res.status(200).send(apiResponse);
         }
 
         let payLoad = {
             currency: userData.data.currency_code,
-            amount: parseFloat(userData.data.balance),
-            bonus: 1000.50
+            amount: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
         }
 
-        let apiResponse = responseLib.generate(false, "User Details", payLoad);
+        let apiResponse = responseLib.generate(1000, "SUCCESS", payLoad);
         res.status(200).send(apiResponse);
     } catch (error) {
-        let apiResponse = responseLib.generate(true, error.message, {});
-        res.status(500).send(apiResponse);
+        let apiResponse = responseLib.generate(1004, error.message, {});
+        res.status(200).send(apiResponse);
     }
 }
 
@@ -38,27 +37,26 @@ let authenticate = async(req, res) => {
 
         // if user doen't exist, return
         if (userData.error == true) {
-            let apiResponse = responseLib.generate(true, "INVALID_USER", {});
-            return res.status(500).send(apiResponse);
+            let apiResponse = responseLib.generate(2001, "INVALID_USER", {});
+            return res.status(200).send(apiResponse);
         }
         else{
             payLoad = {
                 currency: userData.data.currency_code,
-                amount: parseFloat(userData.data.balance),
-                bonus : 0,
+                amount: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
                 country : userData.data.country_code,
                 jurisdiction : userData.data.jurisdiction
             }
 
-            let apiResponse = responseLib.generate(false, "User Authenticated", payLoad);
+            let apiResponse = responseLib.generate(1000, "SUCCESS", payLoad);
             res.status(200).send(apiResponse);
         }
 
         
 
     } catch (error) {
-        let apiResponse = responseLib.generate(true, error.message, {});
-        res.status(500).send(apiResponse);
+        let apiResponse = responseLib.generate(1004, error.message, {});
+        res.status(200).send(apiResponse);
     }
 }
 
@@ -70,43 +68,38 @@ let bet = async (req, res) => {
 
         // if user doen't exist, return
         if (userData.error == true) {
-            let apiResponse = responseLib.generate(true, "INVALID_USER", {});
-            return res.status(500).send(apiResponse);
+            let apiResponse = responseLib.generate(2001, "INVALID_USER", {});
+            return res.status(200).send(apiResponse);
         }
 
         // check if bet is greater than user's balance
 
         if (parseFloat(userData.data.balance) < parseFloat(req.body.bet_amount)) {
             payLoad = {
-                transaction_status: false,
-                available_balance: parseFloat(userData.data.balance),
-                code: 'BALANCE_EXCEED',
+                available_balance: parseFloat(useparseFloat(userData.data.balance).toFixed(4)),
                 currency: userData.data.currency_code,
-                bonus: +100,
                 txn_id: req.body.txn_id,
                 operator_transaction_id: "",
                 round_id: req.body.round_id
             }
-            let apiResponse = responseLib.generate(false, "BALANCE_EXCEED", payLoad);
+            let apiResponse = responseLib.generate(2002, "BALANCE_EXCEED", payLoad);
             return res.status(200).send(apiResponse);
         }
 
         if(await commonController.isTransactionProcessed(req.body.txn_id, 'DEBIT')){
             payLoad = {
-                transaction_status: false,
-                available_balance: parseFloat(userData.data.balance),
-                code: 'ALREADY_PROCESSED',
+                available_balance: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
                 currency: userData.data.currency_code,
-                bonus: +100,
                 txn_id: req.body.txn_id,
                 operator_transaction_id: "",
                 round_id: req.body.round_id
             }
-            let apiResponse = responseLib.generate(false, "ALREADY_PROCESSED", payLoad);
+            let apiResponse = responseLib.generate(2003, "ALREADY_PROCESSED", payLoad);
             return res.status(200).send(apiResponse);
         }
                 
         await commonController.updateBalance(req.body.user_id, req.body.bet_amount, "DEBIT");
+        let currentBalance = parseFloat(parseFloat(userData.data.balance).toFixed(4)) - parseFloat(parseFloat(req.body.bet_amount).toFixed(4));
 
         let logData = {
             session_id: "00000",
@@ -118,7 +111,7 @@ let bet = async (req, res) => {
             round_id: req.body.round_id,
             transaction_amount: parseFloat(req.body.bet_amount),
             transaction_type: "DEBIT",
-            available_balance: parseFloat(userData.data.balance) - parseFloat(req.body.bet_amount),
+            available_balance: parseFloat(parseFloat(currentBalance).toFixed(4)),
             action: "BET",
             status: true,
             created_at: timeLib.now(),
@@ -128,22 +121,19 @@ let bet = async (req, res) => {
         // log the data
         let inserData = await commonController.insertLog(logData);
         payLoad = {
-            transaction_status: true,
-            available_balance: parseFloat(userData.data.balance) - parseFloat(req.body.bet_amount),
-            code: 'SUCCEED',
+            available_balance: parseFloat(parseFloat(currentBalance).toFixed(4)),
             currency: userData.data.currency_code,
-            bonus: parseFloat(100.125),
             txn_id: req.body.txn_id,
             operator_transaction_id: inserData._id,
             round_id: req.body.round_id
         }
 
-        let apiResponse = responseLib.generate(false, "Bet API", payLoad);
+        let apiResponse = responseLib.generate(1000, "SUCCESS", payLoad);
         res.status(200).send(apiResponse);
 
     } catch (error) {
-        let apiResponse = responseLib.generate(true, error.message, {});
-        res.status(500).send(apiResponse);
+        let apiResponse = responseLib.generate(1004, error.message, {});
+        res.status(200).send(apiResponse);
     }
 }
 
@@ -155,27 +145,24 @@ let win = async(req, res) => {
 
         // if user doen't exist, return
         if (userData.error == true) {
-            let apiResponse = responseLib.generate(true, "INVALID_USER", {});
-            return res.status(500).send(apiResponse);
+            let apiResponse = responseLib.generate(2001, "INVALID_USER", {});
+            return res.status(200).send(apiResponse);
         }
 
         if(await commonController.isTransactionProcessed(req.body.txn_id, 'CREDIT')){
             payLoad = {
-                transaction_status: false,
-                available_balance: parseFloat(userData.data.balance),
-                code: 'ALREADY_PROCESSED',
+                available_balance: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
                 currency: userData.data.currency_code,
-                bonus: +100,
                 txn_id: req.body.txn_id,
                 operator_transaction_id: "",
                 round_id: req.body.round_id
             }
-            let apiResponse = responseLib.generate(false, "ALREADY_PROCESSED", payLoad);
+            let apiResponse = responseLib.generate(2003, "ALREADY_PROCESSED", payLoad);
             return res.status(200).send(apiResponse);
         }
                 
         await commonController.updateBalance(req.body.user_id, req.body.win_amount, "CREDIT");
-
+        let currentBalance = parseFloat(parseFloat(userData.data.balance).toFixed(4)) + parseFloat(parseFloat(req.body.win_amount).toFixed(4))
         let logData = {
             session_id: "00000",
             user_id: req.body.user_id,
@@ -186,7 +173,7 @@ let win = async(req, res) => {
             round_id: req.body.round_id,
             transaction_amount: parseFloat(req.body.win_amount),
             transaction_type: "CREDIT",
-            available_balance: parseFloat(userData.data.balance) + parseFloat(req.body.win_amount),
+            available_balance: parseFloat(parseFloat(currentBalance).toFixed(4)),
             action: "WIN",
             status: true,
             created_at: timeLib.now(),
@@ -196,22 +183,19 @@ let win = async(req, res) => {
         // log the data
         let inserData = await commonController.insertLog(logData);
         payLoad = {
-            transaction_status: true,
-            available_balance: parseFloat(userData.data.balance) + parseFloat(req.body.win_amount),
-            code: 'SUCCEED',
+            available_balance: parseFloat(parseFloat(currentBalance).toFixed(4)),
             currency: userData.data.currency_code,
-            bonus: parseFloat(100.125),
             txn_id: req.body.txn_id,
             operator_transaction_id: inserData._id,
             round_id: req.body.round_id
         }
 
-        let apiResponse = responseLib.generate(false, "Win API", payLoad);
+        let apiResponse = responseLib.generate(1000, "SUCCESS", payLoad);
         res.status(200).send(apiResponse);
 
     } catch (error) {
-        let apiResponse = responseLib.generate(true, error.message, {});
-        res.status(500).send(apiResponse);
+        let apiResponse = responseLib.generate(1004, error.message, {});
+        res.status(200).send(apiResponse);
     }
 }
 
@@ -228,8 +212,8 @@ const rollback = async (req, res) => {
 
         // if user does not exist
         if (userData.error == true) {
-            let apiResponse = responseLib.generate(true, "INVALID_USER", {});
-            return res.status(500).send(apiResponse);
+            let apiResponse = responseLib.generate(2001, "INVALID_USER", {});
+            return res.status(200).send(apiResponse);
         }
 
 
@@ -239,20 +223,18 @@ const rollback = async (req, res) => {
             if( await commonController.isTransactionProcessed(req.body.txn_id,"CREDIT")){
 
                 payLoad = {
-                    transaction_status: false,
-                    available_balance: parseFloat(userData.data.balance),
-                    code: 'ALREADY_PROCESSED',
+                    available_balance: parseFloat(parseFloat(userData.data.balance).toFixed(4)),
                     currency: userData.data.currency_code,
-                    bonus: +100,
                     txn_id: req.body.txn_id,
                     operator_transaction_id: "",
                     round_id: trans_details.round_id
                 }
-                let apiResponse = responseLib.generate(false, "ALREADY_PROCESSED", payLoad);
+                let apiResponse = responseLib.generate(2003, "ALREADY_PROCESSED", payLoad);
                 return res.status(200).send(apiResponse);
             }
 
             await commonController.updateBalance(req.body.user_id, trans_details.transaction_amount, "CREDIT");
+            let currentBalance = parseFloat(parseFloat(userData.data.balance).toFixed(4)) + parseFloat(parseFloat(trans_details.transaction_amount).toFixed(4));
 
             let logData = {
                 session_id : trans_details.session_id,
@@ -264,7 +246,7 @@ const rollback = async (req, res) => {
                 round_id : trans_details.round_id,
                 transaction_amount : trans_details.transaction_amount,
                 transaction_type : "CREDIT",
-                available_balance : parseFloat(userData.data.balance) + parseFloat(trans_details.transaction_amount),
+                available_balance : parseFloat(parseFloat(currentBalance).toFixed(4)),
                 action : 'REFUND',
                 status : trans_details.status,
                 created_at:timeLib.now(),
@@ -275,17 +257,14 @@ const rollback = async (req, res) => {
 
             
              payLoad = {
-            transaction_status: true,
-            available_balance: parseFloat(userData.data.balance) + parseFloat(trans_details.transaction_amount),
-            code: 'SUCCEED',
-            currency: userData.data.currency_code,
-            bonus: parseFloat(100.125),
-            txn_id: req.body.txn_id,
-            operator_transaction_id: inserData._id,
-            round_id: trans_details.round_id
-        }
+                available_balance: parseFloat(parseFloat(currentBalance).toFixed(4)),
+                currency: userData.data.currency_code,
+                txn_id: req.body.txn_id,
+                operator_transaction_id: inserData._id,
+                round_id: trans_details.round_id
+            }
 
-            let apiResponse = responseLib.generate(false, "Rollback", payLoad);
+            let apiResponse = responseLib.generate(1000, "SUCCESS", payLoad);
             res.status(200).send(apiResponse);
 
 
@@ -293,22 +272,21 @@ const rollback = async (req, res) => {
         }else{
 
             let payLoad = {
-                available_balance : userData.data.balance,
+                available_balance : parseFloat(parseFloat(userData.data.balance).toFixed(4)),
                 txn_id : req.body.txn_id,
-                operator_transaction_id: null,
-                currency : user_detials.currency,
-                bonus : 0
+                operator_transaction_id: "",
+                currency : userData.data.currency_code,
+                round_id : ""
             }
 
-            let apiResponse = responseLib.generate(false, "Rollback", payLoad);
+            let apiResponse = responseLib.generate(1000, "SUCCESS", payLoad);
             res.status(200).send(apiResponse);
-
 
         }
 
     } catch (error) {
-        let apiResponse = responseLib.generate(true, error.message, {});
-        res.status(500).send(apiResponse);
+        let apiResponse = responseLib.generate(1004, error.message, {});
+        res.status(200).send(apiResponse);
     }
 }
 
