@@ -11,15 +11,15 @@ const Joi = require('joi').extend(require('@joi/date'));
 
 const clientGetBalanceValidateSchema = Joi.object({
     amount: Joi.number().required().allow(0),
-    currency: Joi.string(),
-    country: Joi.string(),
-    jurisdiction: Joi.string()
+    currency: Joi.string()
 });
 
 
 const clientAuthenticationValidateSchema = Joi.object({
     amount: Joi.number().required().allow(0),
-    currency: Joi.string().required()
+    currency: Joi.string().required(),
+    country: Joi.string(),
+    jurisdiction: Joi.string()
 });
 
 const clientBetValidateSchema = Joi.object({
