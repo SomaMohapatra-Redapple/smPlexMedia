@@ -1,5 +1,5 @@
 const clientController = require("../controllers/client");
-const gameController = require("../controllers/game");
+const gameController = require("../controllers/game")
 const appConfig = require("../../config/appConfig");
 const auth = require("../middlewares/auth");
 const validation = require("../middlewares/validator")

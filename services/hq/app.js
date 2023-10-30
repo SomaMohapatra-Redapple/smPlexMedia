@@ -7,8 +7,8 @@ if (envConf.error) {
 const express = require("express");
 const database = require("./www/db/db");
 const appConfig = require("./config/appConfig");
-//const routeLoggerMiddleware = require("./src/middlewares/routeLogger");
-//const globalErrorMiddleware = require("./src/middlewares/appErrorHandler");
+const routeLoggerMiddleware = require("./src/middlewares/routeLogger");
+const globalErrorMiddleware = require("./src/middlewares/appErrorHandler");
 const fs = require("fs");
 const path = require("path");
 //var cors = require("cors");
@@ -34,7 +34,7 @@ fs.readdirSync(routesPath).forEach(function (file) {
 // app.set('view engine','ejs');
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-//app.use(routeLoggerMiddleware.logIp);
+app.use(routeLoggerMiddleware.logIp);
 //pp.use(globalErrorMiddleware.globalErrorHandler);
 
 app.all(appConfig.allowedCorsOrigin, function (req, res, next) {
@@ -50,6 +50,7 @@ process.on("unhandledRejection", (reason, p) => {
   console.log("Unhandled Rejection at: Promise", p, "reason:", reason);
   // application specific logging, throwing an error, or other logic here
 });
+
 
 /* Start Database*/
 database.startDB(app, process.env.DATABASE_TYPE);

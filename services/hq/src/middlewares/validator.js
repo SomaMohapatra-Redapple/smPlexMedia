@@ -263,6 +263,18 @@ const searchValidateSchema = Joi.object({
 
 })
 
+
+
+
+
+
+
+// @author : Injamamul hoque
+// created_at : 26.10.2023
+// function : gameListValidateSchema
+
+
+
 // @author : Injamamul hoque
 // created_at : 26.10.2023
 // function : addCategoryValidateSchema
@@ -284,13 +296,13 @@ let editDeleteValidateSchema = Joi.object({
 // function : gameListValidateSchema
 
 const gameListValidateSchema = Joi.object({
-    providerName: Joi.string().required(),
-    subProvider: Joi.string().required(),
+    provider: Joi.string(),
+    sub_provider: Joi.string(),
     gameParams: Joi.object({
       game_name: Joi.string().allow(''),
       game_code: Joi.string().allow(''),
       game_id: Joi.string().allow('')
-    }).or('game_name', 'game_code', 'game_id').required()
+    }).or('game_name', 'game_code', 'game_id')
   });
 
 const showCategoryValidateSchema = Joi.object({
@@ -609,89 +621,65 @@ let searchValidate = async (req, res, next) => {
 
 }
 
-// @author : Injamamul hoque
-// created_at : 26.10.2023
-// function : categoryValidateSchema
-
-let categoryValidate = async(req,res,next) => {
-
+const categoryValidate = async(req,res,next)=>{
     try {
-       
         const value = await addCategoryValidateSchema.validate(req.body);
-        if(value.hasOwnProperty('error')){
+        if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
-
-        }else{
+        } else {
             next();
         }
-        
-    } catch (error) {
-
-        let apiResponse = responseLib.generate(true, ` ${error.message}`, null);
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
         res.status(400);
         res.send(apiResponse)
-        
     }
-
-
 }
 
-// @author : Injamamul hoque
-// created_at : 26.10.2023
-// function : editDeleteValidateSchema
-
-let editDeleteValidate = async (req, res,next) => {
+const editDeleteValidate = async(req,res,next)=>{
     try {
-       
         const value = await editDeleteValidateSchema.validate(req.body);
-        if(value.hasOwnProperty('error')){
+        if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
-
-        }else{
+        } else {
             next();
         }
-        
-    } catch (error) {
-
-        let apiResponse = responseLib.generate(true, ` ${error.message}`, null);
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
         res.status(400);
         res.send(apiResponse)
-        
     }
 }
 
-let gameListValidate = async(req,res,next) => {
-    try {
+const gameListValidate = async(req,res,next)=>{
+     try {
         const value = await gameListValidateSchema.validate(req.body);
-        if(value.hasOwnProperty('error')){
+        if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
-        }else{
+        } else {
             next();
         }
-        
-    } catch (error) {
-        let apiResponse = responseLib.generate(true, ` ${error.message}`, null);
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
         res.status(400);
-        res.send(apiResponse)  
+        res.send(apiResponse)
     }
 }
 
-let showCategoryValidate = async(req,res,next) => {
+const showCategoryValidate = async(req,res,next)=>{
     try {
-   
-        const value = await showCategoryValidateSchema.validate(req.query);
-        if(value.hasOwnProperty('error')){
+        const value = await showCategoryValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
-        }else{
+        } else {
             next();
         }
-        
-    } catch (error) {
-        let apiResponse = responseLib.generate(true, ` ${error.message}`, null);
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
         res.status(400);
-        res.send(apiResponse)  
+        res.send(apiResponse)
     }
-};
+}
 
 module.exports = {
     loginValidate: loginValidate,
