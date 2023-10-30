@@ -137,102 +137,6 @@ const add_client_by_client = async (req, res, next) => {
 
 //find all client
 
-
-// const all_client = async (req, res, next) => {
-//   try {
-//     let allClient;
-//     let query;
-
-//     if (!req.body.parent_client_id) {
-//       query = { parent_client_id: req.user.id };
-//     } else {
-//       query = { parent_client_id: req.body.parent_client_id };
-//     }
-
-//     allClient = await FindAllClient(query);
-//     allClient = JSON.parse(JSON.stringify(allClient));
-
-//     if (allClient.docs.length > 0) {
-//       let upper_level = "admin";
-
-//       if (req.body.parent_client_id) {
-//         const client_detail = await FindSpecificClientFromClient({
-//           _id: req.body.parent_client_id,
-//         });
-//         upper_level = client_detail.client_name;
-//       }
-
-//       for (let client of allClient.docs) {
-//         const fieldsToDelete = [
-//           "contact",
-//           "email",
-//           "password",
-//           "status",
-//           "environment",
-//           "created_by",
-//           "updated_by",
-//           "updated_at",
-//           "__v",
-//         ];
-
-//         for (const field of fieldsToDelete) {
-//           delete client[field];
-
-
-// let all_client = async (req,res,next) => {
-//   try{
-//     let allClient;
-//     if(!req.body.parent_client_id)
-//     {
-//       const query_for_all_client_of_logged_in = {parent_client_id : req.user.id}
-//       allClient = await FindAllClient(query_for_all_client_of_logged_in);
-//       allClient = JSON.parse(JSON.stringify(allClient));
-//       let length = allClient.docs.length;
-//       if(length>0){
-//           for (let client of allClient.docs) {
-//           delete client.contact;
-//           delete client.email;
-//           delete client.password;
-//           delete client.status;
-//           delete client.environment;
-//           delete client.created_by;
-//           delete client.updated_by;
-//           delete client.updated_at;
-//           delete client.__v;
-//           client.upper_level = "admin";
-//           client.slno = allClient.docs.indexOf(client) + 1;
-//           client.balance = 0;
-//           client.currency = "KRW";
-//           //console.log("client", client);
-//         }
-  
-//         res.status(200).send({
-//           result : allClient,
-//           message : "all client found"
-//         })
-
-//         client.upper_level = upper_level;
-//         client.slno = allClient.docs.indexOf(client) + 1;
-//         client.balance = 0;
-//         client.currency = "KRW";
-//       }
-
-//       res.status(200).send({
-//         result: allClient,
-//         message: "all client found",
-//       });
-//     } else {
-//       res.status(400).send({
-//         result: allClient,
-//         message: "no client found under this id",
-//       });
-//     }
-//   } catch (e) {
-//     console.log("error from all_client", e);
-//   }
-// };
-
-
 let all_client = async (req,res,next) => {
   try{
     let allClient;
@@ -358,23 +262,26 @@ let edit_client = async(req,res,next) => {
 //edit client
 let delete_client = async(req,res,next) => {
   try {
+
+    const idToDelete = req.body.id; // The ID you want to delete
+
+    const isParentId = await ClientTable.exists({ parent_client_id: idToDelete });
    
-    const delete_client = await ClientTable.deleteOne(
-      { _id: req.body._id }, // Specify the filter to match the document
+    // const delete_client = await ClientTable.deleteOne(
+    //   { _id: req.body.id }, // Specify the filter to match the document
        
-    );
+    // );
 
     console.log("delete_client", delete_client);
-    if (delete_client) {
-      res.status(200).send({
-        delete_client: delete_client,
-        message: "account details updated",
-      });
+    if (isParentId) {
+      res.status(400).send({message : "Cannot delete, as the client is a parent of other clients."});
+    } else {const deleteResult = await ClientTable.deleteOne({ _id: idToDelete });
+  
+    if (deleteResult.deletedCount === 1) {
+      res.status(200).send({message : "Client deleted successfully."});
     } else {
-      res.status(400).send({
-        delete_client: delete_client,
-        message: "account details could not updated",
-      });
+      res.status(404).send({message : "Client not found."});
+    }
     }
   } catch (e) {
     console.log("error from delete_client", e);
