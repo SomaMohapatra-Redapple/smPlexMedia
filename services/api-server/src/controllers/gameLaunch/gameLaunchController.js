@@ -49,7 +49,7 @@ let handler = async (req, res) => {
             case "pp":
                 response = await ppGetGameUrl(req, res, gameData);
                 break;
-            case "":
+            case "Boongo":
                 response = await boongoGetGameUrl(req, res);
                 break;
             default:
@@ -110,6 +110,40 @@ let ppGetGameUrl = async (req, res, gameData) => {
         if (gameCategory == 'lc') {
 
         }
+
+    } catch (error) {
+        console.log("ERROR :: API-Server pp slot controller getGameurl function catch error => ", error.message)
+        return {
+            code: 1004,
+            message: "FATAL_ERROR",
+            data: {}
+        }
+    }
+}
+
+let boongoGetGameUrl = async (req, res, gameData) => {
+    try {
+        let url = 'http://18.162.166.6:5007/api/v1/boongo/getgameurl';
+        let requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(req.body)
+        };
+        let response = await apiService.call(url, requestOptions);
+
+        if (response.error == true) {
+            return {
+                code: 1004,
+                message: "FATAL_ERROR",
+                data: {}
+            }
+        }
+
+        // let responseObj = response.response.data;
+        let responseObj = await response.response.json();
+        return responseObj;
 
     } catch (error) {
         console.log("ERROR :: API-Server pp slot controller getGameurl function catch error => ", error.message)

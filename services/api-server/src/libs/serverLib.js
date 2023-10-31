@@ -1,4 +1,4 @@
-let axios = require('axios');
+// let axios = require('axios');
 module.exports = class Server {
     /**
      * Create class instance and fill params from URL or fill it with default values if URL not contain needed data.
