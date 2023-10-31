@@ -157,62 +157,67 @@ const isTransactionValid = async(transaction_id) => {
 }
 
 const setProviderInRedis = async () => {
-    let provider_id = appConfig.provider_id;
-    let providerdtls = await ProviderModel.aggregate(
-        [
-            {
-              $match: {
-                "_id": new mongoose.Types.ObjectId(provider_id)
-              }
-            },
-            {
-              $lookup: {
-                from: "provider_accounts",
-                localField: "_id",
-                foreignField: "provider_id",
-                as: "accounts"
-              }
-            }
-        ]
-    );
-    if(providerdtls.length < 1 || providerdtls[0].accounts.length < 1)
-        return false;
-    else{
-        
-        providerdtls = providerdtls[0];
-
-        let dataToSave = {
-            id : providerdtls._id,
-            name : providerdtls.game_provider_name,
-            is_subprovider : providerdtls.is_subprovider,
-        }
-
-        providerdtls.accounts.forEach(element => {
-            if(element.is_default){
-                dataToSave[`account-default`] = {
-                    name : element.provider_account_name,
-                    technical_details : element.technical_details,
-                    is_default : element.is_default,
-                    currency : element.currency,
-                    game_category : element.game_category,
+    try {
+        let provider_id = appConfig.provider_id;
+        let providerdtls = await ProviderModel.aggregate(
+            [
+                {
+                $match: {
+                    "_id": new mongoose.Types.ObjectId(provider_id)
                 }
-            }
-            else{
-                dataToSave[`account-${element._id}`] = {
-                    name : element.provider_account_name,
-                    technical_details : element.technical_details,
-                    is_default : element.is_default,
-                    currency : element.currency,
-                    game_category : element.game_category,
+                },
+                {
+                $lookup: {
+                    from: "provider_accounts",
+                    localField: "_id",
+                    foreignField: "provider_id",
+                    as: "accounts"
                 }
-            }
-        })
-
-        let added = await redis.add(`provider-${provider_id}`, dataToSave);
-        if(added)
-            return true;
-        else
+                }
+            ]
+        );
+        if(providerdtls.length < 1 || providerdtls[0].accounts.length < 1){
             return false;
+        }
+        else{
+            
+            providerdtls = providerdtls[0];
+
+            let dataToSave = {
+                id : providerdtls._id,
+                name : providerdtls.game_provider_name,
+                is_subprovider : providerdtls.is_subprovider,
+            }
+
+            providerdtls.accounts.forEach(element => {
+                if(element.is_default){
+                    dataToSave[`account-default`] = {
+                        name : element.provider_account_name,
+                        technical_details : element.technical_details,
+                        is_default : element.is_default,
+                        currency : element.currency,
+                        game_category : element.game_category,
+                    }
+                }
+                else{
+                    dataToSave[`account-${element._id}`] = {
+                        name : element.provider_account_name,
+                        technical_details : element.technical_details,
+                        is_default : element.is_default,
+                        currency : element.currency,
+                        game_category : element.game_category,
+                    }
+                }
+            })
+
+            let added = await redis.add(`provider-${provider_id}`, dataToSave);
+            if(added)
+                return true;
+            else
+                return false;
+        }
+    } catch (error) {
+        console.log(error.message);
     }
 }
 

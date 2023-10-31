@@ -3,6 +3,8 @@ const events = require('events');
 const eventEmitter = new events.EventEmitter();
 const rngClass = require('../src/algo/rng');
 const pRNG = new rngClass();
+const serverLib = require('../src/libs/apiLib');
+const sever = new serverLib();
 
 let appConfig = {};
 
@@ -13,6 +15,8 @@ appConfig.socketNameSpace = 'wsio';
 appConfig.sessionExpTime = (3600 * 2);
 appConfig.redis_url = dbConfig.redis.url;
 appConfig.provider_id = '65142a47b0aef485da243a29';
+appConfig.apiService = sever;
+
 
 appConfig.MSG_1000 ='Oops! Something went wrong...';
 appConfig.db = {
