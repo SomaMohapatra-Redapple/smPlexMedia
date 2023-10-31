@@ -451,7 +451,7 @@ const transaction = async(data) => {
                     headers:{
                         'Content-Type': 'application/json',
                     },
-                    data: dataToSend
+                    body: JSON.stringify(dataToSend)
                 }
                 let response = await apiService.call(winurl, config);
             
@@ -465,6 +465,7 @@ const transaction = async(data) => {
                 }
 
                 response = await response.response.json();
+                console.log(response);
 
                 let validation = await clientValidator.validateResponse(response.data, 'win');
 
@@ -614,7 +615,7 @@ const rollback = async(data) => {
                     headers:{
                         'Content-Type': 'application/json',
                     },
-                    data: dataToSend
+                    body: JSON.stringify(dataToSend)
                 }
                 let response = await apiService.call(url, config);
             
