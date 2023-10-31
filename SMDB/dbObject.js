@@ -88,6 +88,10 @@ let smObj = {
             type: Object,
             required: true
         },
+        category_name: {
+            type: Object,
+            required: true
+        },
         category_icon: {
             type: String,
             required: true,
@@ -167,6 +171,10 @@ let smObj = {
         }
     },
     Game: {
+        module_id:{
+            type:String,
+            isObjectId:true
+        },
         game_provider_id: {
             type: String,
             ref: 'providers',
@@ -277,6 +285,10 @@ let smObj = {
         }
     },
     Provider: {
+        module_id:{
+            type:String,
+            isObjectId:true
+        },
         game_provider_name: {
             type: String,
             required: true,
@@ -595,6 +607,52 @@ let smObj = {
             default: ""
         }
 
+    },
+    Report:{
+        account_id: {
+            type: String,
+            required: true,
+            isObjectId: true
+        },
+        category_id: {
+            type: String,
+            required: true,
+            isObjectId: true
+        },
+        provider_id: {
+            type: String,
+            required: true,
+            isObjectId: true
+        },
+        module_id: {
+            type: String,
+            required: true,
+            isObjectId: true
+        },
+        total_bet:{
+            type: Number,
+            required: true
+        },
+        total_winning:{
+            type: Number,
+            required: true
+        },
+        total_margin:{
+            type: Number,
+            required: true
+        },
+        total_for_day:{
+            type: Date,
+            required: true
+        },
+        created_at: {
+            type: Date,
+            default: ""
+        },
+        updated_at: {
+            type: Date,
+            default: ""
+        }
     },
     Client_db_users: {
         name: {
