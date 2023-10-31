@@ -5,7 +5,6 @@ const appConfig = require('../../../config/appConfig');
 const clientSmBalanceSchema = Joi.object({
     currency: Joi.string().required(),
     amount: Joi.number().required().allow(0),
-    bonus: Joi.number().required().allow(0)
 });
 
 const clientAuthenticationValidateSchema = Joi.object({
@@ -17,14 +16,17 @@ const clientAuthenticationValidateSchema = Joi.object({
 });
 
 const clientBetValidateSchema = Joi.object({
-    transaction_status: Joi.boolean().required(),
     available_balance: Joi.number().required().allow(0),
-    code: Joi.string().required(),
     currency: Joi.string().required(),
-    bonus: Joi.number(),
     round_id: Joi.string().required(),
     txn_id: Joi.string().required(),
     operator_transaction_id: Joi.string().required().allow(null),
+
+    // available_balance: parseFloat(parseFloat(currentBalance).toFixed(4)),
+    // currency: userData.data.currency_code,
+    // txn_id: req.body.txn_id,
+    // operator_transaction_id: inserData._id,
+    // round_id: req.body.round_id
 });
 
 const clientResultValidationSchema = Joi.object({
@@ -39,24 +41,21 @@ const clientResultValidationSchema = Joi.object({
 });
 
 const clientRefundValidationSchema = Joi.object({
-    transaction_status: Joi.boolean().required(),
-    code: Joi.string().required(),
+    // transaction_status: Joi.boolean().required(),
+    // code: Joi.string().required(),
     available_balance: Joi.number().required(),
     txn_id: Joi.string().required(),
     operator_transaction_id: Joi.string().required().allow(''),
     currency: Joi.string().required(),
-    bonus: Joi.number(),
-    round_id: Joi.string()
+    // bonus: Joi.number(),
+    round_id: Joi.string(),
 
 
-    // available_balance:4999630.625
-    // bonus:100
-    // code:"ALREADY_PROCESSED"
-    // currency:'USD'
-    // operator_transaction_id:''
-    // round_id:'test-round'
-    // transaction_status:false
-    // txn_id:'txn-id-14'
+    // available_balance: commonController.toFloat(currentBalance),
+    // currency: userData.data.currency_code,
+    // txn_id: req.body.txn_id,
+    // operator_transaction_id: inserData._id,
+    // round_id: trans_details.round_id
 });
 
 

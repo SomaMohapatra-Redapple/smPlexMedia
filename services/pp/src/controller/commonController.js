@@ -141,14 +141,14 @@ const insertLog = async (data) => {
         }
         else {
             let insertData = {
-                erroe: true
+                error: true
             }
             return insertData;
         }
 
     } catch (e) {
         console.log('error ==>', e);
-        return true;
+        return { error: true };
     }
 }
 
@@ -366,6 +366,11 @@ let isHashvalid = async (parameter) => {
     }
 }
 
+const toFloat = (number) => {
+    return parseFloat(parseFloat(number).toFixed(4));
+}
+
+
 module.exports = {
     setProviderInRedis: setProviderInRedis,
     checkUsercodeExists: checkUsercodeExists,
@@ -376,5 +381,6 @@ module.exports = {
     isAccountExists: isAccountExists,
     getGameDetailsByGameId: getGameDetailsByGameId,
     checkProviderAccountLink: checkProviderAccountLink,
-    isHashvalid: isHashvalid
+    isHashvalid: isHashvalid,
+    toFloat: toFloat
 }
