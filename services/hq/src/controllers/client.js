@@ -815,7 +815,7 @@ const show_category_list = async(req,res)=>{
 
     if(category_list.length !== 0) {
 
-      let apiResponse =  responseLib.generate(false,"data fetched successfully",{category_list,totalPages: Math.ceil(count/limit),currentPage:page});
+      let apiResponse =  responseLib.generate(false,"data fetched successfully",{category_list:category_list,limit:limit,page:page,pages: Math.ceil(count/limit),count:count});
 
       res.status(200).json(apiResponse);
      
@@ -847,9 +847,9 @@ const add_category = async(req,res)=>{
 
   try {
 
+    console.log("category detaisl...",req.body.category_name)
     let cat_details = await CategoryTable.findOne({category_name:req.body.category_name});
     if(checkLib.isEmpty(cat_details)){
-
       let new_category =  new CategoryTable({
         category_name : req.body.category_name,
         category_icon : "category-icon.png",
@@ -857,10 +857,9 @@ const add_category = async(req,res)=>{
         status : "online",
         show_in_lobby : true
       })
-      cat_details = await new_category.save();
-      if(cat_details){
-
-        let apiResponse = responseLib.generate(false, "category added successfully",null);
+      let new_details = await new_category.save();
+      if(new_details){
+        let apiResponse = responseLib.generate(false, "category added successfully",new_details);
         res.status(200).send(apiResponse);
 
       }else{
@@ -922,7 +921,7 @@ const edit_category = async(req,res) => {
   try {
 
     let category_id = req.body.category_id;
-    let cat_details = await CategoryTable.findByIdAndUpdate({category_id},{category_name: req.body.category_name});
+    let cat_details = await CategoryTable.findOneAndUpdate({_id:category_id},{category_name: req.body.category_name},{new : true});
     if(cat_details){
       let apiResponse = responseLib.generate(false,"category edited successfully",cat_details);
       res.status(200).send(apiResponse);

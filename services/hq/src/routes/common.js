@@ -20,4 +20,6 @@ module.exports.setRouter = (app) => {
    app.post(`${baseUrl}/search_client_user`,validation.searchValidate,auth.isAuthorized,clientController.search_client_user);
    app.get(`${baseUrl}/provider-list`,auth.isAuthorized,gameController.providerList); 
    app.post(`${baseUrl}/game-list`,validation.gameListValidate,auth.isAuthorized,gameController.gameList);
-};
+   app.post(`${baseUrl}/game-edit`,auth.isAuthorized,gameController.gameEdit);
+   app.post(`${baseUrl}/game-delete`,auth.isAuthorized,gameController.gameDelete);
+}

@@ -49,33 +49,54 @@ const find_level = async(user_details)=>{
  * 
  */
 
-const searchGames = async (providerName, subProvider, gameParams) => {
+const searchGames = async (data) => {
     let query = {};
+    let page = data.page;
+    let limit = data.limit;
   
-    if (providerName) {
-      query.provider_name = providerName;
+    if (data.game_provider_id) {
+      query.game_provider_id = data.provider_id;
     }
   
-    if (subProvider) {
-      query.sub_provider = subProvider;
+    if (data.sub_provider) {
+      query.sub_provider = data.sub_provider;
     }
-  
-    if (gameParams) {
-      if (gameParams.game_name) {
-        query.game_name = gameParams.game_name;
-      }
-  
-      if (gameParams.game_code) {
-        query.game_code = gameParams.game_code;
-      }
-  
-      if (gameParams.game_id) {
-        query.game_id = gameParams.game_id;
-      }
+
+    if (data.game_name) {
+      query.game_name = data.game_name;
     }
+
+    if (data.game_code) {
+      query.game_code = data.game_code;
+    }
+
+    if (data.game_id) {
+      query.game_id = data.game_id;
+    }
+    
   
-    const results = await GameTable.find(query);
+    const gameDetails = await GameTable.find(query)
+    .populate({
+      path:'game_category_id',
+      model:'Category'
+    })
+    .limit(limit * 1)
+    .skip((page - 1) * limit)
+    .exec();
+
+    console.log("gamedetais ...",gameDetails);
+
+    const count = await GameTable.count();
+
+    let results = {
+      gameDetails: gameDetails,
+      limit:limit,
+      page:page,
+      pages: Math.ceil(count/limit),
+      total:count
+     }
     return results;
+
   };
   
 
