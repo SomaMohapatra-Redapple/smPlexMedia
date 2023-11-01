@@ -287,7 +287,7 @@ let smObj = {
     Provider: {
         module_id:{
             type:String,
-            isObjectId:true
+            default: null
         },
         game_provider_name: {
             type: String,
@@ -642,8 +642,8 @@ let smObj = {
             required: true
         },
         total_for_day:{
-            type: Date,
-            required: true
+            type: String,
+            default: Date.now
         },
         created_at: {
             type: Date,
