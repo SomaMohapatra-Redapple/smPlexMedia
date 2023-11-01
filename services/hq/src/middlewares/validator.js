@@ -32,7 +32,7 @@ const addClientValidationSchema = Joi.object({
     
         
       firstname : Joi.string().required(),
-      lastname : Joi.string(),
+      lastname : Joi.string().allow(''),
       password: Joi.string()
         .required()
         .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/).required(),
@@ -315,6 +315,7 @@ let addClient = async(req,res,next)=>{
     try{
         const value = await addClientValidationSchema.validate(req.body);
         if(value.hasOwnProperty('error')){
+            console.log("value",value);
         throw new Error(value.error);
     }
     else{
