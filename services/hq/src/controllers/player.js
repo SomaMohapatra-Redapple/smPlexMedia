@@ -3,8 +3,8 @@ const apiError = require("../libs/apiError");
 //const responseMessage = require("../libs/responseMessage");
 // const client = require("../services/client");
 // const { AddClient, FindAllClient, FindSpecificClient } = client;
-const mongoose = require('mongoose');
-const PlayerTable = mongoose.model('Player');
+const mongoose = require("mongoose");
+const PlayerTable = mongoose.model("Player");
 const TransactionTable = mongoose.model("Transaction");
 const responseMessage = require("../libs/responseMessage");
 const responseLib = require("../libs/responseLib");
@@ -17,8 +17,8 @@ const AddPlayer = async (query) => {
   return player;
 };
 const FindAllPlayer = async (validatedBody) => {
-  console.log("validated body",validatedBody);
-  
+  console.log("validated body", validatedBody);
+
   const { e_mail, player_name, parent_player_id, contact, page, limit } =
     validatedBody;
   let query = {};
@@ -53,46 +53,44 @@ const UpdatePlayerBalance = async (query, options) => {
 };
 
 //add player by client
-let add_player = async (req,res,next) => {
-  try{
+let add_player = async (req, res, next) => {
+  try {
     const query = req.body;
     const added_player = await AddPlayer(query)
-    .then((result)=>{
-      res.status(200).send({
-        message : "player created",
-        result : result
+      .then((result) => {
+        res.status(200).send({
+          message: "player created",
+          result: result,
+        });
       })
-    }).catch((err)=>{
-      res.status(400).send({
-        err : err.message,
-      })
-
-    })
-  }
-  catch(e){
-    console.log("error",e);
+      .catch((err) => {
+        res.status(400).send({
+          err: err.message,
+        });
+      });
+  } catch (e) {
+    console.log("error", e);
     return next(e);
   }
 };
 
 //show player to client
 
-let all_player = async(req,res,next) => {
-
-}
+let all_player = async (req, res, next) => {};
 
 //show player to player tab
 
-let show_player_inside_account = async (req,res,next) => {
-  try{
+let show_player_inside_account = async (req, res, next) => {
+  try {
 
-    const page = parseInt(req.query.page)||1; // Replace with your desired page number
-    const perPage = parseInt(req.query.limit)||10; // Replace with the number of results per page
 
-    // The "show_player" variable will contain an array with the sum of "transaction_amount" for the specified ID with the specified credit_type.
-      
+const page = parseInt(req.query.page)||2; // Replace with your desired page number
+const perPage = parseInt(req.query.limit)||10; // Replace with the number of results per page
+console.log("req.query", req.query);
+console.log("page,perPage", page,perPage);
 
-let show_player = await TransactionTable.aggregate([
+// Aggregation to calculate the total result count
+const countAggregation = [
   {
     $match: {
       "account_user_id": req.body.account_user_id,
@@ -101,58 +99,125 @@ let show_player = await TransactionTable.aggregate([
   {
     $group: {
       _id: "$user_id",
-      total_win: {
+      total_credit: {
         $sum: {
           $cond: { if: { $eq: ["$transaction_type", "CREDIT"] }, then: { $toInt: "$transaction_amount" }, else: 0 }
         }
       },
-      total_bet: {
+      total_debit: {
         $sum: {
           $cond: { if: { $eq: ["$transaction_type", "DEBIT"] }, then: { $toInt: "$transaction_amount" }, else: 0 }
         }
-      },
-      
-    },
-    
+      }
+    }
   },
   {
     $project: {
-      player_id: 1,
-      total_win: 1,
-      total_bet: 1,
-      total_margin: { $subtract: ["$total_bet", "$total_win"] }
+      _id: 1,
+      total_credit: 1,
+      total_debit: 1,
+      net_balance: { $subtract: ["$total_debit", "$total_credit"] }
     }
   },
   {
     $addFields: {
-      rtp: { $multiply: [{ $divide: ["$total_margin", "$total_bet"] }, 100] }
+      net_balance_ratio: { $multiply: [{ $divide: ["$net_balance", "$total_debit"] }, 100] }
     }
   },
   {
     $project: {
-      player_id: 1,
-      total_win: 1,
-      total_bet: 1,
-      rtp: { $round: ["$rtp", 2] },
-      
+      _id: 1,
+      total_credit: 1,
+      total_debit: 1,
+      net_balance: 1,
+      net_balance_ratio: { $round: ["$net_balance_ratio", 2] }
     }
   }
-]);
+];
 
-    console.log("show_player",show_player);
+// Aggregation to fetch paginated results
+const resultsAggregation = [
+  {
+    $match: {
+      "account_user_id": req.body.account_user_id,
+    }
+  },
+  {
+    $group: {
+      _id: "$user_id",
+      total_credit: {
+        $sum: {
+          $cond: { if: { $eq: ["$transaction_type", "CREDIT"] }, then: { $toInt: "$transaction_amount" }, else: 0 }
+        }
+      },
+      total_debit: {
+        $sum: {
+          $cond: { if: { $eq: ["$transaction_type", "DEBIT"] }, then: { $toInt: "$transaction_amount" }, else: 0 }
+        }
+      }
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      total_credit: 1,
+      total_debit: 1,
+      net_balance: { $subtract: ["$total_debit", "$total_credit"] }
+    }
+  },
+  {
+    $addFields: {
+      net_balance_ratio: { $multiply: [{ $divide: ["$net_balance", "$total_debit"] }, 100] }
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      total_credit: 1,
+      total_debit: 1,
+      net_balance: 1,
+      net_balance_ratio: { $round: ["$net_balance_ratio", 2] }
+    }
+  },
+  {
+    $skip: (page - 1) * perPage
+  },
+  {
+    $limit: perPage
+  }
+];
+
+// Execute the count aggregation
+let countResult = await TransactionTable.aggregate(countAggregation);
+countResult = JSON.parse(JSON.stringify(countResult));
+// Execute the results aggregation
+const show_player = await TransactionTable.aggregate(resultsAggregation);
+
+// Extract the total count from the count result
+//const totalCount = countResult.length > 0 ? countResult[0].count : 0;
+const total = countResult.length > 0 ? countResult.length : 0;
 
 
-    let apiResponse = responseLib.generate(false,"data fetch successfully",show_player);
+
+    console.log("show_player", show_player);
+    
+    console.log("countResult",countResult);
+    
+    //console.log("totalCount",totalCount);
+    let apiResponse = responseLib.generate(
+      false,
+      "data fetch successfully",
+      { show_player, total,limit: perPage,
+        page: page }
+    );
     res.status(200).send(apiResponse);
-
+  } catch (e) {
+    console.log("error", e);
   }
-  catch(e){
-    console.log("error",e);
-  }
-}
+};
 
 module.exports = {
-  add_player : add_player,
-  all_player : all_player,
-  show_player_inside_account : show_player_inside_account
-}
+  add_player: add_player,
+  all_player: all_player,
+  show_player_inside_account: show_player_inside_account,
+};

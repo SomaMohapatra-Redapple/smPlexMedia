@@ -1,5 +1,5 @@
 const timeLIb = require("../libs/timeLib");
-const responseMessage = require("../libs/responseMessage");
+const responseLib = require("../libs/responseLib");
 // const account = require("../services/account");
 // const { AddAccount, ShowAccount } = account;
 const mongoose = require("mongoose");
@@ -165,8 +165,40 @@ const show_account = async (req, res, next) => {
       $limit: perPage,
     }
   ]);
-  
-  const total = page*perPage;  
+
+  const countAggregation = [
+    {
+      $match: {
+        "client_id": new ObjectId(req.body.client_id), // Create a new instance of ObjectId
+      },
+    },
+    {
+      $lookup: {
+        from: "accountstechnicals",
+        localField: "_id",
+        foreignField: "account_id",
+        as: "all",
+      },
+    },
+    {
+      $unwind: "$all", // Unwind the array created by $lookup
+    },
+    {
+      $project: {
+        username: "$username",
+        status: "$status",
+        environment: "$all.environment",
+        account_type: "$all.account_type",
+        currency: "$all.currency",
+        client_id : "$all.client_id"
+      },
+    }
+  ]; 
+  let countResult = await AccountTable.aggregate(countAggregation);
+
+const total = countResult.length > 0 ? countResult.length : 0;
+
+    
   console.log("show_all_account",show_all_account); 
     if(show_all_account.length>0){
       show_all_account = JSON.parse(JSON.stringify(show_all_account));
@@ -175,13 +207,13 @@ const show_account = async (req, res, next) => {
       }
 
       console.log("show_all_account",show_all_account);
-      res.status(200).send({
-        show_all_account: show_all_account,
-        total: total,
-        limit: perPage,
-        page: page,
-        message: "accounts found",
-      });
+      let apiResponse = responseLib.generate(
+        false,
+        "data fetch successfully",
+        { show_all_account, total,limit: perPage,
+          page: page }
+      );
+      res.status(200).send(apiResponse);
 
     }
     else{
