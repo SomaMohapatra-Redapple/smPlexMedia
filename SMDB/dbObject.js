@@ -173,7 +173,7 @@ let smObj = {
     Game: {
         module_id:{
             type:String,
-            isObjectId:true
+            default:null
         },
         game_provider_id: {
             type: String,
@@ -187,9 +187,10 @@ let smObj = {
             required: true,
             isObjectId: true
         },
-        game_name: [
-            Object
-        ],
+        game_name:{
+            type: Object,
+            required: true
+        },
         game_image: {
             type: String,
             required: true,
