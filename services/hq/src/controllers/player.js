@@ -1,10 +1,14 @@
 const jwt = require("jsonwebtoken");
 const apiError = require("../libs/apiError");
-const responseMessage = require("../libs/responseMessage");
+//const responseMessage = require("../libs/responseMessage");
 // const client = require("../services/client");
 // const { AddClient, FindAllClient, FindSpecificClient } = client;
 const mongoose = require('mongoose');
 const PlayerTable = mongoose.model('Player');
+const TransactionTable = mongoose.model("Transaction");
+const responseMessage = require("../libs/responseMessage");
+const responseLib = require("../libs/responseLib");
+const ObjectId = mongoose.Types.ObjectId;
 
 const AddPlayer = async (query) => {
   console.log("query", query);
@@ -77,7 +81,78 @@ let all_player = async(req,res,next) => {
 
 }
 
+//show player to player tab
+
+let show_player_inside_account = async (req,res,next) => {
+  try{
+
+    const page = parseInt(req.query.page)||1; // Replace with your desired page number
+    const perPage = parseInt(req.query.limit)||10; // Replace with the number of results per page
+
+    // The "show_player" variable will contain an array with the sum of "transaction_amount" for the specified ID with the specified credit_type.
+      
+
+let show_player = await TransactionTable.aggregate([
+  {
+    $match: {
+      "account_user_id": req.body.account_user_id,
+    }
+  },
+  {
+    $group: {
+      _id: "$user_id",
+      total_win: {
+        $sum: {
+          $cond: { if: { $eq: ["$transaction_type", "CREDIT"] }, then: { $toInt: "$transaction_amount" }, else: 0 }
+        }
+      },
+      total_bet: {
+        $sum: {
+          $cond: { if: { $eq: ["$transaction_type", "DEBIT"] }, then: { $toInt: "$transaction_amount" }, else: 0 }
+        }
+      },
+      
+    },
+    
+  },
+  {
+    $project: {
+      player_id: 1,
+      total_win: 1,
+      total_bet: 1,
+      total_margin: { $subtract: ["$total_bet", "$total_win"] }
+    }
+  },
+  {
+    $addFields: {
+      rtp: { $multiply: [{ $divide: ["$total_margin", "$total_bet"] }, 100] }
+    }
+  },
+  {
+    $project: {
+      player_id: 1,
+      total_win: 1,
+      total_bet: 1,
+      rtp: { $round: ["$rtp", 2] },
+      
+    }
+  }
+]);
+
+    console.log("show_player",show_player);
+
+
+    let apiResponse = responseLib.generate(false,"data fetch successfully",show_player);
+    res.status(200).send(apiResponse);
+
+  }
+  catch(e){
+    console.log("error",e);
+  }
+}
+
 module.exports = {
   add_player : add_player,
-  all_player : all_player
+  all_player : all_player,
+  show_player_inside_account : show_player_inside_account
 }
