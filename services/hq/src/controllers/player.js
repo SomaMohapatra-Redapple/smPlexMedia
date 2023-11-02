@@ -3,6 +3,7 @@ const apiError = require("../libs/apiError");
 //const responseMessage = require("../libs/responseMessage");
 // const client = require("../services/client");
 // const { AddClient, FindAllClient, FindSpecificClient } = client;
+const timeLIb = require("../libs/timeLib");
 const mongoose = require("mongoose");
 const PlayerTable = mongoose.model("Player");
 const TransactionTable = mongoose.model("Transaction");
@@ -56,6 +57,8 @@ const UpdatePlayerBalance = async (query, options) => {
 let add_player = async (req, res, next) => {
   try {
     const query = req.body;
+    query.created_at = timeLIb.now();
+    query.updated_at = timeLIb.now();
     const added_player = await AddPlayer(query)
       .then((result) => {
         res.status(200).send({
