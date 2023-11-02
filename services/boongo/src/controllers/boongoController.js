@@ -17,7 +17,7 @@ const checker = require('../libs/checkLib');
 const time = require('../libs/timeLib');
 const redis = require('../libs/redisLib');
 const appConfig = require('../../config/appConfig');
-const apiLib = require('../libs/apiLib');
+let apiService = appConfig.apiService;
 
 /**
  * 
@@ -92,19 +92,18 @@ const login = async(data) => {
             // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'authenticate', dataToSend);
             // response = await response.response.json();
 
+            let url = `${acountDetails.service_endpoint}/callback?function=authenticate`;
+
             let config = {
                 method: "POST",
-                url: `${acountDetails.service_endpoint}/callback?function=authenticate`,
                 headers:{
                     'Content-Type': 'application/json',
                 },
-                data: dataToSend
+                body: JSON.stringify(dataToSend)
             }
-            let response = await axios(config);
-            console.log( response);
-            response = response.data;
+            let response = await apiService.call(url, config);
             
-            if(response.err === true){
+            if(response.error === true){
                 return {
                     "uid": data.uid,            
                     "error": {
@@ -112,6 +111,8 @@ const login = async(data) => {
                     }
                 }
             }
+
+            response = await response.response.json();
 
             let validation = await clientValidator.validateResponse(response.data, 'login');
 
@@ -186,20 +187,18 @@ const getbalance = async(data) => {
 
             // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'balance', dataToSend);
             // response = await response.response.json();
+            let url = `${acountDetails.service_endpoint}/callback?function=balance`;
 
             let config = {
                 method: "POST",
-                url: `${acountDetails.service_endpoint}/callback?function=balance`,
                 headers:{
                     'Content-Type': 'application/json',
                 },
-                data: dataToSend
+                body: JSON.stringify(dataToSend)
             }
-            let response = await axios(config);
-            console.log( response);
-            response = response.data;
+            let response = await apiService.call(url, config);
             
-            if(response.err === true){
+            if(response.error === true){
                 return {
                     "uid": data.uid,            
                     "error": {
@@ -207,6 +206,8 @@ const getbalance = async(data) => {
                     }
                 }
             }
+
+            response = await response.response.json();
 
             let version = await commonController.getVersion();
 
@@ -303,27 +304,28 @@ const transaction = async(data) => {
 
                 // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'bet', dataToSend);
                 // response = await response.response.json();
+                let beturl = `${acountDetails.service_endpoint}/callback?function=bet`;
 
                 let config = {
                     method: "POST",
-                    url: `${acountDetails.service_endpoint}/callback?function=bet`,
                     headers:{
                         'Content-Type': 'application/json',
                     },
-                    data: dataToSend
+                    body: JSON.stringify(dataToSend)
                 }
-                let response = await axios(config);
-                console.log( response);
-                response = response.data;
-                
-                if(response.err === true){
-                    returnData =  {
+
+                let response = await apiService.call(beturl, config);
+            
+                if(response.error === true){
+                    return {
                         "uid": data.uid,            
                         "error": {
-                            "code": "FATAL_ERROR"
+                            "code": "FATAL_ERROR" 
                         }
                     }
                 }
+
+                response = await response.response.json();
 
                 let validation = await clientValidator.validateResponse(response.data, 'bet');
 
@@ -442,27 +444,28 @@ const transaction = async(data) => {
 
                 // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'win', dataToSend);
                 // response = await response.response.json();
+                let winurl = `${acountDetails.service_endpoint}/callback?function=win`;
 
                 let config = {
                     method: "POST",
-                    url: `${acountDetails.service_endpoint}/callback?function=win`,
                     headers:{
                         'Content-Type': 'application/json',
                     },
-                    data: dataToSend
+                    body: JSON.stringify(dataToSend)
                 }
-                let response = await axios(config);
-                console.log( response);
-                response = response.data;
-                
-                if(response.err === true){
-                    returnData = {
+                let response = await apiService.call(winurl, config);
+            
+                if(response.error === true){
+                    return {
                         "uid": data.uid,            
                         "error": {
                             "code": "FATAL_ERROR" 
                         }
                     }
                 }
+
+                response = await response.response.json();
+                console.log(response);
 
                 let validation = await clientValidator.validateResponse(response.data, 'win');
 
@@ -605,20 +608,18 @@ const rollback = async(data) => {
                 // let response = await apiLib.server.postData(acountDetails.service_endpoint, 'refund', dataToSend);
                 // response = await response.response.json();
                 // console.log(response);
+                let url = `${acountDetails.service_endpoint}/callback?function=refund`;
 
                 let config = {
                     method: "POST",
-                    url: `${acountDetails.service_endpoint}/callback?function=refund`,
                     headers:{
                         'Content-Type': 'application/json',
                     },
-                    data: dataToSend
+                    body: JSON.stringify(dataToSend)
                 }
-                let response = await axios(config);
-                console.log( response);
-                response = response.data;
-                
-                if(response.err === true){
+                let response = await apiService.call(url, config);
+            
+                if(response.error === true){
                     return {
                         "uid": data.uid,            
                         "error": {
@@ -626,6 +627,8 @@ const rollback = async(data) => {
                         }
                     }
                 }
+
+                response = await response.response.json();
 
                 let validation = await clientValidator.validateResponse(response.data, 'rollback');
 

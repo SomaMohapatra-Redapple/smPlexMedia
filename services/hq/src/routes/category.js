@@ -20,6 +20,6 @@ module.exports.setRouter = (app) => {
    app.get(`${baseUrl}/lang-list`,auth.isAuthorized,clientController.show_lang_list);
    app.post(`${baseUrl}/category-list`,validator.showCategoryValidate,auth.isAuthorized,clientController.show_category_list);
    app.post(`${baseUrl}/add-category`,validator.categoryValidate,auth.isAuthorized,clientController.add_category);
-   app.post(`${baseUrl}/delete-category`,validator.editDeleteValidate,auth.isAuthorized,clientController.delete_category);
-   app.post(`${baseUrl}/edit-category`,validator.editDeleteValidate,auth.isAuthorized,clientController.edit_category);
+   app.post(`${baseUrl}/delete-category`,validator.categoryDeleteValidate,auth.isAuthorized,clientController.delete_category);
+   app.post(`${baseUrl}/edit-category`,validator.categoryEditValidate,auth.isAuthorized,clientController.edit_category);
 };

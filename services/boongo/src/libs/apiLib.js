@@ -1,4 +1,5 @@
-class Server {
+let axios = require('axios');
+module.exports = class Server {
     /**
      * Create class instance and fill params from URL or fill it with default values if URL not contain needed data.
      * @constructs
@@ -25,6 +26,21 @@ class Server {
         }
     };
 
+    // async getData(url, options) {
+    //     try {
+    //         let response = await axios(url, options);
+    //         return {
+    //             response: response,
+    //             error: false
+    //         }
+    //     } catch (err) {
+    //         console.log(" serverLib getData Error log: ", err);
+    //         return {
+    //             error: true
+    //         }
+    //     }
+    // };
+
     async postData(apiUrl, endpoint, bodyData) {
         try {
             let url = `${apiUrl}/callback?function=${endpoint}`;
@@ -33,7 +49,7 @@ class Server {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(bodyData)
+                data: JSON.stringify(bodyData)
             };
             const data = await this.getData(url, requestOptions);
             return data;
@@ -44,9 +60,16 @@ class Server {
             }
         }
     };
-};
-let server = new Server();
 
-module.exports = {
-    server: server
+    async call(url, config) {
+        try {
+            const data = await this.getData(url, config);
+            return data;
+        } catch (error) {
+            console.error(' server lib Error: ', error);
+            return {
+                error: true
+            }
+        }
+    };
 };

@@ -263,7 +263,9 @@ const searchValidateSchema = Joi.object({
 
 })
 
-
+const gameDeleteValidateSchema = Joi.object({
+    game_id:Joi.string().required()
+});
 
 
 
@@ -288,21 +290,25 @@ let addCategoryValidateSchema = Joi.object({
 // created_at : 26.10.2023
 // function : editDeleteValidateSchema
 
-let editDeleteValidateSchema = Joi.object({
+let categoryDeleteValidateSchema = Joi.object({
     category_id : Joi.string().required()
 })
+
+let categoryEditValidateSchema = Joi.object({
+
+    category_id : Joi.string().required(),
+    category_name :Joi.object().required()
+});
 // @author : Injamamul hoque
 // created_at : 26.10.2023
 // function : gameListValidateSchema
 
 const gameListValidateSchema = Joi.object({
-    provider: Joi.string(),
-    sub_provider: Joi.string(),
-    gameParams: Joi.object({
-      game_name: Joi.string().allow(''),
-      game_code: Joi.string().allow(''),
-      game_id: Joi.string().allow('')
-    }).or('game_name', 'game_code', 'game_id')
+    provider_id: Joi.string().optional(),
+    sub_provider: Joi.string().allow('').optional(),
+    game_name: Joi.string().allow('').optional(),
+    game_code: Joi.string().allow('').optional(),
+    game_id: Joi.string().allow('').optional()
   });
 
 const showCategoryValidateSchema = Joi.object({
@@ -637,9 +643,9 @@ const categoryValidate = async(req,res,next)=>{
     }
 }
 
-const editDeleteValidate = async(req,res,next)=>{
+const categoryDeleteValidate = async(req,res,next)=>{
     try {
-        const value = await editDeleteValidateSchema.validate(req.body);
+        const value = await categoryDeleteValidateSchema.validate(req.body);
         if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
         } else {
@@ -651,9 +657,26 @@ const editDeleteValidate = async(req,res,next)=>{
         res.send(apiResponse)
     }
 }
+const categoryEditValidate =async(req,res,next)=>{
+    try {
+        console.log("validation ...",req.body)
+        const value = await categoryEditValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+
+};
 
 const gameListValidate = async(req,res,next)=>{
      try {
+        
         const value = await gameListValidateSchema.validate(req.body);
         if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
@@ -670,6 +693,21 @@ const gameListValidate = async(req,res,next)=>{
 const showCategoryValidate = async(req,res,next)=>{
     try {
         const value = await showCategoryValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
+
+const gameDeleteValidate = async(req,res,next) => {
+    try {
+        const value = await gameDeleteValidateSchema.validate(req.body);
         if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
         } else {
@@ -705,7 +743,9 @@ module.exports = {
 
     searchValidate: searchValidate,
     categoryValidate: categoryValidate,
-    editDeleteValidate: editDeleteValidate,
+    categoryDeleteValidate: categoryDeleteValidate,
+    categoryEditValidate:categoryEditValidate,
     gameListValidate:gameListValidate,
-    showCategoryValidate:showCategoryValidate
+    showCategoryValidate:showCategoryValidate,
+    gameDeleteValidate:gameDeleteValidate
 }
