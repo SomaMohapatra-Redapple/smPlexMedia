@@ -84,7 +84,8 @@ let add_client = async (req, res, next) => {
     req.body.created_by = req.user.id;
     const query = req.body;
     req.body.parent_client_id = req.user.id;
-    req.body.client_name = req.body.firstname + " " + req.body.lastname;
+    let lastname = req.body.lastname !== undefined ? req.body.lastname : '';
+    req.body.client_name = req.body.firstname + " " + lastname;
     query.created_at = timeLIb.now();
     query.updated_at = timeLIb.now();
     const requester = req.connection.remoteAddress.slice(0, 9);
