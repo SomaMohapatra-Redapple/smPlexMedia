@@ -99,7 +99,7 @@ const addAccountSchema = Joi.object({
     account_type:Joi.string().required(),
     environment : Joi.string().required(),
     currency:Joi.string().required(),
-    status: Joi.string(),
+    status: Joi.any().valid(null),
 });
 
 // const addAccountTechnicalSchema = Joi.object({
