@@ -36,7 +36,7 @@ const addClientValidationSchema = Joi.object({
       password: Joi.string()
         .required()
         .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/).required(),
-      email: Joi.string().email(),
+      email: Joi.string().email().allow(''),
       status: Joi.any().valid(null),
       environment: Joi.any().valid(null),
       username: Joi.string().required(),
@@ -44,7 +44,7 @@ const addClientValidationSchema = Joi.object({
       contact: Joi.string()
         .min(10)
         .max(13)
-        .pattern(/^[0-9]+$/)
+        .pattern(/^[0-9]+$/).allow('')
         ,
       
       status: Joi.any().valid(null),
