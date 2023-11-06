@@ -234,16 +234,34 @@ const show_account_technicals = async (req,res,next) => {
   try{
     const query = {account_id : req.body.account_id};
     let data = {};
-    const account_technicals = await ShowAccountTechnicals(query);
-    console.log("account_technicals",account_technicals);
-    data.account_id = account_technicals.account_id;
-    data.api_secret = account_technicals.api_secret;
-    data.service_endpoint = account_technicals.service_endpoint;
-    res.status(200).send({
-      result : data,
-      message : "account_technicals found"
-    })
+    console.log("req.body.account_id",req.body);
+    if (!mongoose.Types.ObjectId.isValid(req.body.account_id)) {
+      let apiResponse =  responseLib.generate(true,"invalid ObjectId provided");
+      res.status(400).send(apiResponse)
+
+
+    }
+    else{
+      const account_technicals = await ShowAccountTechnicals(query);
+      if(account_technicals)
+      {
+        console.log("account_technicals",account_technicals);
+        data.account_id = account_technicals.account_id;
+        data.api_secret = account_technicals.api_secret;
+        data.service_endpoint = account_technicals.service_endpoint;
+      
+      let apiResponse =  responseLib.generate(false,"account_technicals found for the account_id",data);
+      res.status(200).send(apiResponse)
     
+      }
+      else{
+        let apiResponse =  responseLib.generate(true,"no account_technicals exists for this account_id");
+      res.status(404).send(apiResponse)
+  
+      }
+
+    }
+
 
 
   }

@@ -114,7 +114,11 @@ const editPasswordValidateSchema = Joi.object({
     _id: Joi.string().required(),
     old_password : Joi.string().required(),
     new_password : Joi.string().required(),
+});
+const ShowAccountTechnicalsValidateSchema = Joi.object({
+    account_id: Joi.string().required()
 })
+
 
 // const addAccountTechnicalSchema = Joi.object({
 //     //client_id: Joi.string().required(),
@@ -510,6 +514,22 @@ let editPasswordForClientValidate = async(req, res, next) => {
     }
 }
 
+
+let showAccountTechnicalsValidate = async(req, res, next) => {
+    try {
+        const value = await ShowAccountTechnicalsValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
+
 let customRegisterValidate = async(req, res, next) => {
     try {
         const value = await customRegisterValidateSchema.validate(req.body);
@@ -796,6 +816,7 @@ module.exports = {
     addAccountTechnicalValidation :addAccountTechnicalValidation,
     deleteClientValidate : deleteClientValidate,
     editPasswordForClientValidate : editPasswordForClientValidate,
+    showAccountTechnicalsValidate : showAccountTechnicalsValidate,
     customRegisterValidate: customRegisterValidate,
     createQuestionValidate: createQuestionValidate,
     updateQuestionValidate: updateQuestionValidate,
