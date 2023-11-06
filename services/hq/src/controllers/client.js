@@ -264,7 +264,7 @@ let edit_client = async(req,res,next) => {
 let delete_client = async(req,res,next) => {
   try {
 
-    const idToDelete = req.body.id; // The ID you want to delete
+    const idToDelete = req.body._id; // The ID you want to delete
 
     const isParentId = await ClientTable.exists({ parent_client_id: idToDelete });
    

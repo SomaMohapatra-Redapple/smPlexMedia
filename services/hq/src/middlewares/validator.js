@@ -57,15 +57,15 @@ const editClientValidateSchema = Joi.object({
     
     _id : Joi.string().required(),   
     firstname : Joi.string().required(),
-    lastname : Joi.string(),
-    email: Joi.string().email(),
+    lastname : Joi.string().allow(''),
+    email: Joi.string().email().allow(''),
     username: Joi.string().required(),
     contact: Joi.string()
       .min(10)
       .max(13)
-      .pattern(/^[0-9]+$/)
+      .pattern(/^[0-9]+$/).allow('')
       ,
-    currency: Joi.string()
+    currency: Joi.string().allow('')
 
 })
 
@@ -101,6 +101,9 @@ const addAccountSchema = Joi.object({
     currency:Joi.string().required(),
     status: Joi.any().valid(null),
 });
+const deleteClientValidateSchema = Joi.object({
+    _id: Joi.required()
+})
 
 // const addAccountTechnicalSchema = Joi.object({
 //     //client_id: Joi.string().required(),
@@ -446,6 +449,21 @@ let editClientValidate = async (req,res,next) => {
     }
 }
 
+let deleteClientValidate = async(req, res, next) => {
+    try {
+        const value = await deleteClientValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
+
 let customRegisterValidate = async(req, res, next) => {
     try {
         const value = await customRegisterValidateSchema.validate(req.body);
@@ -729,6 +747,7 @@ module.exports = {
     adminRegisterValidate: adminRegisterValidate,
     addAccountValidation :addAccountValidation,
     addAccountTechnicalValidation :addAccountTechnicalValidation,
+    deleteClientValidate : deleteClientValidate,
     customRegisterValidate: customRegisterValidate,
     createQuestionValidate: createQuestionValidate,
     updateQuestionValidate: updateQuestionValidate,
