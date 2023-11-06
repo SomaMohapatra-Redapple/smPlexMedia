@@ -126,6 +126,7 @@ let add_client = async (req, res, next) => {
   }
 };
 
+
 //add client by client
 const add_client_by_client = async (req, res, next) => {
   try {
@@ -136,7 +137,7 @@ const add_client_by_client = async (req, res, next) => {
     const check_user = await ClientTable.exists(query_to_check_user_name);
     console.log("check_user",check_user);
     if(check_user){
-      let apiResponse =  responseLib.generate(true,"user name already exists");
+      let apiResponse =  responseLib.generate(true,"user name already exists",null);
     res.status(403).send(apiResponse)
 
 
@@ -144,10 +145,14 @@ const add_client_by_client = async (req, res, next) => {
     else {
       const added_client = await AddClient(query)
       .then((result) => {
-        res.status(200).send({
-          message: "client created",
-          result: result,
-        });
+
+        let apiResponse =  responseLib.generate(true,"user name already exists",null);
+    res.send(apiResponse)
+
+        // res.status(200).send({
+        //   message: "client created",
+        //   result: result,
+        // });
       })
       .catch((err) => {
         res.status(400).send({
@@ -273,7 +278,7 @@ let edit_client = async(req,res,next) => {
     console.log("updated_account", update_account);
     if (update_account) {
       res.status(200).send({
-        updated_account: update_account,
+        updated_account: req.body,
         message: "account details updated",
       });
     } else {
@@ -359,7 +364,6 @@ let edit_password_client = async(req,res,next) => {
     console.log("updated_password", update_password);
     if (update_password) {
       res.status(200).send({
-        updated_password: update_password,
         message: "password updated",
       });
     } else {

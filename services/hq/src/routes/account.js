@@ -9,7 +9,7 @@ module.exports.setRouter = (app) => {
 //   app.post (`${baseUrl}/withdraw_balance`,auth.isAuthorized,betController.withdraw_balance);
    app.post(`${baseUrl}/add_account`,validation.addAccountValidation,auth.isAuthorized,accountController.add_account);
    //app.post(`${baseUrl}/add_account_techicals`,validation.addAccountTechnicalValidation,auth.isAuthorized,accountController.add_account_techicals);
-   app.post(`${baseUrl}/show_account`,auth.isAuthorized,accountController.show_account);
+   app.post(`${baseUrl}/show_account`,validation.showAcccountValidation,auth.isAuthorized,accountController.show_account);
    app.post(`${baseUrl}/update_account`,auth.isAuthorized,accountController.update_account); 
    app.post(`${baseUrl}/show_account_technicals`,auth.isAuthorized,accountController.show_account_technicals); 
 };

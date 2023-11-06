@@ -101,8 +101,19 @@ const addAccountSchema = Joi.object({
     currency:Joi.string().required(),
     status: Joi.any().valid(null),
 });
+
+const showAcccountValidateSchema = Joi.object({
+    client_id: Joi.string().required(),
+    account_id: Joi.string().required()
+});
+
 const deleteClientValidateSchema = Joi.object({
     _id: Joi.string().required()
+});
+const editPasswordValidateSchema = Joi.object({
+    _id: Joi.string().required(),
+    old_password : Joi.string().required(),
+    new_password : Joi.string().required(),
 })
 
 // const addAccountTechnicalSchema = Joi.object({
@@ -419,6 +430,25 @@ let addAccountValidation = async(req, res, next) => {
     }
 }
 
+
+let showAcccountValidation = async(req, res, next) => {
+    try {
+        const value = await showAcccountValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            //throw new Error(value.error);
+            let apiResponse = responseLib.generate(true, ` ${value.error}`, null);
+            apiResponse.status
+            res.status(403).send(apiResponse);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
+
 let addAccountTechnicalValidation = async(req, res, next) => {
     try {
         const value = await addAccountTechnicalSchema.validate(req.body);
@@ -452,6 +482,22 @@ let editClientValidate = async (req,res,next) => {
 let deleteClientValidate = async(req, res, next) => {
     try {
         const value = await deleteClientValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
+
+
+let editPasswordForClientValidate = async(req, res, next) => {
+    try {
+        const value = await editPasswordValidateSchema.validate(req.body);
         if (value.hasOwnProperty('error')) {
             throw new Error(value.error);
         } else {
@@ -746,8 +792,10 @@ module.exports = {
     editClientValidate : editClientValidate,
     adminRegisterValidate: adminRegisterValidate,
     addAccountValidation :addAccountValidation,
+    showAcccountValidation : showAcccountValidation,
     addAccountTechnicalValidation :addAccountTechnicalValidation,
     deleteClientValidate : deleteClientValidate,
+    editPasswordForClientValidate : editPasswordForClientValidate,
     customRegisterValidate: customRegisterValidate,
     createQuestionValidate: createQuestionValidate,
     updateQuestionValidate: updateQuestionValidate,

@@ -3,6 +3,7 @@ const encLib = require('./encLib')
 
 let generateEnc = (err, message, data) => {
     let response = {
+      
       error: err,
       message: message,
       data: data?encLib.encrypt(data).toString('base64'):data
