@@ -77,36 +77,49 @@ const UpdateClientBalance = async (query, options) => {
 let add_client = async (req, res, next) => {
   try {
 
+    const query_to_check_user_name = {username : req.body.username} ;
 
+    const check_user = await ClientTable.exists(query_to_check_user_name);
+    console.log("check_user",check_user);
+    if(check_user){
+      let apiResponse =  responseLib.generate(true,"user name already exists");
+    res.status(403).send(apiResponse)
+
+
+    }
+    else {
+      console.log("req.headers.token", req.headers.token);
+      console.log("req.body.value", req.body);
+      req.body.created_by = req.user.id;
+      const query = req.body;
+      req.body.parent_client_id = req.user.id;
+      let lastname = req.body.lastname !== undefined ? req.body.lastname : '';
+      req.body.client_name = req.body.firstname + " " + lastname;
+      query.created_at = timeLIb.now();
+      query.updated_at = timeLIb.now();
+      const requester = req.connection.remoteAddress.slice(0, 9);
+      const added_client = await AddClient(query)
+        .then((result) => {
+          (async () => {
+            const all_client = await FindAllClient(req.query);
+            console.log("all_client", all_client);
+          })();
+  
+          res.status(200).send({
+            message: "client created",
+            result: result,
+            requester: requester,
+          });
+        })
+        .catch((err) => {
+          res.status(400).send({
+            err: err.message,
+          });
+        });
+
+    }
     
-    console.log("req.headers.token", req.headers.token);
-    console.log("req.body.value", req.body);
-    req.body.created_by = req.user.id;
-    const query = req.body;
-    req.body.parent_client_id = req.user.id;
-    let lastname = req.body.lastname !== undefined ? req.body.lastname : '';
-    req.body.client_name = req.body.firstname + " " + lastname;
-    query.created_at = timeLIb.now();
-    query.updated_at = timeLIb.now();
-    const requester = req.connection.remoteAddress.slice(0, 9);
-    const added_client = await AddClient(query)
-      .then((result) => {
-        (async () => {
-          const all_client = await FindAllClient(req.query);
-          console.log("all_client", all_client);
-        })();
-
-        res.status(200).send({
-          message: "client created",
-          result: result,
-          requester: requester,
-        });
-      })
-      .catch((err) => {
-        res.status(400).send({
-          err: err.message,
-        });
-      });
+  
   } catch (e) {
     console.log("error", e);
     return next(e);
@@ -118,7 +131,18 @@ const add_client_by_client = async (req, res, next) => {
   try {
     req.body.created_by = req.user.id;
     const query = req.body;
-    const added_client = await AddClient(query)
+    const query_to_check_user_name = {username : req.body.username} ;
+
+    const check_user = await ClientTable.exists(query_to_check_user_name);
+    console.log("check_user",check_user);
+    if(check_user){
+      let apiResponse =  responseLib.generate(true,"user name already exists");
+    res.status(403).send(apiResponse)
+
+
+    }
+    else {
+      const added_client = await AddClient(query)
       .then((result) => {
         res.status(200).send({
           message: "client created",
@@ -131,6 +155,9 @@ const add_client_by_client = async (req, res, next) => {
         });
       });
     console.log("added_client.error", added_client);
+
+    }
+
   } catch (e) {
     console.log("error", e);
   }
@@ -265,25 +292,51 @@ let delete_client = async(req,res,next) => {
   try {
 
     const idToDelete = req.body._id; // The ID you want to delete
+    const query_to_check_client = {_id : idToDelete };
+    
 
-    const isParentId = await ClientTable.exists({ parent_client_id: idToDelete });
-   
-    // const delete_client = await ClientTable.deleteOne(
-    //   { _id: req.body.id }, // Specify the filter to match the document
+    if(!mongoose.Types.ObjectId.isValid(idToDelete)){
+
+    let apiResponse =  responseLib.generate(true,"Invalid ObjectId provided");
+    res.status(403).send(apiResponse)
+      
+    }
+    else{
+      const check_client = await ClientTable.exists(query_to_check_client);
+      if(check_client){
+        const query = { parent_client_id: idToDelete };
+        const isParentId = await ClientTable.exists(query);
        
-    // );
-
-    console.log("delete_client", delete_client);
-    if (isParentId) {
-      res.status(400).send({message : "Cannot delete, as the client is a parent of other clients."});
-    } else {const deleteResult = await ClientTable.deleteOne({ _id: idToDelete });
+        // const delete_client = await ClientTable.deleteOne(
+        //   { _id: req.body.id }, // Specify the filter to match the document
+           
+        // );
+    
+        console.log("delete_client", delete_client);
+        if (isParentId) {
+          const child_clients = await ClientTable.find(query);
+          res.status(400).send({data : child_clients,message : "Cannot delete, as the client is a parent of other clients."});
+        } else {const deleteResult = await ClientTable.deleteOne({ _id: idToDelete });
+      
+        if (deleteResult.deletedCount === 1) {
+          res.status(200).send({message : "Client deleted successfully."});
+        } else {
+          res.status(404).send({message : "Client not found."});
+        }
+        }
   
-    if (deleteResult.deletedCount === 1) {
-      res.status(200).send({message : "Client deleted successfully."});
-    } else {
-      res.status(404).send({message : "Client not found."});
+      }
+      else{
+      let apiResponse =  responseLib.generate(false,"no such client exists in database");
+      res.status(403).send(apiResponse)
+  
+      }
+
     }
-    }
+
+
+
+  
   } catch (e) {
     console.log("error from delete_client", e);
   }

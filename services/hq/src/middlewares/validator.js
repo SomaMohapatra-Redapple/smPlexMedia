@@ -102,7 +102,7 @@ const addAccountSchema = Joi.object({
     status: Joi.any().valid(null),
 });
 const deleteClientValidateSchema = Joi.object({
-    _id: Joi.required()
+    _id: Joi.string().required()
 })
 
 // const addAccountTechnicalSchema = Joi.object({
