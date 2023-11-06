@@ -80,16 +80,13 @@ const update_account = async (req, res, next) => {
     
     //const updated_account = await AccountTechnicalsUpdate(req.body);
     console.log("updated_account", update_account);
-    if (update_account^update_account_technical) {
+    if (update_account || update_account_technical) {
       res.status(200).send({
-        updated_account: update_account,
-        update_account_technical : update_account_technical,
         message: "account details updated",
       });
     } else {
       res.status(400).send({
-        updated_account: update_account,
-        update_account_technical : update_account_technical,
+        
         message: "account details could not updated",
       });
     }
