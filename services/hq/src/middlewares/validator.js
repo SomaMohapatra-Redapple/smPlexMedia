@@ -1,7 +1,15 @@
 const responseLib = require('../libs/responseLib');
 
 const Joi = require('joi').extend(require('@joi/date'));
+const mongoose = require("mongoose");
+const { ObjectId } = require('mongodb');
 
+const objectIdSchema = Joi.string().custom((value, helpers) => {
+    if (!ObjectId.isValid(value)) {
+      return helpers.error('any.invalid');
+    }
+    return value;
+  }, 'MongoDB ObjectId');
 
 const customLoginValidateSchema = Joi.object({
     
@@ -117,6 +125,20 @@ const editPasswordValidateSchema = Joi.object({
 });
 const ShowAccountTechnicalsValidateSchema = Joi.object({
     account_id: Joi.string().required()
+});
+const ShowAccountUpdateValidateSchema = Joi.object({
+    _id: Joi.string().required(),
+    account_name : Joi.string().allow(''),
+    account_type : Joi.string().allow(''),
+    environment : Joi.string().allow(''),
+    currency : Joi.string().allow(''),
+    status : Joi.string().allow(''),
+
+})
+
+const showPlayerInsideAccountValidateSchema = Joi.object({
+    account_user_id: Joi.string().required()
+
 })
 
 
@@ -529,6 +551,39 @@ let showAccountTechnicalsValidate = async(req, res, next) => {
         res.send(apiResponse)
     }
 }
+//ShowAccountUpdateValidateSchema
+
+let updateAccountValidate = async(req, res, next) => {
+    try {
+        const value = await ShowAccountUpdateValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
+
+
+
+let showPlayerInsideAccountValidate = async(req, res, next) => {
+    try {
+        const value = await showPlayerInsideAccountValidateSchema.validate(req.body);
+        if (value.hasOwnProperty('error')) {
+            throw new Error(value.error);
+        } else {
+            next();
+        }
+    } catch (err) {
+        let apiResponse = responseLib.generate(true, ` ${err.message}`, null);
+        res.status(400);
+        res.send(apiResponse)
+    }
+}
 
 let customRegisterValidate = async(req, res, next) => {
     try {
@@ -817,6 +872,9 @@ module.exports = {
     deleteClientValidate : deleteClientValidate,
     editPasswordForClientValidate : editPasswordForClientValidate,
     showAccountTechnicalsValidate : showAccountTechnicalsValidate,
+    updateAccountValidate : updateAccountValidate,
+    showPlayerInsideAccountValidate : showPlayerInsideAccountValidate,
+
     customRegisterValidate: customRegisterValidate,
     createQuestionValidate: createQuestionValidate,
     updateQuestionValidate: updateQuestionValidate,

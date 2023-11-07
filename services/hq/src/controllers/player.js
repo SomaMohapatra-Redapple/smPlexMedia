@@ -102,14 +102,14 @@ const countAggregation = [
   {
     $group: {
       _id: "$user_id",
-      total_credit: {
+      total_win: {
         $sum: {
-          $cond: { if: { $eq: ["$transaction_type", "CREDIT"] }, then: { $toInt: "$transaction_amount" }, else: 0 }
+          $cond: { if: { $eq: ["$transaction_type", "CREDIT"] }, then: { $toInt: "$transaction_amount" }, else: 1 }
         }
       },
-      total_debit: {
+      total_bet: {
         $sum: {
-          $cond: { if: { $eq: ["$transaction_type", "DEBIT"] }, then: { $toInt: "$transaction_amount" }, else: 0 }
+          $cond: { if: { $eq: ["$transaction_type", "DEBIT"] }, then: { $toInt: "$transaction_amount" }, else: 1 }
         }
       }
     }
@@ -117,23 +117,23 @@ const countAggregation = [
   {
     $project: {
       _id: 1,
-      total_credit: 1,
-      total_debit: 1,
-      net_balance: { $subtract: ["$total_debit", "$total_credit"] }
+      total_win: 1,
+      total_bet: 1,
+      total_margin: { $subtract: ["$total_bet", "$total_win"] }
     }
   },
   {
     $addFields: {
-      net_balance_ratio: { $multiply: [{ $divide: ["$net_balance", "$total_debit"] }, 100] }
+      rtp: { $multiply: [{ $divide: ["$total_margin", "$total_bet"] }, 100] }
     }
   },
   {
     $project: {
       _id: 1,
-      total_credit: 1,
-      total_debit: 1,
-      net_balance: 1,
-      net_balance_ratio: { $round: ["$net_balance_ratio", 2] }
+      total_win: 1,
+      total_bet: 1,
+      total_margin: 1,
+      rtp: { $round: ["$rtp", 2] }
     }
   }
 ];
@@ -148,14 +148,14 @@ const resultsAggregation = [
   {
     $group: {
       _id: "$user_id",
-      total_credit: {
+      total_win: {
         $sum: {
           $cond: { if: { $eq: ["$transaction_type", "CREDIT"] }, then: { $toInt: "$transaction_amount" }, else: 0 }
         }
       },
-      total_debit: {
+      total_bet: {
         $sum: {
-          $cond: { if: { $eq: ["$transaction_type", "DEBIT"] }, then: { $toInt: "$transaction_amount" }, else: 0 }
+          $cond: { if: { $eq: ["$transaction_type", "DEBIT"] }, then: { $toInt: "$transaction_amount" }, else: 1 }
         }
       }
     }
@@ -163,23 +163,23 @@ const resultsAggregation = [
   {
     $project: {
       _id: 1,
-      total_credit: 1,
-      total_debit: 1,
-      net_balance: { $subtract: ["$total_debit", "$total_credit"] }
+      total_win: 1,
+      total_bet: 1,
+      total_margin: { $subtract: ["$total_bet", "$total_win"] }
     }
   },
   {
     $addFields: {
-      net_balance_ratio: { $multiply: [{ $divide: ["$net_balance", "$total_debit"] }, 100] }
+      rtp: { $multiply: [{ $divide: ["$total_margin", "$total_bet"] }, 100] }
     }
   },
   {
     $project: {
       _id: 1,
-      total_credit: 1,
-      total_debit: 1,
-      net_balance: 1,
-      net_balance_ratio: { $round: ["$net_balance_ratio", 2] }
+      total_win: 1,
+      total_bet: 1,
+      total_margin: 1,
+      rtp: { $round: ["$rtp", 2] }
     }
   },
   {
